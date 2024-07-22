@@ -20,12 +20,12 @@ cppcheckCommand = [
 ]
 
 startDirectory = sys.argv[1]
-
 filesToCheck = []
 for root, _, files in os.walk(startDirectory):
     for file in files:
         if file.endswith('.cpp') or file.endswith('.hpp') or file.endswith('.h'):
             filesToCheck.append(os.path.join(root, file))
+
 
 cppcheckCommand.extend(filesToCheck)
 result = subprocess.run(cppcheckCommand)

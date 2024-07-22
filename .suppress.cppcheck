@@ -1,3 +1,7 @@
 unmatchedSuppression
 missingInclude
 missingIncludeSystem
+unusedStructMember
+unusedFunction
+preprocessorErrorDirective
+toomanyconfigs

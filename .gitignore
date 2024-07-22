@@ -31,6 +31,10 @@
 *.out
 *.app
 
+# external librars
+/Projects/Debugging/external
+/Projects/AssetLoader/external
+
 # cppcheck build folder
 /build-cppcheck
 

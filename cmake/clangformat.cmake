@@ -3,9 +3,9 @@ function(enable_clang_format PROJECT SOURCE_ROOT_DIR)
 
     if(CLANG_FORMAT)
         file(GLOB_RECURSE ALL_SOURCE_FILES
-                "SOURCE_ROOT_DIR/*.cpp"
-                "SOURCE_ROOT_DIR/*.hpp"
-                "SOURCE_ROOT_DIR/*.h"
+                "${SOURCE_ROOT_DIR}/*.cpp"
+                "${SOURCE_ROOT_DIR}/*.hpp"
+                "${SOURCE_ROOT_DIR}/*.h"
         )
 
         add_custom_target(

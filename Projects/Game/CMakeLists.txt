@@ -14,5 +14,10 @@ apply_compiler_warnings(${GAME_PROJECT})
 update_output_directory(${GAME_PROJECT})
 enforce_cxx_standard(${GAME_PROJECT})
 
-enable_cppcheck(${GAME_PROJECT} ${CMAKE_CURRENT_SOURCE_DIR})
-enable_clang_format(${GAME_PROJECT} ${CMAKE_CURRENT_SOURCE_DIR})
+enable_cppcheck(${GAME_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
+enable_clang_format(${GAME_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+
+add_dependencies(${GAME_PROJECT} ${ASSET_LOADER_PROJECT})
+target_link_libraries(${GAME_PROJECT} PRIVATE ${ASSET_LOADER_PROJECT})
+target_include_directories(${GAME_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}../AssetLoader/include")
