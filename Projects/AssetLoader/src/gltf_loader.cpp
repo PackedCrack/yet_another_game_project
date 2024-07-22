@@ -8,6 +8,10 @@ namespace asl
 {
 common::CGraph<Mesh> load_model(const std::filesystem::path& filename)
 {
+    LOG_INFO("Test");
+    LOG_WARN("Test");
+    LOG_ERR("Test");
+    LOG_FATAL("Test");
     //const std::string fullpath = assets::FOLDER_PATH.data() + filename;
     tinygltf::Model gltfModel;
     tinygltf::TinyGLTF loader;

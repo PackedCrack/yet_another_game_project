@@ -12,9 +12,10 @@
 #undef FMT_EXCEPTIONS
 namespace
 {
-constexpr std::string_view INFO_PATTERN = "\n%^[MESSAGE] -  %T\n%v%$";
-constexpr std::string_view WARN_PATTERN = "\n%^[THREAD]  -  %t\n[MESSAGE] -  %T\n%v%$";
-constexpr std::string_view ERR_PATTERN = "\n%^[FILE]    -  %s\n[FUNC]    -  %!\n[LINE]    -  %#\n[THREAD]  -  %t\n[MESSAGE] -  %T\n%v%$";
+constexpr std::string_view INFO_PATTERN = "\n%^[TIME]    -  %T\n[MESSAGE] -  %v%$";
+constexpr std::string_view WARN_PATTERN = "\n%^[TIME]    -  %T\n[THREAD]  -  %t\n[MESSAGE] -  %v%$";
+constexpr std::string_view ERR_PATTERN =
+    "\n%^[TIME]    -  %T\n[FILE]    -  %s\n[FUNC]    -  %!\n[LINE]    -  %#\n[THREAD]  -  %t\n[MESSAGE] -  %v%$";
 //static constexpr const char* vk_pattern = "\n%^[VULKAN] -  %T\n%v%$";
 
 [[nodiscard]] std::string_view pattern_from_level(debug::LoggerLevel level)
@@ -88,10 +89,11 @@ void LoggerImpl::log_info(std::string_view msg)
     {
         add_logger(INFO_NAME, m_LogDirectory, LoggerLevel::info);
         result = find_logger(INFO_NAME);
+        ODIN_ASSERT(result);
     }
 
     spdlog::logger* pLogger = result.value();
-    pLogger->warn(msg);
+    pLogger->info(msg);
     pLogger->flush();
 }
 void LoggerImpl::log_warn(std::string_view msg)
@@ -125,7 +127,7 @@ void LoggerImpl::log_fatal(std::string_view msg, std::string_view file, std::str
     std::optional<spdlog::logger*> result = find_logger(FATAL_NAME);
     if (!result)
     {
-        add_logger(FATAL_NAME, m_LogDirectory, LoggerLevel::error);
+        add_logger(FATAL_NAME, m_LogDirectory, LoggerLevel::fatal);
         result = find_logger(FATAL_NAME);
     }
 
@@ -136,10 +138,16 @@ void LoggerImpl::log_fatal(std::string_view msg, std::string_view file, std::str
 void LoggerImpl::add_logger(std::string_view name, const std::filesystem::path& output, LoggerLevel level)
 {
     std::filesystem::path logfile = output;
-    logfile = logfile.remove_filename();
-
-    const auto date = std::filesystem::path{ common::todays_date() };
-    logfile = logfile / date / output.filename();
+    if (logfile.has_extension())
+    {
+        logfile = logfile.remove_filename();
+        logfile = logfile / std::filesystem::path{ common::todays_date() } / output.filename();
+    }
+    else
+    {
+        logfile = logfile / std::filesystem::path{ common::todays_date() } / name;
+        logfile = logfile.replace_extension(".txt");
+    }
 
     auto [it, emplaced] = m_Loggers.try_emplace(std::string{ name }, make_logger(name, logfile, level));
     ODIN_ASSERT(emplaced);

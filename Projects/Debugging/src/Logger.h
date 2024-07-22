@@ -5,8 +5,10 @@
 #pragma once
 
 #include <memory>
+#include <filesystem>
+#include <string_view>
 
-#ifndef DEBUGGING_LIB
+#ifndef SELF_COMPILIATION
     #ifndef LOG_DIRECTORY
         #error You must define the log directory before including this file!
     #endif
@@ -40,8 +42,8 @@ private:
 };
 [[nodiscard]] Logger& logger(std::string_view logpath);
 
-#define LOG_INFO(expr) logger(LOG_DIRECTORY).log_info(expr)
-#define LOG_WARN(expr) logger(LOG_DIRECTORY).log_warn(expr)
-#define LOG_ERR(expr) logger(LOG_DIRECTORY).log_error(expr, __FILE__, __func__, __LINE__)
-#define LOG_FATAL(expr) logger(LOG_DIRECTORY).log_fatal(expr, __FILE__, __func__, __LINE__)
+#define LOG_INFO(expr) debug::logger(LOG_DIRECTORY).log_info(expr)
+#define LOG_WARN(expr) debug::logger(LOG_DIRECTORY).log_warn(expr)
+#define LOG_ERR(expr) debug::logger(LOG_DIRECTORY).log_error(expr, __FILE__, __func__, __LINE__)
+#define LOG_FATAL(expr) debug::logger(LOG_DIRECTORY).log_fatal(expr, __FILE__, __func__, __LINE__)
 }    // namespace debug

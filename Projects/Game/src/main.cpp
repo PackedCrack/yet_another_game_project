@@ -1,15 +1,13 @@
 //
 // Created by qwerty on 22/07/2024.
 //
-#include <cstdio>
-#include <signal.h>
+#define LOG_DIRECTORY "Log/game"
+#include "debug/debug_defines.h"
 int main()
 {
-    std::printf("Hello");
-    // cppcheck-suppress unreachableCode
-    raise(SIGABRT);
-    // cppcheck-suppress unreachableCode
-    __debugbreak();
-    // cppcheck-suppress unreachableCode
-    return 1;
+    LOG_INFO("info");
+    LOG_WARN("warn");
+    LOG_ERR("error");
+    LOG_FATAL("fatal");
+    return 0;
 }

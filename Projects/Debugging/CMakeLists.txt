@@ -11,7 +11,7 @@ add_subdirectory("src")
 get_target_property(DEBUGGING_PROJECT_SOURCES ${DEBUGGING_PROJECT} SOURCES)
 source_group(TREE "${PROJECT_SOURCE_DIR}/.." FILES ${DEBUGGING_PROJECT_SOURCES})
 
-target_compile_definitions(${DEBUGGING_PROJECT} PRIVATE DEBUGGING_LIB)
+target_compile_definitions(${DEBUGGING_PROJECT} PRIVATE SELF_COMPILIATION)
 
 use_pch(${DEBUGGING_PROJECT})
 apply_compiler_warnings(${DEBUGGING_PROJECT})

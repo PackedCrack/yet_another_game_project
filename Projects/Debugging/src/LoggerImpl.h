@@ -10,10 +10,10 @@ namespace debug
 class LoggerImpl
 {
 public:
-    static constexpr std::string_view INFO_NAME = "info_logger";
-    static constexpr std::string_view WARN_NAME = "warn_logger";
-    static constexpr std::string_view ERR_NAME = "err_logger";
-    static constexpr std::string_view FATAL_NAME = "fatal_logger";
+    static constexpr std::string_view INFO_NAME = "info_log";
+    static constexpr std::string_view WARN_NAME = "warn_log";
+    static constexpr std::string_view ERR_NAME = "err_log";
+    static constexpr std::string_view FATAL_NAME = "fatal_log";
 public:
     explicit LoggerImpl(std::string_view logDirectory);
 public:
