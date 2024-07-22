@@ -3,11 +3,12 @@ SET(SOURCES
         LoggerImpl.cpp
         Logger.h
         Logger.cpp
-        engine_defines.h
+        debug_defines.h
 )
 
 set(EXPORT_HEADERS
         Logger.h
+        debug_defines.h
 )
 
 target_sources(${DEBUGGING_PROJECT} PRIVATE ${SOURCES})

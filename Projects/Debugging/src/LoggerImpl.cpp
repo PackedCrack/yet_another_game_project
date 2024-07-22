@@ -4,7 +4,7 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-#include "engine_defines.h"
+#include "debug_defines.h"
 #include "common.h"
 #include "../../AssetLoader/external/glm/gtc/constants.hpp"
 

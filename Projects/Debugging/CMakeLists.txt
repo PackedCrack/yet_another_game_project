@@ -4,7 +4,7 @@ include(${PROJECT_SOURCE_DIR}/cmake/cppcheck.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/pch.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ProjectSettings.cmake)
 
-SET(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+SET(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/debug")
 
 add_library(${DEBUGGING_PROJECT} STATIC)
 add_subdirectory("src")

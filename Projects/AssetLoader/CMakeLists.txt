@@ -4,7 +4,7 @@ include(${PROJECT_SOURCE_DIR}/cmake/cppcheck.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/pch.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ProjectSettings.cmake)
 
-SET(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+SET(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/asset_loader")
 
 add_library(${ASSET_LOADER_PROJECT} STATIC)
 add_subdirectory("src")
@@ -24,4 +24,4 @@ target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "external")
 
 add_dependencies(${ASSET_LOADER_PROJECT} ${DEBUGGING_PROJECT})
 target_link_libraries(${ASSET_LOADER_PROJECT} PRIVATE ${DEBUGGING_PROJECT})
-target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}../Debugging/include")
+target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include/debug")
