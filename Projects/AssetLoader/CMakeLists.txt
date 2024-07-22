@@ -1,0 +1,27 @@
+include(${PROJECT_SOURCE_DIR}/cmake/clangformat.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/CompilerWarnings.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/cppcheck.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/pch.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/ProjectSettings.cmake)
+
+SET(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+add_library(${ASSET_LOADER_PROJECT} STATIC)
+add_subdirectory("src")
+get_target_property(ASSET_LOADER__SOURCES ${ASSET_LOADER_PROJECT} SOURCES)
+source_group(TREE "${PROJECT_SOURCE_DIR}/.." FILES ${ASSET_LOADER__SOURCES})
+
+use_pch(${ASSET_LOADER_PROJECT})
+apply_compiler_warnings(${ASSET_LOADER_PROJECT})
+update_output_directory(${ASSET_LOADER_PROJECT})
+enforce_cxx_standard(${ASSET_LOADER_PROJECT})
+
+enable_cppcheck(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
+enable_clang_format(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${PROJECT_SOURCE_DIR}/common")
+target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "external")
+
+add_dependencies(${ASSET_LOADER_PROJECT} ${DEBUGGING_PROJECT})
+target_link_libraries(${ASSET_LOADER_PROJECT} PRIVATE ${DEBUGGING_PROJECT})
+target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}../Debugging/include")
