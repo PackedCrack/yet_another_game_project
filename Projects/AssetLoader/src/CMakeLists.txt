@@ -1,5 +1,6 @@
 SET(SOURCES
     tinygltf_impl.cpp
+    tinygltf_impl.h
     ModelData.h
     ModelDataImpl.h
     ModelDataImpl.cpp
@@ -7,6 +8,7 @@ SET(SOURCES
         Mesh.cpp
         gltf_loader.h
         gltf_loader.cpp
+        asl_defines.h
 )
 
 set(EXPORT_HEADERS

@@ -24,4 +24,4 @@ target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "external")
 
 add_dependencies(${ASSET_LOADER_PROJECT} ${DEBUGGING_PROJECT})
 target_link_libraries(${ASSET_LOADER_PROJECT} PRIVATE ${DEBUGGING_PROJECT})
-target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include/debug")
+target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")

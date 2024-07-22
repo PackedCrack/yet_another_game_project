@@ -1,7 +1,7 @@
 #include "gltf_loader.h"
 
 #include <cassert>
-#include "debug_defines.h"
+#include "asl_defines.h"
 //
 //
 namespace asl
