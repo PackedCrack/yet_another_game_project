@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# cppcheck build folder
+/build-cppcheck
+
+# generic cmake build
+/build
+
+# clion
+.idea
+/cmake-build-*

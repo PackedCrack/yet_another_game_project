@@ -1,0 +1,15 @@
+SET(VULKAN_SDK $ENV{VULKAN_SDK})
+if(NOT VULKAN_SDK)
+    SET(VULKAN_SDK $ENV{VK_SDK_PATH})
+    if(NOT VULKAN_SDK)
+        message(FATAL_ERROR "Unable to find the Vulkan SDK's environment variable. If you just installed the SDK you should restart your IDE.")
+    endif()
+endif()
+
+function(include_and_link_vulkan PROJECT)
+    target_include_directories(${PROJECT} PRIVATE ${VULKAN_SDK}/Include)
+    target_link_directories(${PROJECT} PRIVATE ${VULKAN_SDK}/Lib)
+
+    find_package(Vulkan REQUIRED)
+    target_link_libraries(${PROJECT} PRIVATE Vulkan::Vulkan)
+endfunction()

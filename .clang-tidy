@@ -1,0 +1,5 @@
+Checks: 'bugprone-*, clang-analyszer-*, concurrency-*, cppcoreguidelines-*, hicpp-*, misc-*, modernize-*, performance-*, portability-*, readability-*'
+WarningsAsErrors: 'bugprone-*, clang-analyszer-*, misc-*, performance-*, portability-*'
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle: file
