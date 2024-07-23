@@ -1,6 +1,4 @@
 SET(SOURCES
-        LoggerImpl.h
-        LoggerImpl.cpp
         Logger.h
         Logger.cpp
         debug_defines.h

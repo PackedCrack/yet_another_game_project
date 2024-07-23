@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Logger.h"
 
 #define NO_FLAGS 0
@@ -9,7 +10,11 @@
 
 
 #ifdef __clang__
-    #define DEBUG_BREAK __asm __volatile__("int3")
+inline void debugbreak()
+{
+    __asm __volatile__("int3");
+}
+    #define DEBUG_BREAK debugbreak()
     #define UNHANDLED_CASE_PROTECTION_ON _Pragma("clang diagnostic error \"-Wswitch-enum\"")
     #define UNHANDLED_CASE_PROTECTION_OFF _Pragma("clang diagnostic warning \"-Wswitch-enum\"")
 #elif _MSC_VER

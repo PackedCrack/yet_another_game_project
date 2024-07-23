@@ -26,11 +26,16 @@ enum class LoggerLevel
     error,
     fatal
 };
-class LoggerImpl;
 class Logger
 {
+    class Impl;
 public:
-    explicit Logger(std::string_view msg);
+    explicit Logger(std::string_view logDirectory);
+    ~Logger();
+    Logger(const Logger& other) = delete;
+    Logger(Logger&& other) noexcept;
+    Logger& operator=(const Logger& other) = delete;
+    Logger& operator=(Logger&& other) noexcept;
 public:
     void log_info(std::string_view msg) const;
     void log_warn(std::string_view msg) const;
@@ -38,7 +43,7 @@ public:
     void log_fatal(std::string_view msg, std::string_view file, std::string_view function, int32_t line) const;
     void add_logger(std::string_view name, const std::filesystem::path& output, LoggerLevel level) const;
 private:
-    std::unique_ptr<LoggerImpl> m_pLogger;
+    std::unique_ptr<Impl> m_pImpl;
 };
 [[nodiscard]] Logger& logger(std::string_view logpath);
 

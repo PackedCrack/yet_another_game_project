@@ -18,8 +18,35 @@ apply_compiler_warnings(${DEBUGGING_PROJECT})
 update_output_directory(${DEBUGGING_PROJECT})
 enforce_cxx_standard(${DEBUGGING_PROJECT})
 
-enable_cppcheck(${DEBUGGING_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
+#enable_cppcheck(${DEBUGGING_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_clang_format(${DEBUGGING_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 target_include_directories(${DEBUGGING_PROJECT} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_include_directories(${DEBUGGING_PROJECT} PRIVATE "external")
+
+
+# Add cppcheck dependency manually because this project requires passing additional custom cmd line arguments to the script
+find_program(PYTHON python)
+if(PYTHON)
+    add_custom_target(${DEBUGGING_PROJECT}_cppcheck_dependency
+            COMMAND python cppcheck.py "${CMAKE_CURRENT_SOURCE_DIR}/src" "-DSELF_COMPILATION"
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            COMMENT "Running CppCheck.."
+            VERBATIM
+    )
+else()
+    message(WARNING "Could not find the environment variable for \"python\".. Trying python3..")
+    find_program(PYTHON3 python3)
+    if(PYTHON3)
+        add_custom_target(${DEBUGGING_PROJECT}_cppcheck_dependency
+                COMMAND python3 cppcheck.py "${CMAKE_CURRENT_SOURCE_DIR}/src" "-DSELF_COMPILATION"
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                COMMENT "Running CppCheck.."
+                VERBATIM
+        )
+    else()
+        message(ERROR "Could not find the environment variable for \"python3\". Python is required to build with development configuration.")
+    endif()
+endif()
+
+add_dependencies(${DEBUGGING_PROJECT} ${DEBUGGING_PROJECT}_cppcheck_dependency)

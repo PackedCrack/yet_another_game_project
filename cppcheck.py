@@ -20,6 +20,10 @@ cppcheckCommand = [
 ]
 
 startDirectory = sys.argv[1]
+
+additionalArgs = sys.argv[2:]
+cppcheckCommand.extend(additionalArgs)
+
 filesToCheck = []
 for root, _, files in os.walk(startDirectory):
     for file in files:

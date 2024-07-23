@@ -46,3 +46,8 @@
 # clion
 .idea
 /cmake-build-*
+
+# visual studio
+.vs
+/out
+CMakeSettings.json
