@@ -13,7 +13,8 @@ bool operator!=(const Mesh& lhs, const Mesh& rhs)
     return lhs.id != rhs.id;
 }
 Mesh::Mesh()
-    : id{ counter++ }
+    : counter{ 1 }
+    , id{ counter++ }
     , numVertices{}
     , position{}
     , normal{}

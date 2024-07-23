@@ -19,7 +19,7 @@ struct TextureData
 struct Mesh : public common::GraphVertex<Mesh>
 {
     Mesh();
-    static std::size_t counter;    // replace this with UUID
+    std::size_t counter;    // replace this with UUID
     std::size_t id;
 
     uint32_t numVertices;

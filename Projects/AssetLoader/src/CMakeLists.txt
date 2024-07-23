@@ -1,9 +1,8 @@
 SET(SOURCES
     tinygltf_impl.cpp
     tinygltf_impl.h
-    ModelData.h
-    ModelDataImpl.h
-    ModelDataImpl.cpp
+        Model.h
+        Model.cpp
         Mesh.h
         Mesh.cpp
         gltf_loader.h
@@ -12,7 +11,7 @@ SET(SOURCES
 )
 
 set(EXPORT_HEADERS
-        ModelData.h
+        Model.h
 )
 
 target_sources(${ASSET_LOADER_PROJECT} PRIVATE ${SOURCES})
