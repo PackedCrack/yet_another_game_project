@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include "asl_defines.h"
+#include "common.h"
 //
 //
 // void load_meshes(tinygltf::Model& gltfModel, tinygltf::Node& gltfNode, MeshData& meshData)
@@ -72,7 +73,6 @@ enum class AccessorComponentType
 };
 
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_type
-// Numbers from tiny_gltf.h defines
 enum class AccessorType
 {
     VEC2 = TINYGLTF_TYPE_VEC2,
@@ -83,7 +83,36 @@ enum class AccessorType
     MAT4 = TINYGLTF_TYPE_MAT4,
     SCALAR = TINYGLTF_TYPE_SCALAR
 };
-int32_t component_size(AccessorComponentType componentType)
+
+typedef std::size_t Index;
+constexpr Index HAS_NONE = UINT64_MAX;    // tinygltf set's the indices to -1 if it does not exist.
+[[nodiscard]] bool has_material(const tinygltf::Primitive& primitive)
+{
+    return static_cast<Index>(primitive.material) != HAS_NONE;
+}
+[[nodiscard]] bool has_indices(const tinygltf::Primitive& primitive)
+{
+    return static_cast<Index>(primitive.indices) != HAS_NONE;
+}
+[[nodiscard]] bool has_mode(const tinygltf::Primitive& primitive)
+{
+    return static_cast<Index>(primitive.mode) != HAS_NONE;
+}
+[[nodiscard]] bool has_mesh(const tinygltf::Node& node)
+{
+    if (static_cast<Index>(node.mesh) == HAS_NONE)
+    {
+        LOG_WARN("GLTF node does not contain a mesh.");
+        return false;
+    }
+
+    return true;
+}
+[[nodiscard]] bool has_skin(const tinygltf::Node& node)
+{
+    return static_cast<Index>(node.skin) != HAS_NONE;
+}
+[[nodiscard]] int32_t component_size(AccessorComponentType componentType)
 {
     UNHANDLED_CASE_PROTECTION_ON
     // clang-format off
@@ -100,7 +129,7 @@ int32_t component_size(AccessorComponentType componentType)
     UNHANDLED_CASE_PROTECTION_OFF
     std::unreachable();
 }
-int32_t num_components(AccessorType type)
+[[nodiscard]] int32_t num_components(AccessorType type)
 {
     UNHANDLED_CASE_PROTECTION_ON
     // clang-format off
@@ -118,47 +147,13 @@ int32_t num_components(AccessorType type)
     UNHANDLED_CASE_PROTECTION_OFF
     std::unreachable();
 }
-template<typename element_t>
-void extract_buffer_data(const tinygltf::Model& gltfModel, uint32_t accessorIndex, std::vector<element_t>& dst)
+template<typename vec_t>
+void normalize(std::vector<vec_t>& out_data)
 {
-    const auto& accessor = gltfModel.accessors[accessorIndex];
-    const int32_t COMPONENT_SIZE = component_size(static_cast<AccessorComponentType>(accessor.componentType));
-    const int32_t NUM_COMPONENTS = num_components(static_cast<AccessorType>(accessor.type));
-    const int32_t ELEMENT_SIZE = COMPONENT_SIZE * NUM_COMPONENTS;
-
-    // Make sure the given type is the same size of what we need
-    ODIN_ASSERT(sizeof(element_t) == ELEMENT_SIZE);
-
-
-    const std::size_t NUM_ELEMENTS = accessor.count;
-    const std::size_t BYTES_TO_COPY = NUM_ELEMENTS * static_cast<std::size_t>(ELEMENT_SIZE);
-    // Resize the dst buffer so it's big enough to store the elements
-    dst.resize(static_cast<std::size_t>(NUM_ELEMENTS));
-    // Get information regarding the buffer
-    const auto& bufferView = gltfModel.bufferViews[static_cast<std::size_t>(accessor.bufferView)];
-    const int32_t BUFFER_INDEX = bufferView.buffer;
-
-    // We have one offset to where the buffer view starts
-    size_t offset = accessor.byteOffset;
-    // And then the buffer view has an offset to where the buffer starts
-    offset += bufferView.byteOffset;
-
-
-    // Now set a ptr to the first byte of the buffer
-    const uint8_t* pBuffer = gltfModel.buffers[static_cast<std::size_t>(BUFFER_INDEX)].data.data();
-    pBuffer += offset;
-
-    std::memcpy(dst.data(), pBuffer, BYTES_TO_COPY);
-}
-typedef std::size_t Index;
-constexpr Index HAS_NONE = UINT64_MAX;    // tinygltf set's the indices to -1 if it does not exist.
-template<typename element_t, typename container_t>
-requires std::contiguous_iterator<typename container_t::iterator>
-[[nodiscard]] std::span<element_t> to_span(const container_t& buffer, std::size_t length, int64_t offset = 0u)
-{
-    // cppcheck-suppress unknownMacro
-    ODIN_ASSERT(auto boundsCheck = std::begin(buffer) + offset; boundsCheck <= std::end(buffer));
-    return std::span<element_t>{ buffer.data() + offset, length };
+    for (auto&& vec : out_data)
+    {
+        vec = glm::normalize(vec);
+    }
 }
 [[nodiscard]] const tinygltf::Buffer& get_buffer(const tinygltf::Model& model, Index buffer)
 {
@@ -189,12 +184,12 @@ template<typename element_t>
 
     std::size_t numElements = pAccessor->count;
     auto offset = static_cast<int64_t>(pAccessor->byteOffset + view.byteOffset);
-    auto attribute = to_span<const uint8_t>(buffer.data, view.byteLength, offset);
+    auto attribute = common::make_view<const uint8_t>(buffer.data, view.byteLength, offset);
 
     if (view.byteStride == 0)
     {
         std::vector<element_t> data{};
-        data.resize(pAccessor->count);
+        data.resize(numElements);
 
         std::memcpy(data.data(), attribute.data(), attribute.size());
 
@@ -207,42 +202,15 @@ template<typename element_t>
         ODIN_ASSERT((view.byteLength % view.byteStride) == 0);
         for (std::size_t i = 0u; i < view.byteLength; i = i + view.byteStride)
         {
-            auto elementView = to_span<const uint8_t>(attribute, sizeof(element_t), static_cast<int64_t>(i));
+            auto elementView = common::make_view<const uint8_t>(attribute, sizeof(element_t), static_cast<int64_t>(i));
 
             data.emplace_back();
             std::memcpy(&data.back(), elementView.data(), elementView.size());
         }
-
         ODIN_ASSERT(data.size() == numElements);
 
         return data;
     }
-}
-[[nodiscard]] bool has_material(const tinygltf::Primitive& primitive)
-{
-    return static_cast<Index>(primitive.material) != HAS_NONE;
-}
-[[nodiscard]] bool has_indices(const tinygltf::Primitive& primitive)
-{
-    return static_cast<Index>(primitive.indices) != HAS_NONE;
-}
-[[nodiscard]] bool has_mode(const tinygltf::Primitive& primitive)
-{
-    return static_cast<Index>(primitive.mode) != HAS_NONE;
-}
-[[nodiscard]] bool has_mesh(const tinygltf::Node& node)
-{
-    if (static_cast<Index>(node.mesh) == HAS_NONE)
-    {
-        LOG_WARN("GLTF node does not contain a mesh.");
-        return false;
-    }
-
-    return true;
-}
-[[nodiscard]] bool has_skin(const tinygltf::Node& node)
-{
-    return static_cast<Index>(node.skin) != HAS_NONE;
 }
 [[nodiscard]] std::optional<const tinygltf::Accessor*>
     find_attribute_accessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
@@ -256,23 +224,85 @@ template<typename element_t>
 
     return std::nullopt;
 }
-[[nodiscard]] asl::Mesh& store_attributes(const tinygltf::Model& model, const tinygltf::Primitive primitive, asl::Mesh& mesh)
+template<typename accessor_t>
+[[nodiscard]] std::optional<std::vector<accessor_t>>
+    get_attribute(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
 {
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
-    std::optional<const tinygltf::Accessor*> accessor = find_attribute_accessor(model, primitive, "POSITION");
+    std::optional<const tinygltf::Accessor*> accessor = find_attribute_accessor(model, primitive, attribute);
     if (accessor)
     {
-        mesh.position = extract_buffer<glm::vec3>(model, *accessor);
+        return std::optional<std::vector<accessor_t>>{ std::in_place, extract_buffer<accessor_t>(model, *accessor) };
     }
-    accessor = find_attribute_accessor(model, primitive, "NORMAL");
-    if (accessor)
+
+    return std::nullopt;
+}
+[[nodiscard]] std::optional<std::vector<glm::vec4>> get_color_attribute(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
+{
+    // Investigate models with multiple color sets.
+    ODIN_ASSERT(find_attribute_accessor(model, primitive, "COLOR_1") == std::nullopt);
+
+    // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
+    std::optional<const tinygltf::Accessor*> accessor = find_attribute_accessor(model, primitive, "COLOR_0");
+    if (!accessor)
     {
-        mesh.normal = extract_buffer<glm::vec3>(model, *accessor);
-        if (!accessor.value()->normalized)
+        return std::nullopt;
+    }
+
+    const tinygltf::Accessor* pAccessor = *accessor;
+    if (AccessorType{ pAccessor->type } == AccessorType::VEC4)
+    {
+        return std::optional<std::vector<glm::vec4>>{ std::in_place, extract_buffer<glm::vec4>(model, *accessor) };
+    }
+    else
+    {
+        ODIN_ASSERT(AccessorType{ pAccessor->type } == AccessorType::VEC3);
+        LOG_WARN("Mesh primitive from loaded GLTF file has color data in RGB. Converting to RGBA..");
+
+        std::optional<std::vector<glm::vec3>> color{ std::in_place, extract_buffer<glm::vec3>(model, *accessor) };
+        ODIN_ASSERT(color);
+
+        std::optional<std::vector<glm::vec4>> convertedColor{ std::in_place, std::vector<glm::vec4>{} };
+        for (auto&& vec3 : *color)
         {
-            //mesh.normal = glm::normalize(mesh.normal);
+            convertedColor->emplace_back(1.0f);
+            convertedColor->back().x = vec3.x;
+            convertedColor->back().y = vec3.y;
+            convertedColor->back().z = vec3.z;
         }
+
+        return convertedColor;
     }
+}
+[[nodiscard]] asl::Mesh& store_attributes(const tinygltf::Model& model, const tinygltf::Primitive primitive, asl::Mesh& mesh)
+{
+    std::optional<std::vector<glm::vec3>> position = get_attribute<glm::vec3>(model, primitive, "POSITION");
+    ODIN_ASSERT(position);    // vertex positions are expected to exist
+    mesh.position = std::move(*position);
+
+    mesh.normal = get_attribute<glm::vec3>(model, primitive, "NORMAL");
+    if (mesh.normal)
+    {
+        normalize(*mesh.normal);
+    }
+
+    mesh.tanget = get_attribute<glm::vec4>(model, primitive, "TANGET");
+    if (mesh.tanget)
+    {
+        normalize(*mesh.tanget);
+    }
+
+    mesh.uv = get_attribute<glm::vec2>(model, primitive, "TEXCOORD_0");
+    mesh.color = get_color_attribute(model, primitive);
+    mesh.joints = get_attribute<glm::vec4>(model, primitive, "JOINTS_0");
+    mesh.weights = get_attribute<glm::vec4>(model, primitive, "WEIGHTS_0");
+
+    // Investigate models with multiple UV sets.
+    ODIN_ASSERT(get_attribute<glm::vec2>(model, primitive, "TEXCOORD_1") == std::nullopt);
+    // Investigate models with multiple joints sets.
+    ODIN_ASSERT(get_attribute<glm::vec4>(model, primitive, "JOINTS_1") == std::nullopt);
+    // Investigate models with multiple weights sets.
+    ODIN_ASSERT(get_attribute<glm::vec4>(model, primitive, "WEIGHTS_1") == std::nullopt);
 
     return mesh;
 }
@@ -437,6 +467,7 @@ common::CGraph<Mesh> load_model(const std::filesystem::path& filename)
 
     if (extension == ".gltf")
     {
+        LOG_INFO(std::format("Loading model: {}", filename.string()));
         return load_gltf(filename);
     }
     else if (extension == ".glb")
