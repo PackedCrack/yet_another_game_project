@@ -28,12 +28,14 @@ struct Mesh : public common::GraphVertex<Mesh>
     glm::vec3 scale;
 
 
-    uint32_t numVertices;
     std::vector<glm::vec3> position;    // Vertex positions
-    std::vector<glm::vec3> normal;
-    std::vector<glm::vec4> color;
-    std::vector<glm::vec2> uv;
     std::vector<uint16_t> indices;
+    std::optional<std::vector<glm::vec3>> normal;
+    std::optional<std::vector<glm::vec4>> tanget;
+    std::optional<std::vector<glm::vec2>> uv;
+    std::optional<std::vector<glm::vec4>> color;
+    std::optional<std::vector<glm::vec4>> joints;
+    std::optional<std::vector<glm::vec4>> weights;
 
 
     std::optional<double> metallic;

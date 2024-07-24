@@ -15,12 +15,17 @@ bool operator!=(const Mesh& lhs, const Mesh& rhs)
 Mesh::Mesh()
     : counter{ 1 }
     , id{ counter++ }
-    , numVertices{}
+    , translation{}
+    , rotation{}
+    , scale{}
     , position{}
-    , normal{}
-    , color{}
-    , uv{}
     , indices{}
+    , normal{ std::nullopt }
+    , tanget{ std::nullopt }
+    , uv{ std::nullopt }
+    , color{ std::nullopt }
+    , joints{ std::nullopt }
+    , weights{ std::nullopt }
     , metallic{ std::nullopt }
     , roughness{ std::nullopt }
     , baseTexture{ std::nullopt }

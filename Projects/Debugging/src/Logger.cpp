@@ -123,7 +123,7 @@ public:
         }
 
         spdlog::logger* pLogger = result.value();
-        pLogger->log({ msg.data(), line, function.data() }, spdlog::level::err, msg);
+        pLogger->log({ file.data(), line, function.data() }, spdlog::level::err, msg);
         pLogger->flush();
     }
     void log_fatal(std::string_view msg, std::string_view file, std::string_view function, int32_t line)
@@ -136,7 +136,7 @@ public:
         }
 
         spdlog::logger* pLogger = result.value();
-        pLogger->log({ msg.data(), line, function.data() }, spdlog::level::critical, msg);
+        pLogger->log({ file.data(), line, function.data() }, spdlog::level::critical, msg);
         pLogger->flush();
     }
     void add_logger(std::string_view name, const std::filesystem::path& output, LoggerLevel level)
