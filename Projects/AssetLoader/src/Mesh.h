@@ -22,13 +22,19 @@ struct Mesh : public common::GraphVertex<Mesh>
     std::size_t counter;    // replace this with UUID
     std::size_t id;
 
+
+    glm::vec3 translation;
+    glm::quat rotation;
+    glm::vec3 scale;
+
+
     uint32_t numVertices;
-    std::vector<glm::vec3> position;
+    std::vector<glm::vec3> position;    // Vertex positions
     std::vector<glm::vec3> normal;
     std::vector<glm::vec4> color;
     std::vector<glm::vec2> uv;
     std::vector<uint16_t> indices;
-    std::optional<glm::mat4> matrix;
+
 
     std::optional<double> metallic;
     std::optional<double> roughness;

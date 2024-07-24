@@ -3,5 +3,5 @@ missingInclude
 missingIncludeSystem
 unusedStructMember
 unusedFunction
+unreadVariable
 preprocessorErrorDirective
-toomanyconfigs

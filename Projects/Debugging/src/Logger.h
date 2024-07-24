@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "debug_defines.h"
+
 #include <memory>
 #include <filesystem>
 #include <string_view>
@@ -50,5 +52,7 @@ private:
 #define LOG_INFO(expr) debug::logger(LOG_DIRECTORY).log_info(expr)
 #define LOG_WARN(expr) debug::logger(LOG_DIRECTORY).log_warn(expr)
 #define LOG_ERR(expr) debug::logger(LOG_DIRECTORY).log_error(expr, __FILE__, __func__, __LINE__)
-#define LOG_FATAL(expr) debug::logger(LOG_DIRECTORY).log_fatal(expr, __FILE__, __func__, __LINE__)
+#define LOG_FATAL(expr)                                                                                                                    \
+    debug::logger(LOG_DIRECTORY).log_fatal(expr, __FILE__, __func__, __LINE__);                                                            \
+    DEBUG_BREAK;
 }    // namespace debug

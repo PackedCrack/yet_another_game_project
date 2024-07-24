@@ -1,13 +1,6 @@
 #pragma once
 
-#include "Logger.h"
-
 #define NO_FLAGS 0
-
-#ifndef LOG_INFO
-    #define LOG_INFO(expr) debug::logger().log_info(expr);
-#endif
-
 
 #ifdef __clang__
 inline void debugbreak()
