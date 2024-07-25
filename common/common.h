@@ -14,6 +14,41 @@
 namespace common
 {
 /**
+ * @brief The `is_any_of` concept checks if the type `checked_t` is the same as any of the types in the parameter pack `any_t...`.
+ *
+ * @tparam checked_t The type to be checked against the list of types.
+ * @tparam any_t The parameter pack representing the list of types to check against.
+ *
+ * @note This concept leverages C++17 fold expressions to perform the check.
+ *
+ * @example
+ * \code
+ * template<typename T>
+ * requires is_any_of<T, int, double, char>
+ * void func(T value) {
+ *     // Implementation here
+ * }
+ * \endcode
+ * In the above example, `func` can only be instantiated with `int`, `double`, or `char` types.
+ */
+template<typename checked_t, typename... any_t>
+concept is_any_of = (std::same_as<checked_t, any_t> || ...);
+//
+//
+/**
+ * @brief Checks if a given integer is a power of two.
+ *
+ * @tparam int_t An integral type (e.g., int, long, unsigned int, etc.).
+ * @param n The integer to check.
+ * @return true if @p n is a power of two, false otherwise.
+ */
+template<typename int_t>
+requires std::integral<int_t>
+[[nodiscard]] bool is_power_of_two(int_t n)
+ {
+     return n > 0 && (n & (n - 1)) == 0;
+ }
+/**
  * @brief Calculates the date a specified number of days before the current date.
  *
  * This function computes the date that is a specified number of days before the current date

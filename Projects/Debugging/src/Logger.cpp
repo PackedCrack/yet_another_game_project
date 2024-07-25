@@ -5,9 +5,23 @@
 #include "common.h"
 #include "debug_defines.h"
 
+
+#ifdef __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#elif _MSC_VER
+    #pragma warning(disable: 4'239)
+#else
+    #error Unknown compiler
+#endif
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#ifdef __clang__
+    #pragma clang diagnostic pop
+#elif _MSC_VER
+    #pragma warning(enable: 4'239)
+#endif
 //
 //
 #undef FMT_EXCEPTIONS

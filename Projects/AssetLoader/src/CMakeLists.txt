@@ -5,6 +5,8 @@ SET(SOURCES
         Model.cpp
         Mesh.h
         Mesh.cpp
+        Material.cpp
+        Material.h
         gltf_loader.h
         gltf_loader.cpp
         asl_defines.h

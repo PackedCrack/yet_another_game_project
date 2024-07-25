@@ -6,15 +6,39 @@
 
 #include "CGraph.hpp"
 #include "glm_headers.h"
+#include "Material.h"
 //
 //
 namespace asl
 {
-struct TextureData
+struct Primitive
 {
-    std::vector<uint8_t> imageBuffer;
-    int32_t imageWidth;
-    int32_t imageHeight;
+    glm::vec3 translation;
+    glm::quat rotation;
+    glm::vec3 scale;
+
+    std::vector<glm::vec3> position;    // Vertex positions
+    std::vector<uint16_t> indices;
+    std::optional<std::vector<glm::vec3>> normal;
+    std::optional<std::vector<glm::vec4>> tanget;
+    std::optional<std::vector<glm::vec2>> uv;
+    std::optional<std::vector<glm::vec4>> color;
+    std::optional<std::vector<glm::vec4>> joints;
+    std::optional<std::vector<glm::vec4>> weights;
+
+    // TODO:
+    // GPU Topology mode goes here.
+
+    // <key, value> = <COLOR_n, data>
+    std::unordered_map<std::string, std::vector<glm::vec4>> ColorCache;
+    // <key, value> = <TEXCOORD_n, data>
+    std::unordered_map<std::string, std::vector<glm::vec2>> UVCache;
+    // <key, value> = <JOINTS_n, data>
+    std::unordered_map<std::string, std::vector<glm::vec4>> jointCache;
+    // <key, value> = <WEIGHTS_n, data>
+    std::unordered_map<std::string, std::vector<glm::vec4>> weightsCache;
+
+    Material material;
 };
 struct Mesh : public common::GraphVertex<Mesh>
 {

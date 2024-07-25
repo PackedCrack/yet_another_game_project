@@ -12,48 +12,6 @@
 
 //     for (const auto& primitive : primitives)
 //     {
-//         // TODO:: Handle other primtive modes
-//         PrimitiveMode mode = primitive_mode(primitive.mode);
-//         if (mode != PrimitiveMode::TRIANGLES)
-//         {
-//             ODIN_ERROR_SEVERE("ERROR::PRIMITIVE::MODE::NOT::TRIANGLES");
-//         }
-//
-//
-//         int32_t accessorIndex = -1;
-//         if (find_attribute_accessor(primitive, "POSITION", accessorIndex))
-//         {
-//             extract_buffer_data(gltfModel, accessorIndex, meshData.position);
-//         }
-//         else
-//         {
-//             ODIN_ERROR_SEVERE("ERROR::PRIMITIVE::HAS::NO::VERTEX::POSITIONS");
-//         }
-//         // Store the number of vertices..
-//         meshData.numVertices = static_cast<uint32_t>(meshData.position.size());
-//
-//         if (find_attribute_accessor(primitive, "NORMAL", accessorIndex))
-//         {
-//             extract_buffer_data(gltfModel, accessorIndex, meshData.normal);
-//         }
-//         else
-//         {
-//             // If the file doesnt contain normal data we just fill it with 0s
-//             meshData.normal.resize(meshData.numVertices);
-//         }
-//
-//         if (find_attribute_accessor(primitive, "TEXCOORD_0", accessorIndex))
-//         {
-//             extract_buffer_data(gltfModel, accessorIndex, meshData.uv);
-//         }
-//         else
-//         {
-//             meshData.uv.resize(meshData.numVertices);
-//         }
-//
-//
-//         const int32_t ACCESSOR_INDICES = primitive.indices;
-//         load_indices(gltfModel, ACCESSOR_INDICES, meshData);
 //
 //         const int32_t MATERIAL_INDEX = primitive.material;
 //         load_materials(gltfModel, MATERIAL_INDEX, meshData);
@@ -71,7 +29,6 @@ enum class AccessorComponentType
     UNSIGNED_INT = TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT,
     FLOAT = TINYGLTF_COMPONENT_TYPE_FLOAT
 };
-
 // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_type
 enum class AccessorType
 {
@@ -82,6 +39,19 @@ enum class AccessorType
     MAT3 = TINYGLTF_TYPE_MAT3,
     MAT4 = TINYGLTF_TYPE_MAT4,
     SCALAR = TINYGLTF_TYPE_SCALAR
+};
+// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
+enum class PrimitiveMode
+{
+    POINTS = TINYGLTF_MODE_POINTS,
+    LINE = TINYGLTF_MODE_LINE,
+    LINE_LOOP = TINYGLTF_MODE_LINE_LOOP,
+    LINE_STRIP = TINYGLTF_MODE_LINE_STRIP,
+    TRIANGLES = TINYGLTF_MODE_TRIANGLES,
+    TRIANGLE_STRIP = TINYGLTF_MODE_TRIANGLE_STRIP,
+    TRIANGLE_FAN = TINYGLTF_MODE_TRIANGLE_FAN,
+    // if something goes wrong
+    UNKNOWN
 };
 
 typedef std::size_t Index;
@@ -150,10 +120,7 @@ constexpr Index HAS_NONE = UINT64_MAX;    // tinygltf set's the indices to -1 if
 template<typename vec_t>
 void normalize(std::vector<vec_t>& out_data)
 {
-    for (auto&& vec : out_data)
-    {
-        vec = glm::normalize(vec);
-    }
+    std::for_each(std::execution::par, std::begin(out_data), std::end(out_data), [](auto&& vec) { vec = glm::normalize(vec); });
 }
 [[nodiscard]] const tinygltf::Buffer& get_buffer(const tinygltf::Model& model, Index buffer)
 {
@@ -169,6 +136,19 @@ template<typename element_t>
     const int32_t NUM_COMPONENTS = num_components(static_cast<AccessorType>(pAccessor->type));
     const int32_t ELEMENT_SIZE = COMPONENT_SIZE * NUM_COMPONENTS;
     return sizeof(element_t) == ELEMENT_SIZE;
+}
+template<typename element_t>
+requires std::integral<element_t>
+[[nodiscard]] std::vector<uint16_t> convert_buffer_to_u16(const std::vector<element_t>& buffer)
+{
+    std::vector<uint16_t> converted{};
+    std::transform(std::execution::par,
+                   std::begin(buffer),
+                   std::end(buffer),
+                   std::begin(converted),
+                   [](auto&& byte) { return static_cast<uint16_t>(byte & 0x00'00'00'00'00'00'FF'FF); });
+
+    return converted;
 }
 template<typename element_t>
 [[nodiscard]] std::vector<element_t> extract_buffer(const tinygltf::Model& model, const tinygltf::Accessor* pAccessor)
@@ -213,7 +193,7 @@ template<typename element_t>
     }
 }
 [[nodiscard]] std::optional<const tinygltf::Accessor*>
-    find_attribute_accessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
+find_attribute_accessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
 {
     auto it = primitive.attributes.find(attribute.data());
     if (it != primitive.attributes.end())
@@ -226,7 +206,7 @@ template<typename element_t>
 }
 template<typename accessor_t>
 [[nodiscard]] std::optional<std::vector<accessor_t>>
-    get_attribute(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
+get_attribute(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
 {
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
     std::optional<const tinygltf::Accessor*> accessor = find_attribute_accessor(model, primitive, attribute);
@@ -236,6 +216,38 @@ template<typename accessor_t>
     }
 
     return std::nullopt;
+}
+[[nodiscard]] asl::Mesh& store_indices(const tinygltf::Model& model, const tinygltf::Primitive& primitive, asl::Mesh& mesh)
+{
+    ODIN_ASSERT(primitive.indices);    // Expecting indices to exist
+
+    auto accessor = static_cast<Index>(primitive.indices);
+    const tinygltf::Accessor* pAccessor = &model.accessors[accessor];
+
+    auto type = AccessorComponentType{ pAccessor->componentType };
+    if (type == AccessorComponentType::UNSIGNED_SHORT)
+    {
+        // Vulkan expects the index data to be uint16
+        mesh.indices = extract_buffer<uint16_t>(model, pAccessor);
+    }
+    else
+    {
+        LOG_INFO("Indices are not uint16! Converting..");
+        if (type == AccessorComponentType::UNSIGNED_INT)
+        {
+            mesh.indices = convert_buffer_to_u16(extract_buffer<uint32_t>(model, pAccessor));
+        }
+        else if (type == AccessorComponentType::BYTE)
+        {
+            mesh.indices = convert_buffer_to_u16(extract_buffer<uint8_t>(model, pAccessor));
+        }
+        else
+        {
+            ODIN_ASSERT(false);    // Unexpected component type
+        }
+    }
+
+    return mesh;
 }
 [[nodiscard]] std::optional<std::vector<glm::vec4>> get_color_attribute(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
 {
@@ -274,18 +286,16 @@ template<typename accessor_t>
         return convertedColor;
     }
 }
-[[nodiscard]] asl::Mesh& store_attributes(const tinygltf::Model& model, const tinygltf::Primitive primitive, asl::Mesh& mesh)
+[[nodiscard]] asl::Mesh& store_attributes(const tinygltf::Model& model, const tinygltf::Primitive& primitive, asl::Mesh& mesh)
 {
-    std::optional<std::vector<glm::vec3>> position = get_attribute<glm::vec3>(model, primitive, "POSITION");
-    ODIN_ASSERT(position);    // vertex positions are expected to exist
-    mesh.position = std::move(*position);
+    // vertex positions are expected to exist
+    mesh.position = std::move(get_attribute<glm::vec3>(model, primitive, "POSITION").value());
 
     mesh.normal = get_attribute<glm::vec3>(model, primitive, "NORMAL");
     if (mesh.normal)
     {
         normalize(*mesh.normal);
     }
-
     mesh.tanget = get_attribute<glm::vec4>(model, primitive, "TANGET");
     if (mesh.tanget)
     {
@@ -314,16 +324,31 @@ template<typename accessor_t>
         // TODO: extensions support goes here
         // m.extensions
 
+
         mesh = store_attributes(model, primitive, mesh);
 
         if (has_material(primitive))
-        {}
+        {
+            auto i = static_cast<Index>(primitive.material);
+            const tinygltf::Material& material = model.materials[i];
+
+            asl::Primitive prim{
+                .material = asl::Material{ model, material }
+            };
+        }
 
         if (has_indices(primitive))
-        {}
+        {
+            mesh = store_indices(model, primitive, mesh);
+        }
 
         if (has_mode(primitive))
-        {}
+        {
+            if (PrimitiveMode{ primitive.mode } != PrimitiveMode::TRIANGLES)
+            {
+                LOG_WARN("Loading a GLTF mesh who's primitive is not set to Triangles!");
+            }
+        }
     }
 
     return mesh;
