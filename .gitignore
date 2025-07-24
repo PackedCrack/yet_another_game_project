@@ -32,10 +32,10 @@
 *.app
 
 # static libraries
-/Projects/Debugging/external
-/Projects/Debugging/include
-/Projects/AssetLoader/external
-/Projects/AssetLoader/include
+/src/Debugging/external
+/src/Debugging/include
+/src/AssetLoader/external
+/src/AssetLoader/include
 
 # cppcheck build folder
 /build-cppcheck

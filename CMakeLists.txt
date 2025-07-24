@@ -17,4 +17,4 @@ include(cmake/dependencies.cmake)
 
 fetch_third_party()
 
-add_subdirectory("Projects")
+add_subdirectory("src")
