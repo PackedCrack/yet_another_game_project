@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <format>
 #include <string>
+#include <span>
 //
 //
 namespace common

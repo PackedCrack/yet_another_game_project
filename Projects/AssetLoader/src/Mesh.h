@@ -11,7 +11,7 @@
 //
 namespace asl
 {
-struct Primitive
+struct Primitive    // Mesh 2.0
 {
     glm::vec3 translation;
     glm::quat rotation;
