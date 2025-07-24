@@ -14,13 +14,12 @@ class Model::Impl
 public:
     explicit Impl(std::filesystem::path&& filename)
         : m_Filename{ std::move(filename) }
-        , m_Meshes{}
-    {
-        m_Meshes = load_model(m_Filename);
-    };
+        , m_Model{ load_model(m_Filename) }
+    {}
 private:
     std::filesystem::path m_Filename;
-    common::CGraph<Mesh> m_Meshes;
+    //common::CGraph<Mesh> m_Meshes;
+    common::CGraph<ModelNode> m_Model;
 };
 ///////////////
 // Interface //

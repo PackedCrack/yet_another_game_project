@@ -36,6 +36,10 @@ requires graph_vertex<vertex_t>
 class CGraph
 {
 public:
+    explicit CGraph(vertex_t vertex)
+        : m_Root{ std::move(vertex) }
+    {}
+public:
     [[nodiscard]] const vertex_t& root() const { return m_Root; }
 private:
     vertex_t m_Root;

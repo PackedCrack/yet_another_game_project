@@ -12,5 +12,6 @@
 //
 namespace asl
 {
-[[nodiscard]] common::CGraph<Mesh> load_model(const std::filesystem::path& filename);
+//[[nodiscard]] common::CGraph<Mesh> load_model(const std::filesystem::path& filename);
+[[nodiscard]] common::CGraph<ModelNode> load_model(const std::filesystem::path& filename);
 }    // namespace asl

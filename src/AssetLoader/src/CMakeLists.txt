@@ -4,6 +4,8 @@ SET(SOURCES
         Model.h
         Model.cpp
         Mesh.h
+        Renderable.cpp
+        Renderable.hpp
         Mesh.cpp
         Material.cpp
         Material.h

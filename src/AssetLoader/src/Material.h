@@ -84,6 +84,8 @@ struct EmissiveTexture
 class Material
 {
 public:
+    //cppcheck-suppress uninitMemberVar
+    Material() = default;
     Material(const tinygltf::Model& model, const tinygltf::Material& material);
 private:
     Alpha m_AlphaSettings;
