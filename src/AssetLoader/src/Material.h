@@ -47,39 +47,35 @@ struct Sampler
     std::optional<MinFilter> minfilter;
     std::optional<MagFilter> magfilter;
 };
-struct TextureData
+template<typename derived_t>
+struct Texture
 {
-    std::string texturKey;
+    std::string textureKey;
     std::vector<uint8_t> imageBuffer;
     int32_t imageWidth;
     int32_t imageHeight;
     Sampler sampler;
 };
-struct BaseTexture
+struct Base : public Texture<Base>
 {
     std::vector<double> factor;
-    std::optional<TextureData> texture;
 };
-struct MetallicRoughnessTexture
+struct MetallicRoughness : public Texture<MetallicRoughness>
 {
     double metallic;
     double roughness;
-    std::optional<TextureData> texture;
 };
-struct NormalTexture
+struct Normal : public Texture<Normal>
 {
     double scale;    // scaledNormal = normalize((<sampled normal texture value> * 2.0 - 1.0) * vec3(<normal scale>, <normal scale>, 1.0))
-    std::optional<TextureData> texture;
 };
-struct OcclusionTexture
+struct Occlusion : public Texture<Occlusion>
 {
     double strength;    // occludedColor = lerp(color, color * <sampled occlusion texture value>, <occlusion strength>)
-    std::optional<TextureData> texture;
 };
-struct EmissiveTexture
+struct Emissive : public Texture<Emissive>
 {
     std::vector<double> factor;
-    std::optional<TextureData> texture;
 };
 class Material
 {
@@ -89,11 +85,11 @@ public:
     Material(const tinygltf::Model& model, const tinygltf::Material& material);
 private:
     Alpha m_AlphaSettings;
-    BaseTexture m_Base;
-    MetallicRoughnessTexture m_MetalRough;
-    NormalTexture m_Normal;
-    OcclusionTexture m_Occlusion;
-    EmissiveTexture m_Emissive;
+    std::optional<Base> m_Base;
+    std::optional<MetallicRoughness> m_MetalRough;
+    std::optional<Normal> m_Normal;
+    std::optional<Occlusion> m_Occlusion;
+    std::optional<Emissive> m_Emissive;
     bool m_DoubleSided;
 };
 }    // namespace asl

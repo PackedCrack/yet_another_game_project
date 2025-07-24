@@ -9,7 +9,8 @@
 //
 int main()
 {
-    LOG_DEBUG("debug {}", 1);
+    LOG_DEBUG("debug");
+    LOG_DEBUG("debug {} {}", 1, "asdf");
     LOG_INFO("info {}", 1);
     LOG_WARN("warn {}", 1);
     LOG_ERR("error {}", 1);

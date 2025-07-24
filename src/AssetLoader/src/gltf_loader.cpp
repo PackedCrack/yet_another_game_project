@@ -29,6 +29,8 @@ constexpr std::int64_t NONE = -1;
 
         glm::vec3 scale{};
         glm::vec3 translation{};
+        ODIN_ASSERT(false);
+        // PROBABLY A BUG SINCE WE'RE NOT CASTING FROM DOUBLE TO FLOAT
         glm::mat4 localMatrix = glm::make_mat4x4(node.matrix.data());
         glm::decompose(localMatrix, scale, trs.rotation, translation, skew, projection);
         trs.scale = glm::vec4(scale, 1.0f);
@@ -39,20 +41,29 @@ constexpr std::int64_t NONE = -1;
         static constexpr std::size_t x = 0;
         static constexpr std::size_t y = 1;
         static constexpr std::size_t z = 2;
+        static constexpr std::size_t w = 3;
         if (!node.translation.empty())
         {
             ODIN_ASSERT(node.translation.size() == 3);
-            trs.translation = glm::vec4(node.translation[x], node.translation[y], node.translation[z], 1.0f);
+            trs.translation = glm::vec4{ static_cast<float>(node.translation[x]),
+                                         static_cast<float>(node.translation[y]),
+                                         static_cast<float>(node.translation[z]),
+                                         1.0f };
         }
         if (!node.rotation.empty())
         {
             ODIN_ASSERT(node.rotation.size() == 4);
-            trs.rotation = glm::make_quat(&node.rotation[0]);
+            glm::vec4 asFloat{ static_cast<float>(node.rotation[x]),
+                               static_cast<float>(node.rotation[y]),
+                               static_cast<float>(node.rotation[z]),
+                               static_cast<float>(node.rotation[w]) };
+            trs.rotation = glm::make_quat(std::addressof(asFloat[x]));
         }
         if (!node.scale.empty())
         {
             ODIN_ASSERT(node.scale.size() == 3);
-            trs.scale = glm::vec4(node.scale[x], node.scale[y], node.scale[z], 1.0f);
+            trs.scale =
+                glm::vec4{ static_cast<float>(node.scale[x]), static_cast<float>(node.scale[y]), static_cast<float>(node.scale[z]), 1.0f };
         }
     }
 
@@ -124,387 +135,6 @@ constexpr std::int64_t NONE = -1;
     return graph;
 }
 }    // namespace
-// void load_meshes(tinygltf::Model& gltfModel, tinygltf::Node& gltfNode, MeshData& meshData)
-// {
-//     const int32_t MESH_INDEX = gltfNode.mesh;
-//     auto& mesh = gltfModel.meshes[MESH_INDEX];
-
-//     for (const auto& primitive : primitives)
-//     {
-//
-//         const int32_t MATERIAL_INDEX = primitive.material;
-//         load_materials(gltfModel, MATERIAL_INDEX, meshData);
-//     }
-// }
-// namespace
-// {
-// // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_componenttype
-// enum class AccessorComponentType
-// {
-//     BYTE = TINYGLTF_COMPONENT_TYPE_BYTE,
-//     UNSIGNED_BYTE = TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE,
-//     SHORT = TINYGLTF_COMPONENT_TYPE_SHORT,
-//     UNSIGNED_SHORT = TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT,
-//     UNSIGNED_INT = TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT,
-//     FLOAT = TINYGLTF_COMPONENT_TYPE_FLOAT
-// };
-// // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#_accessor_type
-// enum class AccessorType
-// {
-//     VEC2 = TINYGLTF_TYPE_VEC2,
-//     VEC3 = TINYGLTF_TYPE_VEC3,
-//     VEC4 = TINYGLTF_TYPE_VEC4,
-//     MAT2 = TINYGLTF_TYPE_MAT2,
-//     MAT3 = TINYGLTF_TYPE_MAT3,
-//     MAT4 = TINYGLTF_TYPE_MAT4,
-//     SCALAR = TINYGLTF_TYPE_SCALAR
-// };
-// // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
-// enum class PrimitiveMode
-// {
-//     POINTS = TINYGLTF_MODE_POINTS,
-//     LINE = TINYGLTF_MODE_LINE,
-//     LINE_LOOP = TINYGLTF_MODE_LINE_LOOP,
-//     LINE_STRIP = TINYGLTF_MODE_LINE_STRIP,
-//     TRIANGLES = TINYGLTF_MODE_TRIANGLES,
-//     TRIANGLE_STRIP = TINYGLTF_MODE_TRIANGLE_STRIP,
-//     TRIANGLE_FAN = TINYGLTF_MODE_TRIANGLE_FAN,
-//     // if something goes wrong
-//     UNKNOWN
-// };
-//
-// typedef std::size_t Index;
-// constexpr Index HAS_NONE = UINT64_MAX;    // tinygltf set's the indices to -1 if it does not exist.
-// [[nodiscard]] bool has_material(const tinygltf::Primitive& primitive)
-// {
-//     return static_cast<Index>(primitive.material) != HAS_NONE;
-// }
-// [[nodiscard]] bool has_indices(const tinygltf::Primitive& primitive)
-// {
-//     return static_cast<Index>(primitive.indices) != HAS_NONE;
-// }
-// [[nodiscard]] bool has_mode(const tinygltf::Primitive& primitive)
-// {
-//     return static_cast<Index>(primitive.mode) != HAS_NONE;
-// }
-// [[nodiscard]] bool has_mesh(const tinygltf::Node& node)
-// {
-//     if (static_cast<Index>(node.mesh) == HAS_NONE)
-//     {
-//         LOG_WARN("GLTF node does not contain a mesh.");
-//         return false;
-//     }
-//
-//     return true;
-// }
-
-// [[nodiscard]] int32_t component_size(AccessorComponentType componentType)
-// {
-//     UNHANDLED_CASE_PROTECTION_ON
-//     // clang-format off
-//     switch (componentType)
-//     {
-//     case AccessorComponentType::BYTE: return sizeof(int8_t);
-//     case AccessorComponentType::UNSIGNED_BYTE: return sizeof(uint8_t);
-//     case AccessorComponentType::SHORT: return sizeof(int16_t);
-//     case AccessorComponentType::UNSIGNED_SHORT: return sizeof(uint16_t);
-//     case AccessorComponentType::UNSIGNED_INT:return sizeof(uint32_t);
-//     case AccessorComponentType::FLOAT: return sizeof(float);
-//     }
-//     // clang-format on
-//     UNHANDLED_CASE_PROTECTION_OFF
-//     std::unreachable();
-// }
-// [[nodiscard]] int32_t num_components(AccessorType type)
-// {
-//     UNHANDLED_CASE_PROTECTION_ON
-//     // clang-format off
-//     switch (type)
-//     {
-//     case AccessorType::SCALAR: return 1;
-//     case AccessorType::VEC2: return 2;
-//     case AccessorType::VEC3: return 3;
-//     case AccessorType::VEC4: [[fallthrough]];
-//     case AccessorType::MAT2: return 4;
-//     case AccessorType::MAT3: return 9;
-//     case AccessorType::MAT4: return 16;
-//     }
-//     // clang-format on
-//     UNHANDLED_CASE_PROTECTION_OFF
-//     std::unreachable();
-// }
-// template<typename vec_t>
-// void normalize(std::vector<vec_t>& out_data)
-// {
-//     std::for_each(std::execution::par, std::begin(out_data), std::end(out_data), [](auto&& vec) { vec = glm::normalize(vec); });
-// }
-// [[nodiscard]] const tinygltf::Buffer& get_buffer(const tinygltf::Model& model, Index buffer)
-// {
-//     ODIN_ASSERT(buffer != HAS_NONE);
-//     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#buffers-and-buffer-views
-//     return model.buffers[buffer];
-// }
-// template<typename element_t>
-// [[nodiscard]] bool valid_element_type(const tinygltf::Accessor* pAccessor)
-// {
-//     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
-//     const int32_t COMPONENT_SIZE = component_size(static_cast<AccessorComponentType>(pAccessor->componentType));
-//     const int32_t NUM_COMPONENTS = num_components(static_cast<AccessorType>(pAccessor->type));
-//     const int32_t ELEMENT_SIZE = COMPONENT_SIZE * NUM_COMPONENTS;
-//     return sizeof(element_t) == ELEMENT_SIZE;
-// }
-// template<typename element_t>
-// requires std::integral<element_t>
-// [[nodiscard]] std::vector<uint16_t> convert_buffer_to_u16(const std::vector<element_t>& buffer)
-// {
-//     std::vector<uint16_t> converted{};
-//     std::transform(std::execution::par,
-//                    std::begin(buffer),
-//                    std::end(buffer),
-//                    std::begin(converted),
-//                    [](auto&& byte) { return static_cast<uint16_t>(byte & 0x00'00'00'00'00'00'FF'FF); });
-//
-//     return converted;
-// }
-// template<typename element_t>
-// [[nodiscard]] std::vector<element_t> extract_buffer(const tinygltf::Model& model, const tinygltf::Accessor* pAccessor)
-// {
-//     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#accessors
-//     ODIN_ASSERT(valid_element_type<element_t>(pAccessor));
-//     ODIN_ASSERT(static_cast<Index>(pAccessor->bufferView) != HAS_NONE)    // Expecting a buffer view to exist
-//
-//     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#buffers-and-buffer-views
-//     auto bv = static_cast<Index>(pAccessor->bufferView);
-//     const tinygltf::BufferView& view = model.bufferViews[bv];
-//     const tinygltf::Buffer& buffer = get_buffer(model, static_cast<Index>(view.buffer));
-//
-//     std::size_t numElements = pAccessor->count;
-//     auto offset = static_cast<int64_t>(pAccessor->byteOffset + view.byteOffset);
-//     auto attribute = common::make_view<const uint8_t>(buffer.data, view.byteLength, offset);
-//
-//     if (view.byteStride == 0)
-//     {
-//         std::vector<element_t> data{};
-//         data.resize(numElements);
-//
-//         std::memcpy(data.data(), attribute.data(), attribute.size());
-//
-//         return data;
-//     }
-//     else
-//     {
-//         std::vector<element_t> data{};
-//
-//         ODIN_ASSERT((view.byteLength % view.byteStride) == 0);
-//         for (std::size_t i = 0u; i < view.byteLength; i = i + view.byteStride)
-//         {
-//             auto elementView = common::make_view<const uint8_t>(attribute, sizeof(element_t), static_cast<int64_t>(i));
-//
-//             data.emplace_back();
-//             std::memcpy(&data.back(), elementView.data(), elementView.size());
-//         }
-//         ODIN_ASSERT(data.size() == numElements);
-//
-//         return data;
-//     }
-// }
-// [[nodiscard]] std::optional<const tinygltf::Accessor*>
-// find_attribute_accessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
-// {
-//     auto it = primitive.attributes.find(attribute.data());
-//     if (it != primitive.attributes.end())
-//     {
-//         auto accessor = static_cast<Index>(it->second);
-//         return std::optional<const tinygltf::Accessor*>{ std::in_place, &model.accessors[accessor] };
-//     }
-//
-//     return std::nullopt;
-// }
-// template<typename accessor_t>
-// [[nodiscard]] std::optional<std::vector<accessor_t>>
-// get_attribute(const tinygltf::Model& model, const tinygltf::Primitive& primitive, std::string_view attribute)
-// {
-//     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
-//     std::optional<const tinygltf::Accessor*> accessor = find_attribute_accessor(model, primitive, attribute);
-//     if (accessor)
-//     {
-//         return std::optional<std::vector<accessor_t>>{ std::in_place, extract_buffer<accessor_t>(model, *accessor) };
-//     }
-//
-//     return std::nullopt;
-// }
-// [[nodiscard]] asl::Mesh& store_indices(const tinygltf::Model& model, const tinygltf::Primitive& primitive, asl::Mesh& mesh)
-// {
-//     ODIN_ASSERT(primitive.indices);    // Expecting indices to exist
-//
-//     auto accessor = static_cast<Index>(primitive.indices);
-//     const tinygltf::Accessor* pAccessor = &model.accessors[accessor];
-//
-//     auto type = AccessorComponentType{ pAccessor->componentType };
-//     if (type == AccessorComponentType::UNSIGNED_SHORT)
-//     {
-//         // Vulkan expects the index data to be uint16
-//         mesh.indices = extract_buffer<uint16_t>(model, pAccessor);
-//     }
-//     else
-//     {
-//         LOG_INFO("Indices are not uint16! Converting..");
-//         if (type == AccessorComponentType::UNSIGNED_INT)
-//         {
-//             mesh.indices = convert_buffer_to_u16(extract_buffer<uint32_t>(model, pAccessor));
-//         }
-//         else if (type == AccessorComponentType::BYTE)
-//         {
-//             mesh.indices = convert_buffer_to_u16(extract_buffer<uint8_t>(model, pAccessor));
-//         }
-//         else
-//         {
-//             ODIN_ASSERT(false);    // Unexpected component type
-//         }
-//     }
-//
-//     return mesh;
-// }
-// [[nodiscard]] std::optional<std::vector<glm::vec4>> get_color_attribute(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
-// {
-//     // Investigate models with multiple color sets.
-//     ODIN_ASSERT(find_attribute_accessor(model, primitive, "COLOR_1") == std::nullopt);
-//
-//     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
-//     std::optional<const tinygltf::Accessor*> accessor = find_attribute_accessor(model, primitive, "COLOR_0");
-//     if (!accessor)
-//     {
-//         return std::nullopt;
-//     }
-//
-//     const tinygltf::Accessor* pAccessor = *accessor;
-//     if (AccessorType{ pAccessor->type } == AccessorType::VEC4)
-//     {
-//         return std::optional<std::vector<glm::vec4>>{ std::in_place, extract_buffer<glm::vec4>(model, *accessor) };
-//     }
-//     else
-//     {
-//         ODIN_ASSERT(AccessorType{ pAccessor->type } == AccessorType::VEC3);
-//         LOG_WARN("Mesh primitive from loaded GLTF file has color data in RGB. Converting to RGBA..");
-//
-//         std::optional<std::vector<glm::vec3>> color{ std::in_place, extract_buffer<glm::vec3>(model, *accessor) };
-//         ODIN_ASSERT(color);
-//
-//         std::optional<std::vector<glm::vec4>> convertedColor{ std::in_place, std::vector<glm::vec4>{} };
-//         for (auto&& vec3 : *color)
-//         {
-//             convertedColor->emplace_back(1.0f);
-//             convertedColor->back().x = vec3.x;
-//             convertedColor->back().y = vec3.y;
-//             convertedColor->back().z = vec3.z;
-//         }
-//
-//         return convertedColor;
-//     }
-// }
-// [[nodiscard]] asl::Mesh& store_attributes(const tinygltf::Model& model, const tinygltf::Primitive& primitive, asl::Mesh& mesh)
-// {
-//     // vertex positions are expected to exist
-//     mesh.position = std::move(get_attribute<glm::vec3>(model, primitive, "POSITION").value());
-//
-//     mesh.normal = get_attribute<glm::vec3>(model, primitive, "NORMAL");
-//     if (mesh.normal)
-//     {
-//         normalize(*mesh.normal);
-//     }
-//     mesh.tanget = get_attribute<glm::vec4>(model, primitive, "TANGET");
-//     if (mesh.tanget)
-//     {
-//         normalize(*mesh.tanget);
-//     }
-//
-//     mesh.uv = get_attribute<glm::vec2>(model, primitive, "TEXCOORD_0");
-//     mesh.color = get_color_attribute(model, primitive);
-//     mesh.joints = get_attribute<glm::vec4>(model, primitive, "JOINTS_0");
-//     mesh.weights = get_attribute<glm::vec4>(model, primitive, "WEIGHTS_0");
-//
-//     // Investigate models with multiple UV sets.
-//     ODIN_ASSERT(get_attribute<glm::vec2>(model, primitive, "TEXCOORD_1") == std::nullopt);
-//     // Investigate models with multiple joints sets.
-//     ODIN_ASSERT(get_attribute<glm::vec4>(model, primitive, "JOINTS_1") == std::nullopt);
-//     // Investigate models with multiple weights sets.
-//     ODIN_ASSERT(get_attribute<glm::vec4>(model, primitive, "WEIGHTS_1") == std::nullopt);
-//
-//     return mesh;
-// }
-// [[nodiscard]] asl::Mesh& extract_primitivtes(const tinygltf::Model& model, const tinygltf::Mesh& m, asl::Mesh& mesh)
-// {
-//     const std::vector<tinygltf::Primitive>& primitives = m.primitives;
-//     for (auto&& primitive : primitives)
-//     {
-//         // TODO: extensions support goes here
-//         // m.extensions
-//
-//
-//         mesh = store_attributes(model, primitive, mesh);
-//
-//         if (has_material(primitive))
-//         {
-//             auto i = static_cast<Index>(primitive.material);
-//             const tinygltf::Material& material = model.materials[i];
-//
-//             asl::Primitive prim{
-//                 .material = asl::Material{ model, material }
-//             };
-//         }
-//
-//         if (has_indices(primitive))
-//         {
-//             mesh = store_indices(model, primitive, mesh);
-//         }
-//
-//         if (has_mode(primitive))
-//         {
-//             if (PrimitiveMode{ primitive.mode } != PrimitiveMode::TRIANGLES)
-//             {
-//                 LOG_WARN("Loading a GLTF mesh who's primitive is not set to Triangles!");
-//             }
-//         }
-//     }
-//
-//     return mesh;
-// }
-// [[nodiscard]] asl::Mesh& extract_mesh_data(const tinygltf::Model& model, const tinygltf::Node& node, asl::Mesh& mesh)
-// {
-//     if (!has_mesh(node))
-//     {
-//         return std::nullopt;
-//     }
-//
-//     const tinygltf::Mesh& m = model.meshes[static_cast<std::size_t>(node.mesh)];
-//     // TODO: extensions support goes here
-//     // m.extensions
-//
-//     // TODO: weights goes here
-//     // m.weights;
-//
-//     // A node can contain multiple primitives - but for now implement handling of only 1
-//     if (m.primitives.size() > 1)
-//     {
-//         LOG_FATAL("Tried loading a mesh that contains multiple primitives, when this is not supported");
-//     }
-//     ODIN_ASSERT(!m.primitives.empty());    // Uncertian if this can be empty - if breakpoint hits it needs to be investigated.
-//
-//     return extract_primitivtes(model, m, mesh);
-// }
-
-// [[nodiscard]] common::CGraph<asl::Mesh> load_gltf(const std::filesystem::path& filename)
-// {
-//     tinygltf::TinyGLTF loader;
-//
-//     std::string warn;
-//     std::string err;
-//     tinygltf::Model model;
-//     ODIN_CHECK(loader.LoadASCIIFromFile(&model, &err, &warn, filename.string()));
-//
-//     return common::CGraph<asl::Mesh>{};
-// }
-//}    // namespace
 namespace asl
 {
 common::CGraph<ModelNode> load_model(const std::filesystem::path& filename)

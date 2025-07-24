@@ -126,7 +126,7 @@ extract_strideless_buffer(const tinygltf::Accessor* pAccessor, const tinygltf::B
 
     std::vector<element_t> extractedData{};
     extractedData.resize(numElements);
-    ODIN_ASSERT(extractedData.size() == attribute.size());
+    ODIN_ASSERT(numElements * sizeof(element_t) == attribute.size());
     std::memcpy(extractedData.data(), attribute.data(), attribute.size());
 
     return extractedData;
@@ -198,6 +198,7 @@ template<typename cache_t>
         normalize(*a);
         auto [it, emplaced] = cache.try_emplace(attribute, std::move(a.value()));
         ODIN_ASSERT(emplaced);
+        LOG_DEBUG("Added attribute set: \"{}\"", attribute.c_str());
     }
 
     return cache;
@@ -241,6 +242,7 @@ template<typename cache_t>
             auto [it, emplaced] = cache.try_emplace(attribute, std::move(convertedColor));
             ODIN_ASSERT(emplaced);
         }
+        LOG_DEBUG("Added attribute set: \"{}\"", attribute.c_str());
     }
 
     return cache;

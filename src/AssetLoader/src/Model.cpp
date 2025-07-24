@@ -18,7 +18,6 @@ public:
     {}
 private:
     std::filesystem::path m_Filename;
-    //common::CGraph<Mesh> m_Meshes;
     common::CGraph<ModelNode> m_Model;
 };
 ///////////////
