@@ -22,6 +22,12 @@ enable_clang_format(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "external")
 
+include_glm(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/external")
+
+file(REMOVE_RECURSE "${CMAKE_CURRENT_SOURCE_DIR}/external/spdlog")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/spdlog")
+file(COPY "${PROJECT_SOURCE_DIR}/external/spdlog/include/spdlog" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/external")
+
 add_dependencies(${ASSET_LOADER_PROJECT} ${DEBUGGING_PROJECT})
 target_link_libraries(${ASSET_LOADER_PROJECT} PRIVATE ${DEBUGGING_PROJECT})
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")

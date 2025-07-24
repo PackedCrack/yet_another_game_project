@@ -26,3 +26,11 @@ function(copy_export_headers HEADERS INCLUDE_DIRECTORY)
         configure_file(${HEADER} ${INCLUDE_DIRECTORY}/${FILENAME} COPYONLY)
     endforeach()
 endfunction()
+
+function(include_glm PROJECT DESTINATION)
+    file(REMOVE_RECURSE "${DESTINATION}/glm")
+    file(MAKE_DIRECTORY "${DESTINATION}/glm")
+    file(COPY "${PROJECT_SOURCE_DIR}/external/glm/glm" DESTINATION "${DESTINATION}")
+
+    target_compile_definitions(${PROJECT} PRIVATE GLM_FORCE_XYZW_ONLY GLM_FORCE_QUAT_DATA_XYZW GLM_FORCE_QUAT_CTOR_XYZW)
+endfunction()
