@@ -27,6 +27,7 @@
 #undef FMT_EXCEPTIONS
 namespace
 {
+constexpr std::string_view DEBUG_PATTERN = "\n[DEBUG] -  %v%$";
 constexpr std::string_view INFO_PATTERN = "\n%^[TIME]    -  %T\n[MESSAGE] -  %v%$";
 constexpr std::string_view WARN_PATTERN = "\n%^[TIME]    -  %T\n[THREAD]  -  %t\n[MESSAGE] -  %v%$";
 constexpr std::string_view ERR_PATTERN =
@@ -38,7 +39,9 @@ constexpr std::string_view ERR_PATTERN =
     using Level = debug::LoggerLevel;
 
     // clang-format off
-    if (level == Level::info)
+    if (level == Level::debug)
+    { return DEBUG_PATTERN; }
+    else if (level == Level::info)
     { return INFO_PATTERN; }
     else if (level == Level::warn)
     { return WARN_PATTERN; }
@@ -54,6 +57,7 @@ constexpr std::string_view ERR_PATTERN =
     // clang-format off
     switch (level)
     {
+    case Level::debug: return spdlog::level::debug;
     case Level::info: return spdlog::level::info;
     case Level::warn: return spdlog::level::warn;
     case Level::error: return spdlog::level::err;
@@ -86,6 +90,7 @@ namespace debug
 class Logger::Impl
 {
 public:
+    static constexpr std::string_view DEBUG_NAME = "debug_log";
     static constexpr std::string_view INFO_NAME = "info_log";
     static constexpr std::string_view WARN_NAME = "warn_log";
     static constexpr std::string_view ERR_NAME = "err_log";
@@ -100,6 +105,25 @@ public:
         spdlog::set_error_handler([](const std::string& msg) { spdlog::get("console")->error("*** LOGGER ERROR ***: {}", msg); });
     }
 public:
+    void log_debug(std::string_view msg)
+    {
+        std::optional<spdlog::logger*> result = find_logger(DEBUG_NAME);
+        if (!result)
+        {
+            add_logger(DEBUG_NAME, m_LogDirectory, LoggerLevel::debug);
+            result = find_logger(DEBUG_NAME);
+            ODIN_ASSERT(result);
+        }
+
+        spdlog::logger* pLogger = result.value();
+        if (pLogger->level() != spdlog::level::debug)
+        {
+            pLogger->set_level(spdlog::level::debug);
+        }
+
+        pLogger->debug(msg);
+        pLogger->flush();
+    }
     void log_info(std::string_view msg)
     {
         std::optional<spdlog::logger*> result = find_logger(INFO_NAME);
@@ -193,6 +217,10 @@ Logger::Logger(std::string_view logDirectory)
 Logger::~Logger() = default;
 Logger::Logger(Logger&& other) noexcept = default;
 Logger& Logger::operator=(Logger&& other) noexcept = default;
+void Logger::log_debug(std::string_view msg) const
+{
+    m_pImpl->log_debug(msg);
+}
 void Logger::log_info(std::string_view msg) const
 {
     m_pImpl->log_info(msg);
@@ -213,9 +241,12 @@ void Logger::add_logger(std::string_view name, const std::filesystem::path& outp
 {
     m_pImpl->add_logger(name, output, level);
 }
-Logger& logger(std::string_view logpath)
+namespace details
 {
-    static Logger logger{ logpath };
-    return logger;
-}
+    Logger& get_logger(std::string_view logpath)
+    {
+        static Logger logger{ logpath };
+        return logger;
+    }
+}    // namespace details
 }    // namespace debug

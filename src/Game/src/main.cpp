@@ -9,9 +9,10 @@
 //
 int main()
 {
-    LOG_INFO("info");
-    LOG_WARN("warn");
-    LOG_ERR("error");
+    LOG_DEBUG("debug {}", 1);
+    LOG_INFO("info {}", 1);
+    LOG_WARN("warn {}", 1);
+    LOG_ERR("error {}", 1);
     asl::Model mdata{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Corset.glb)" };
 
 
