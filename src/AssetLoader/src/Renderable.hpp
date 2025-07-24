@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "glm_headers.h"
-#include "Material.h"
+#include "glm_headers.hpp"
+#include "Material.hpp"
 // std
 #include <optional>
 #include <string>

@@ -1,8 +1,8 @@
 //
 // Created by qwerty on 25/07/2024.
 //
-#include "Material.h"
-#include "asl_defines.h"
+#include "Material.hpp"
+#include "asl_defines.hpp"
 #include "common.h"
 //
 //

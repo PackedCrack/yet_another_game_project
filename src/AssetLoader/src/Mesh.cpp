@@ -1,7 +1,7 @@
 //
 // Created by qwerty on 22/07/2024.
 //
-#include "Mesh.h"
+#include "Mesh.hpp"
 namespace asl
 {
 ModelNode::ModelNode(const TRS& transform, std::optional<Mesh> mesh)

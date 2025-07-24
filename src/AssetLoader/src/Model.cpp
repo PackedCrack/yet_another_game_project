@@ -1,10 +1,10 @@
 //
 // Created by qwerty on 23/07/2024.
 //
-#include "Model.h"
-#include "Mesh.h"
-#include "gltf_loader.h"
-#include "asl_defines.h"
+#include "Model.hpp"
+#include "Mesh.hpp"
+#include "gltf_loader.hpp"
+#include "asl_defines.hpp"
 //
 //
 namespace asl

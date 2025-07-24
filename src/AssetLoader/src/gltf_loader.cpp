@@ -1,9 +1,8 @@
-#include "gltf_loader.h"
+#include "gltf_loader.hpp"
 
-#include <cassert>
-#include "asl_defines.h"
+#include "asl_defines.hpp"
 #include "common.h"
-#include "Model.h"
+#include "Model.hpp"
 //
 //
 namespace
