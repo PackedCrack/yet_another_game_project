@@ -29,3 +29,7 @@ target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/.
 add_dependencies(${GAME_TARGET} ${DEBUGGING_PROJECT})
 target_link_libraries(${GAME_TARGET} PRIVATE ${DEBUGGING_PROJECT})
 target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
+
+add_dependencies(${GAME_TARGET} ${ENGINE_TARGET})
+target_link_libraries(${GAME_TARGET} PRIVATE ${ENGINE_TARGET})
+target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Engine/include")

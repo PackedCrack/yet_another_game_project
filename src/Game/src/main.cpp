@@ -2,7 +2,8 @@
 // Created by qwerty on 22/07/2024.
 //
 #include "debug/Logger.hpp"
-#include "asset_loader/Model.hpp"
+#include "assetloader/Model.hpp"
+#include "engine/Window.hpp"
 // Win32
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
@@ -12,6 +13,7 @@ int main()
 {
     try
     {
+        int a = func();
         asl::Model uvTestManyScenes{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\tests\TextureCoordinateTest.glb)" };
         asl::Model lanternManyGroups{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
 

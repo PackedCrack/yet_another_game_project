@@ -18,4 +18,18 @@ include(cmake/dependencies.cmake)
 
 fetch_third_party()
 
+# Configure and compile external dependencies first
+set(SDL_SHARED          OFF CACHE BOOL "Build SDL as a shared library" FORCE)
+set(SDL_STATIC          ON CACHE BOOL "Build SDL as a static library" FORCE)
+set(SDL_RENDER          OFF CACHE BOOL "" FORCE)
+set(SDL_RENDER_D3D      OFF CACHE BOOL "" FORCE)
+set(SDL_RENDER_D3D11    OFF CACHE BOOL "" FORCE)
+set(SDL_RENDER_D3D12    OFF CACHE BOOL "" FORCE)
+set(SDL_RENDER_GPU      OFF CACHE BOOL "" FORCE)
+set(SDL_RENDER_METAL    OFF CACHE BOOL "" FORCE)
+set(SDL_RENDER_VULKAN   OFF CACHE BOOL "" FORCE)
+set(SDL_OPENGL          OFF CACHE BOOL "" FORCE)
+set(SDL_OPENGLES        OFF CACHE BOOL "" FORCE)
+add_subdirectory("external/sdl")
+
 add_subdirectory("src")
