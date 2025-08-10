@@ -1,10 +1,10 @@
 //
 // Created by qwerty on 23/07/2024.
 //
-#include "Model.h"
-#include "Mesh.h"
-#include "gltf_loader.h"
-#include "asl_defines.h"
+#include "Model.hpp"
+#include "Mesh.hpp"
+#include "gltf_loader.hpp"
+#include "asl_defines.hpp"
 //
 //
 namespace asl
@@ -14,13 +14,11 @@ class Model::Impl
 public:
     explicit Impl(std::filesystem::path&& filename)
         : m_Filename{ std::move(filename) }
-        , m_Meshes{}
-    {
-        m_Meshes = load_model(m_Filename);
-    };
+        , m_Model{ load_model(m_Filename) }
+    {}
 private:
     std::filesystem::path m_Filename;
-    common::CGraph<Mesh> m_Meshes;
+    common::CGraph<ModelNode> m_Model;
 };
 ///////////////
 // Interface //
