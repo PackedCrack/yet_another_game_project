@@ -13,11 +13,6 @@ int main()
 {
     try
     {
-        LOG_DEBUG("debug");
-        LOG_DEBUG("debug {} {}", 1, "asdf");
-        LOG_INFO("info {}", 1);
-        LOG_WARN("warn {}", 1);
-        LOG_ERR("error {}", 1);
         asl::Model uvTestManyScenes{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\tests\TextureCoordinateTest.glb)" };
         asl::Model lanternManyGroups{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
 

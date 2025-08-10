@@ -2,7 +2,7 @@
 // Created by qwerty on 23/07/2024.
 //
 #include "Model.hpp"
-#include "Mesh.hpp"
+#include "ModelNode.hpp"
 #include "gltf_loader.hpp"
 #include "asl_defines.hpp"
 //
