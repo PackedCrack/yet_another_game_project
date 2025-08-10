@@ -247,18 +247,18 @@ template<typename cache_t>
 
     return cache;
 }
-[[nodiscard]] std::optional<std::vector<glm::vec4>> extract_vertex_tangets(const tinygltf::Model& model,
-                                                                           const tinygltf::Primitive& primitive)
+[[nodiscard]] std::optional<std::vector<glm::vec4>> extract_vertex_tangents(const tinygltf::Model& model,
+                                                                            const tinygltf::Primitive& primitive)
 {
-    using tangets = std::vector<glm::vec4>;
-    std::optional<tangets> t = get_attribute<glm::vec4>(model, primitive, "TANGET");
+    using tangents = std::vector<glm::vec4>;
+    std::optional<tangents> t = get_attribute<glm::vec4>(model, primitive, "TANGENT");
     if (!t)
     {
         return std::nullopt;
     }
 
     normalize(*t);
-    return std::optional<tangets>{ std::in_place, std::move(t.value()) };
+    return std::optional<tangents>{ std::in_place, std::move(t.value()) };
 }
 [[nodiscard]] std::optional<std::vector<glm::vec3>> extract_vertex_normals(const tinygltf::Model& model,
                                                                            const tinygltf::Primitive& primitive)
@@ -274,12 +274,14 @@ template<typename cache_t>
 }
 [[nodiscard]] std::vector<glm::vec4> extract_vertex_positions(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
 {
-    std::vector<glm::vec3> positions = std::move(get_attribute<glm::vec3>(model, primitive, "POSITION").value());
+    using vertex_positions = std::vector<glm::vec3>;
+    std::optional<vertex_positions> p = get_attribute<glm::vec3>(model, primitive, "POSITION").value();
+    std::vector<glm::vec3> positions = std::move(p.value());
 
     std::vector<glm::vec4> paddedPositions{};
     paddedPositions.resize(positions.size());
-    auto predicate = [](const glm::vec3& v) { return glm::vec4{ v.x, v.y, v.z, 1.0f }; };
-    std::ranges::transform(positions, std::begin(paddedPositions), predicate);
+    auto action = [](const glm::vec3& v) { return glm::vec4{ v.x, v.y, v.z, 1.0f }; };
+    std::transform(std::execution::par, std::begin(positions), std::end(positions), std::begin(paddedPositions), action);
 
     return paddedPositions;
 }
@@ -288,7 +290,7 @@ store_attributes(const tinygltf::Model& model, const tinygltf::Primitive& primit
 {
     renderable.vertexPosition = extract_vertex_positions(model, primitive);
     renderable.normal = extract_vertex_normals(model, primitive);
-    renderable.tanget = extract_vertex_tangets(model, primitive);
+    renderable.tangent = extract_vertex_tangents(model, primitive);
     renderable.textureCoordinates = extract_attributes<asl::Renderable::uv_cache>(model, primitive, "TEXCOORD");
     renderable.colors = extract_colors(model, primitive);
     renderable.joints = extract_attributes<asl::Renderable::joints_cache>(model, primitive, "JOINTS");
@@ -301,11 +303,12 @@ requires std::integral<element_t>
 [[nodiscard]] std::vector<std::uint16_t> convert_buffer_to_u16(const std::vector<element_t>& buffer)
 {
     std::vector<uint16_t> converted{};
+    converted.resize(buffer.size());
     std::transform(std::execution::par,
                    std::begin(buffer),
                    std::end(buffer),
                    std::begin(converted),
-                   [](auto&& byte) { return static_cast<std::uint16_t>(byte & 0x00'00'00'00'00'00'FF'FF); });
+                   [](element_t val) { return static_cast<std::uint16_t>(static_cast<std::make_unsigned_t<element_t>>(val)); });
 
     return converted;
 }
@@ -317,23 +320,25 @@ requires std::integral<element_t>
     const tinygltf::Accessor* pAccessor = std::addressof(model.accessors[index]);
 
     auto type = AccessorComponentType{ pAccessor->componentType };
-    if (type == AccessorComponentType::UNSIGNED_SHORT)
+    switch (type)
     {
-        // Vulkan expects the index data to be uint16
+    case AccessorComponentType::UNSIGNED_SHORT:
         return extract_buffer<std::uint16_t>(model, pAccessor);
-    }
-
-    LOG_INFO("Indices are not uint16! Converting..");
-    if (type == AccessorComponentType::UNSIGNED_INT)
+    case AccessorComponentType::UNSIGNED_BYTE:
     {
-        return convert_buffer_to_u16(extract_buffer<std::uint32_t>(model, pAccessor));
-    }
-    if (type == AccessorComponentType::BYTE)
-    {
+        LOG_INFO("Indices are uint8.. converting to uint16.");
         return convert_buffer_to_u16(extract_buffer<std::uint8_t>(model, pAccessor));
     }
+    case AccessorComponentType::UNSIGNED_INT:
+    {
+        LOG_WARN("Indices are uint32! Truncating to uint16..");
+        return convert_buffer_to_u16(extract_buffer<std::uint32_t>(model, pAccessor));
+    }
+    default:
+        LOG_FATAL("Unexpected component type when extracting indices");
+    }
 
-    LOG_FATAL("Unexpected component type when extracting indicies");
+    std::unreachable();
 }
 }    // namespace
 namespace asl
@@ -383,17 +388,16 @@ std::optional<Mesh> make_mesh(const tinygltf::Model& model, const tinygltf::Node
         {
             auto index = static_cast<std::size_t>(primitive.material);
             const tinygltf::Material& material = model.materials[index];
-            renderable.material = asl::Material{ model, material };
+            renderable.material = Material{ model, material };
         }
 
         if (has_mode(primitive))
         {
-            PrimitiveMode mode{ primitive.mode };
-            if (mode != PrimitiveMode::TRIANGLES)
+            renderable.topology = PrimitiveMode{ primitive.mode };
+            if (renderable.topology != PrimitiveMode::TRIANGLES)
             {
                 LOG_WARN("Loading a GLTF mesh who's primitive is not set to Triangles!");
             }
-            renderable.topology = mode;
         }
     }
 

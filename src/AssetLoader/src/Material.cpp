@@ -32,19 +32,8 @@ template<typename filter_t>
 requires common::is_any_of<filter_t, asl::MinFilter, asl::MagFilter>
 [[nodiscard]] filter_t to_filter_enum(std::int32_t filter)
 {
-    UNHANDLED_CASE_PROTECTION_ON
-    // clang-format off
-    switch (filter)
-    {
-    case TINYGLTF_TEXTURE_FILTER_NEAREST: return filter_t::nearest;
-    case TINYGLTF_TEXTURE_FILTER_LINEAR: return filter_t::linear;
-    }
-    // clang-format on
-    UNHANDLED_CASE_PROTECTION_OFF
-
     if constexpr (std::same_as<filter_t, asl::MinFilter>)
     {
-        UNHANDLED_CASE_PROTECTION_ON
         // clang-format off
         switch (filter)
         // cppcheck-suppress missingReturn
@@ -57,18 +46,28 @@ requires common::is_any_of<filter_t, asl::MinFilter, asl::MagFilter>
         case TINYGLTF_TEXTURE_FILTER_LINEAR: return filter_t::linear;
         }
         // clang-format on
-        UNHANDLED_CASE_PROTECTION_OFF
+
+        LOG_WARN("Unknown MinFilter: {}. Defaulting to Linear.", filter);
+        return asl::MinFilter::linear;
     }
     else
     {
         static_assert(std::same_as<filter_t, asl::MagFilter>);
-    }
 
-    std::unreachable();
+        // clang-format off
+        switch (filter)
+        {
+        case TINYGLTF_TEXTURE_FILTER_NEAREST: return filter_t::nearest;
+        case TINYGLTF_TEXTURE_FILTER_LINEAR: return filter_t::linear;
+        }
+        // clang-format on
+
+        LOG_WARN("Unknown MagFilter: {}. Defaulting to Linear.", filter);
+        return asl::MagFilter::linear;
+    }
 }
 [[nodiscard]] asl::Wrapping to_wrap_enum(std::int32_t wrap)
 {
-    UNHANDLED_CASE_PROTECTION_ON
     // clang-format off
     switch (wrap)
     {
@@ -77,8 +76,9 @@ requires common::is_any_of<filter_t, asl::MinFilter, asl::MagFilter>
     case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: return asl::Wrapping::mirroredRepeat;
     }
     // clang-format on
-    UNHANDLED_CASE_PROTECTION_OFF
-    std::unreachable();
+
+    LOG_WARN("Unknown Wrap value: {}. Defaulting to repeat.", wrap);
+    return asl::Wrapping::repeat;
 }
 [[nodiscard]] asl::Sampler make_sampler(const tinygltf::Model& model, const tinygltf::Texture& texture)
 {

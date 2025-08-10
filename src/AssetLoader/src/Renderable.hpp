@@ -36,7 +36,7 @@ struct Renderable
     std::vector<glm::vec4> vertexPosition;
     std::vector<std::uint16_t> indices;
     std::optional<std::vector<glm::vec3>> normal;
-    std::optional<std::vector<glm::vec4>> tanget;
+    std::optional<std::vector<glm::vec4>> tangent;
 
     PrimitiveMode topology;
 
