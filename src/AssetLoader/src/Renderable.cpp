@@ -33,7 +33,6 @@ enum class AccessorType
 };
 [[nodiscard]] int32_t component_size(AccessorComponentType componentType)
 {
-    UNHANDLED_CASE_PROTECTION_ON
     // clang-format off
     switch (componentType)
     {
@@ -45,12 +44,10 @@ enum class AccessorType
     case AccessorComponentType::FLOAT: return sizeof(float);
     }
     // clang-format on
-    UNHANDLED_CASE_PROTECTION_OFF
     std::unreachable();
 }
 [[nodiscard]] int32_t num_components(AccessorType type)
 {
-    UNHANDLED_CASE_PROTECTION_ON
     // clang-format off
     switch (type)
     {
@@ -63,7 +60,6 @@ enum class AccessorType
     case AccessorType::MAT4: return 16;
     }
     // clang-format on
-    UNHANDLED_CASE_PROTECTION_OFF
     std::unreachable();
 }
 template<typename element_t>
@@ -334,6 +330,12 @@ requires std::integral<element_t>
         LOG_WARN("Indices are uint32! Truncating to uint16..");
         return convert_buffer_to_u16(extract_buffer<std::uint32_t>(model, pAccessor));
     }
+    case AccessorComponentType::BYTE:
+        [[fallthrough]];
+    case AccessorComponentType::SHORT:
+        [[fallthrough]];
+    case AccessorComponentType::FLOAT:
+        [[fallthrough]];
     default:
         LOG_FATAL("Unexpected component type when extracting indices");
     }
