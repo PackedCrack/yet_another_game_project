@@ -1,9 +1,8 @@
 //
 // Created by qwerty on 22/07/2024.
 //
-#define LOG_DIRECTORY "Log/game"
-#include "debug/Logger.h"
-#include "asset_loader/Model.h"
+#include "debug/Logger.hpp"
+#include "asset_loader/Model.hpp"
 // Win32
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"

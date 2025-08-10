@@ -3,7 +3,7 @@
 //
 #include "Material.hpp"
 #include "asl_defines.hpp"
-#include "common.h"
+#include "common.hpp"
 //
 //
 namespace

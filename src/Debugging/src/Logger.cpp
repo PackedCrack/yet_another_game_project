@@ -1,9 +1,9 @@
 //
 // Created by qwerty on 22/07/2024.
 //
-#include "Logger.h"
-#include "common.h"
-#include "debug_defines.h"
+#include "Logger.hpp"
+#include "common.hpp"
+#include "debug_defines.hpp"
 
 
 #ifdef __clang__

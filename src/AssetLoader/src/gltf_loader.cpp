@@ -1,7 +1,7 @@
 #include "gltf_loader.hpp"
 
 #include "asl_defines.hpp"
-#include "common.h"
+#include "common.hpp"
 #include "Model.hpp"
 //
 //

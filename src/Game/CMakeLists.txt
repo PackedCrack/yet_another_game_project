@@ -19,6 +19,8 @@ enable_cppcheck(${GAME_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_clang_format(${GAME_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_enum_switch_error(${GAME_PROJECT})
 
+target_compile_definitions(${GAME_PROJECT} PRIVATE LOG_DIRECTORY="/logs/game")
+
 add_dependencies(${GAME_PROJECT} ${ASSET_LOADER_PROJECT})
 target_link_libraries(${GAME_PROJECT} PRIVATE ${ASSET_LOADER_PROJECT})
 target_include_directories(${GAME_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../AssetLoader/include")

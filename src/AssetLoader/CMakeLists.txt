@@ -22,6 +22,7 @@ enable_enum_switch_error(${ASSET_LOADER_PROJECT})
 
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "external")
+target_compile_definitions(${ASSET_LOADER_PROJECT} PRIVATE LOG_DIRECTORY="/logs/assetloader")
 
 include_glm(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/external")
 

@@ -1,12 +1,12 @@
 SET(SOURCES
-        Logger.h
+        Logger.hpp
         Logger.cpp
-        debug_defines.h
+        debug_defines.hpp
 )
 
 set(EXPORT_HEADERS
-        Logger.h
-        debug_defines.h
+        Logger.hpp
+        debug_defines.hpp
 )
 
 target_sources(${DEBUGGING_PROJECT} PRIVATE ${SOURCES})
