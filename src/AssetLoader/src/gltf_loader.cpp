@@ -138,7 +138,7 @@ namespace asl
 {
 common::CGraph<ModelNode> load_model(const std::filesystem::path& filename)
 {
-    LOG_DEBUG("Loading GLFT file: {}", filename.string().c_str());
+    LOG_DEBUG("Loading GLTF file: {}", filename.string().c_str());
 
     ODIN_ASSERT(filename.has_extension());
     std::string extension = filename.extension().string();
