@@ -36,6 +36,8 @@
 /src/Debugging/include
 /src/AssetLoader/external
 /src/AssetLoader/include
+/src/Engine/external
+/src/Engine/include
 
 # cppcheck build folder
 /build-cppcheck

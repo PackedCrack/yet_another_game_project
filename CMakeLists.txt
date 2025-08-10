@@ -2,11 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 
 SET(OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 SET(LIB_OUTPUT_DIR "${CMAKE_BINARY_DIR}/lib")
-SET(GAME_PROJECT game)
+SET(GAME_TARGET game)
 SET(ASSET_LOADER_PROJECT asset_loader)
 SET(DEBUGGING_PROJECT debugging)
+SET(ENGINE_TARGET engine)
 
-project(${GAME_PROJECT} LANGUAGES C CXX)
+project("Odin" LANGUAGES C CXX)
 
 include(${PROJECT_SOURCE_DIR}/cmake/CompilerWarnings.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/clangformat.cmake)
