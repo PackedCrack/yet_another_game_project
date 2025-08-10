@@ -34,3 +34,12 @@ function(include_glm PROJECT DESTINATION)
 
     target_compile_definitions(${PROJECT} PRIVATE GLM_ENABLE_EXPERIMENTAL GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_XYZW_ONLY GLM_FORCE_QUAT_DATA_XYZW GLM_FORCE_QUAT_CTOR_XYZW)
 endfunction()
+
+function(enable_enum_switch_error PROJECT)
+    if (MSVC)
+        # Missing enum cases, etc.
+        target_compile_options(${PROJECT} PRIVATE /we4061 /we4062 /we4065)
+    elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        target_compile_options(${PROJECT} PRIVATE -Werror=switch)
+    endif ()
+endfunction()

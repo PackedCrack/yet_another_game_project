@@ -19,8 +19,9 @@
     #pragma clang diagnostic ignored "-Wsign-conversion"
     #pragma clang diagnostic ignored "-Wold-style-cast"
 #elif _MSC_VER
-    #pragma warning(disable: 4'201)     // nameless struct/union
-    #pragma warning(disable: 26'495)    // Variable is uninitialized
+    #pragma warning(push)
+    #pragma warning(disable: 4201)     // nameless struct/union
+    #pragma warning(disable: 26495)    // Variable is uninitialized
 #endif
 
 #include "glm/glm.hpp"
@@ -33,6 +34,5 @@
 #ifdef __clang__
     #pragma clang diagnostic pop
 #elif _MSC_VER
-    #pragma warning(enable: 4'201)     // nameless struct/union
-    #pragma warning(enable: 26'495)    // Variable is uninitialized
+    #pragma warning(pop)
 #endif

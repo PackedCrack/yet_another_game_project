@@ -4,9 +4,9 @@ SET(SOURCES
         Model.hpp
         Model.cpp
         Mesh.hpp
-        Renderable.cpp
-        Renderable.hpp
         Mesh.cpp
+        ModelNode.hpp
+        ModelNode.cpp
         Material.cpp
         Material.hpp
         gltf_loader.hpp

@@ -10,17 +10,20 @@
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wlanguage-extension-token"
 #elif _MSC_VER
-    #pragma warning(disable: 4'239)
+    #pragma warning(push)
+    #pragma warning(disable: 4061 4062 4065)
 #else
     #error Unknown compiler
 #endif
+
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+
 #ifdef __clang__
     #pragma clang diagnostic pop
 #elif _MSC_VER
-    #pragma warning(enable: 4'239)
+    #pragma warning(pop)
 #endif
 //
 //
@@ -53,7 +56,6 @@ constexpr std::string_view ERR_PATTERN =
 {
     using Level = debug::LoggerLevel;
 
-    UNHANDLED_CASE_PROTECTION_ON
     // clang-format off
     switch (level)
     {
@@ -64,7 +66,6 @@ constexpr std::string_view ERR_PATTERN =
     case Level::fatal: return spdlog::level::critical;
     }
     // clang-format on
-    UNHANDLED_CASE_PROTECTION_OFF
 
     std::unreachable();
 }

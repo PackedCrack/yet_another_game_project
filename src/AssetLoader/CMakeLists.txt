@@ -18,6 +18,7 @@ enforce_cxx_standard(${ASSET_LOADER_PROJECT})
 
 enable_cppcheck(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_clang_format(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
+enable_enum_switch_error(${ASSET_LOADER_PROJECT})
 
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "external")

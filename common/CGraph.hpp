@@ -23,9 +23,8 @@ concept graph_vertex = requires(ctor_args_t... args) {
 template<typename value_t>
 struct GraphVertex
 {
-protected:
     template<typename... ctor_args_t>
-    [[nodiscard]] value_t& emplace_neighbour(ctor_args_t... args)
+    [[nodiscard]] value_t& emplace_neighbour(ctor_args_t&&... args)
     {
         return neighbours.emplace_back(std::forward<ctor_args_t>(args)...);
     }

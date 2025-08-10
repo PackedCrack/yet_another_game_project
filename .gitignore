@@ -42,6 +42,7 @@
 
 # generic cmake build
 /build
+/vsbuild
 
 # clion
 .idea

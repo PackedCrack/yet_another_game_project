@@ -17,7 +17,7 @@ enforce_cxx_standard(${GAME_PROJECT})
 
 enable_cppcheck(${GAME_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_clang_format(${GAME_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
-
+enable_enum_switch_error(${GAME_PROJECT})
 
 add_dependencies(${GAME_PROJECT} ${ASSET_LOADER_PROJECT})
 target_link_libraries(${GAME_PROJECT} PRIVATE ${ASSET_LOADER_PROJECT})

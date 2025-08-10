@@ -115,7 +115,7 @@ IntegerLiteralSeparator:
   Binary: 4
   BinaryMinDigits: 5
   DecimalMinDigits: 4
-  Decimal: 3
+  Decimal: 5
   HexMinDigits: 3
   Hex: 2
 InsertNewlineAtEOF: true
