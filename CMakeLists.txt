@@ -30,6 +30,7 @@ set(SDL_RENDER_METAL    OFF CACHE BOOL "" FORCE)
 set(SDL_RENDER_VULKAN   OFF CACHE BOOL "" FORCE)
 set(SDL_OPENGL          OFF CACHE BOOL "" FORCE)
 set(SDL_OPENGLES        OFF CACHE BOOL "" FORCE)
+set(SDL_SENSOR        OFF CACHE BOOL "" FORCE)
 add_subdirectory("external/sdl")
 
 add_subdirectory("src")
