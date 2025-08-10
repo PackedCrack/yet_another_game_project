@@ -34,4 +34,8 @@ add_dependencies(${ENGINE_TARGET} SDL3::SDL3)
 target_link_libraries(${ENGINE_TARGET} PRIVATE SDL3::SDL3)
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/sdl/include")
 
+find_package(Vulkan REQUIRED)
+target_include_directories(${ENGINE_TARGET} PRIVATE "$ENV{VULKAN_SDK}/include/")
+
+# TODO: Doesn't work - fix it
 set_target_properties(${ENGINE_TARGET} PROPERTIES FOLDER "Engine")

@@ -1,4 +1,5 @@
 add_subdirectory("Debugging")
 add_subdirectory("AssetLoader")
+add_subdirectory("Shaders")
 add_subdirectory("Engine")
 add_subdirectory("Game")
