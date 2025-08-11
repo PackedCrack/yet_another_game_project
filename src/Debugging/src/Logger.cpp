@@ -189,7 +189,7 @@ public:
         else
         {
             logfile = logfile / std::filesystem::path{ common::todays_date() } / name;
-            logfile = logfile.replace_extension(".txt");
+            logfile = logfile.replace_extension(".log");
         }
 
         auto [it, emplaced] = m_Loggers.try_emplace(std::string{ name }, make_logger(name, logfile, level));

@@ -6,9 +6,6 @@
 #include "vulkan/vulkan.h"
 // std
 #include <string>
-
-
-
 constexpr const char* err_to_str(VkResult error)
 {
     switch (error)
@@ -77,49 +74,85 @@ constexpr const char* err_to_str(VkResult error)
         return "VK_OPERATION_DEFERRED_KHR";
     case VK_OPERATION_NOT_DEFERRED_KHR:
         return "VK_OPERATION_NOT_DEFERRED_KHR";
+    case VK_SUCCESS:
+        return "VK_SUCCESS";
+    case VK_NOT_READY:
+        return "VK_NOT_READY";
+    case VK_TIMEOUT:
+        return "VK_TIMEOUT";
+    case VK_EVENT_SET:
+        return "VK_EVENT_SET";
+    case VK_EVENT_RESET:
+        return "VK_EVENT_RESET";
+    case VK_INCOMPLETE:
+        return "VK_INCOMPLETE";
+    case VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR:
+        return "VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR";
+    case VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR:
+        return "VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR";
+    case VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR:
+        return "VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR";
+    case VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR:
+        return "VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR";
+    case VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR:
+        return "VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR";
+    case VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR:
+        return "VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR";
+    case VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR:
+        return "VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR";
+    case VK_ERROR_COMPRESSION_EXHAUSTED_EXT:
+        return "VK_ERROR_COMPRESSION_EXHAUSTED_EXT";
+    case VK_INCOMPATIBLE_SHADER_BINARY_EXT:
+        return "VK_INCOMPATIBLE_SHADER_BINARY_EXT";
+    case VK_PIPELINE_BINARY_MISSING_KHR:
+        return "VK_PIPELINE_BINARY_MISSING_KHR";
+    case VK_ERROR_NOT_ENOUGH_SPACE_KHR:
+        return "VK_ERROR_NOT_ENOUGH_SPACE_KHR";
+    case VK_RESULT_MAX_ENUM:
+        return "VK_RESULT_MAX_ENUM";
     default:
         auto code = static_cast<std::uint32_t>(error);
         return std::format("Unknown error: {}", code).c_str();
     }
 }
 #ifndef NDEBUG
-#define VK_CHECK(expr, ...)                                         \
-if (VkResult result = expr; result == VK_SUCCESS)                   \
-{}                                                                  \
-else                                                                \
-{                                                                   \
-    LOG_ERR(__VA_ARGS__);                                           \
-    ODIN_ASSERT(result != VK_SUCCESS);                              \
-}
+    #define VK_CHECK(expr, ...)                                                                                                            \
+        if (VkResult result = expr; result == VK_SUCCESS)                                                                                  \
+        {}                                                                                                                                 \
+        else                                                                                                                               \
+        {                                                                                                                                  \
+            LOG_ERR(__VA_ARGS__);                                                                                                          \
+            ODIN_ASSERT(result != VK_SUCCESS);                                                                                             \
+        }
 #else
-#define VK_CHECK(expr, ...)                                                         \
-if (VkResult result = expr; result == VK_SUCCESS)                                   \
-{}                                                                                  \
-else                                                                                \
-{                                                                                   \
-    LOG_ERR("Vulkan check failure, error code: {}", err_to_str(result));            \
-    LOG_FATAL(__VA_ARGS__);                                                         \
-}
+    #define VK_CHECK(expr, ...)                                                                                                            \
+        if (VkResult result = expr; result == VK_SUCCESS)                                                                                  \
+        {}                                                                                                                                 \
+        else                                                                                                                               \
+        {                                                                                                                                  \
+            LOG_ERR("Vulkan check failure, error code: {}", err_to_str(result));                                                           \
+            LOG_FATAL(__VA_ARGS__);                                                                                                        \
+        }
 #endif
 
 #ifndef NDEBUG
-#define VK_RESULT(expr, ...)                                            \
-if (VkResult result = expr; result >= 0)                                \
-{}                                                                      \
-else                                                                    \
-{                                                                       \
-    LOG_ERR(__VA_ARGS__);                                               \
-    ODIN_ASSERT(result < 0);                                            \
-}
+    #define VK_RESULT(expr, ...)                                                                                                           \
+        if (VkResult result = expr; result >= 0)                                                                                           \
+        {}                                                                                                                                 \
+        else                                                                                                                               \
+        {                                                                                                                                  \
+            LOG_ERR(__VA_ARGS__);                                                                                                          \
+            ODIN_ASSERT(result < 0);                                                                                                       \
+        }
 #else
-#define VK_RESULT(expr, ...)                                                                        \
-if (VkResult result = expr; result >= 0)                                                            \
-{}                                                                                                  \
-else                                                                                                \
-{                                                                                                   \
-    LOG_ERR("Vulkan result check failure, error code: {}", err_to_str(result));                     \
-    LOG_FATAL(__VA_ARGS__);                                                                         \
-}
+    #define VK_RESULT(expr, ...)                                                                                                           \
+        if (VkResult result = expr; result >= 0)                                                                                           \
+        {}                                                                                                                                 \
+        else                                                                                                                               \
+        {                                                                                                                                  \
+            LOG_ERR("Vulkan result check failure, error code: {}", err_to_str(result));                                                    \
+            LOG_FATAL(__VA_ARGS__);                                                                                                        \
+        }
 #endif
 //    #ifdef _MSC_VER
 //        #define ODIN_ASSERT_VK_RESULT(expr)                                                                                                \
