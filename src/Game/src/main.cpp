@@ -3,7 +3,7 @@
 //
 #include "debug/Logger.hpp"
 #include "assetloader/Model.hpp"
-#include "engine/Window.hpp"
+#include "engine/Odin.hpp"
 // Win32
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
@@ -13,7 +13,14 @@ int main()
 {
     try
     {
-        int a = func();
+        odin::WindowInfo wndInfo{ .resolution = odin::graphics::window::HDPlus{},
+                                  .borderless = false,
+                                  .fullscreen = false,
+                                  .mouseGrab = false };
+        odin::OdinInfo info{ .applicationName = "Odin Application", .windowInfo = std::move(wndInfo) };
+        odin::Odin engine{ info };
+
+
         asl::Model uvTestManyScenes{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\tests\TextureCoordinateTest.glb)" };
         asl::Model lanternManyGroups{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
 
