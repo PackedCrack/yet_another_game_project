@@ -61,7 +61,7 @@ namespace
     std::string message = format_debug_message(pCallbackData);
 
     // Use regular logger for now - in the future use vulkan specific formatting perhaps..
-    
+
     //debug::LoggerLevel level{};
     // Diagnostic message
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
