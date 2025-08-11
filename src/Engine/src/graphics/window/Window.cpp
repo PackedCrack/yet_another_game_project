@@ -3,10 +3,7 @@
 #include "sdl_defines.hpp"
 // sdl
 #include "SDL3/SDL.h"
-int func()
-{
-    return SDL_Init(0);
-}
+#include "SDL3/SDL_vulkan.h"
 namespace
 {
 struct WindowSettings
@@ -20,13 +17,7 @@ struct WindowSettings
 [[nodiscard]] WindowSettings make_default_settings()
 {
     // TODO: Read these from userconfig
-    return WindowSettings{
-        .width = 1600,
-        .height = 900,
-        .borderless = false,
-        .fullscreen = false,
-        .mouseGrab = false
-    };
+    return WindowSettings{ .width = 1600, .height = 900, .borderless = false, .fullscreen = false, .mouseGrab = false };
 }
 [[nodiscard]] SDL_WindowFlags make_window_flags(const WindowSettings& settings)
 {
@@ -47,17 +38,33 @@ struct WindowSettings
 
     return flags;
 }
+[[nodiscard]] std::vector<std::string_view> get_instance_extensions()
+{
+    std::uint32_t count{};
+    const char* const* pExtensions = SDL_Vulkan_GetInstanceExtensions(std::addressof(count));
+    std::vector<std::string_view> extensions{};
+    extensions.resize(count);
+
+    auto c = static_cast<std::size_t>(count);
+    for (std::size_t i = 0; i < c; ++i)
+    {
+        extensions[i] = std::string_view{ pExtensions[i] };
+    }
+
+    return extensions;
 }
-namespace gfx::window
+}    // namespace
+namespace odin::gfx::window
 {
-struct Window::Impl
+class Window::Impl
 {
-    Impl(std::string_view title)
+public:
+    explicit Impl(std::string_view title)
         : m_pWindow{ nullptr }
         , m_Settings{ make_default_settings() }
     {
         SDL_CHECK(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD), "SDL Failed to initialize.");
-        
+
         SDL_WindowFlags flags = SDL_WINDOW_VULKAN;
         flags |= make_window_flags(m_Settings);
 
@@ -66,6 +73,8 @@ struct Window::Impl
         // https://wiki.libsdl.org/SDL3/SDL_CreateWindow
         m_pWindow = SDL_CreateWindow(title.data(), m_Settings.width, m_Settings.height, flags);
         SDL_CHECK(m_pWindow != nullptr, "SDL Failed to create a window.");
+
+        std::vector<std::string_view> extensions = get_instance_extensions();
     }
     ~Impl()
     {
@@ -89,6 +98,8 @@ struct Window::Impl
 
         m_pWindow = std::exchange(other.m_pWindow, nullptr);
         m_Settings = other.m_Settings;
+
+        return *this;
     }
 public:
     void toggle_borderless()
@@ -112,13 +123,16 @@ public:
         m_Settings.mouseGrab = not m_Settings.mouseGrab;
         SDL_SetWindowMouseGrab(m_pWindow, m_Settings.mouseGrab);
     }
-public:
+private:
     WindowSettings m_Settings;
     SDL_Window* m_pWindow;
 };
 Window::Window(std::string_view title)
     : m_pImpl{ std::make_unique<Impl>(title) }
 {}
+Window::~Window() = default;
+Window::Window(Window&& other) = default;
+Window& Window::operator=(Window&& other) = default;
 void Window::toggle_borderless()
 {
     m_pImpl->toggle_borderless();
@@ -131,4 +145,4 @@ void Window::toggle_mouse_grab()
 {
     m_pImpl->toggle_mouse_grab();
 }
-}	// namespace gfx::window
+}    // namespace odin::gfx::window

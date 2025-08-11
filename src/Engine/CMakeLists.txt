@@ -23,6 +23,7 @@ enable_enum_switch_error(${ENGINE_TARGET})
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_include_directories(${ENGINE_TARGET} PRIVATE "external")
 target_compile_definitions(${ENGINE_TARGET} PRIVATE LOG_DIRECTORY="/logs/engine")
+target_compile_definitions(${ENGINE_TARGET} PRIVATE VK_NO_FLAGS=0)
 
 include_glm(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
