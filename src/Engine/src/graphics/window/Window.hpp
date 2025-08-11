@@ -1,11 +1,15 @@
 #pragma once
-namespace odin::gfx::window
+
+#include "../../OdinInfo.hpp"
+//
+//
+namespace odin::graphics::window
 {
 class Window
 {
     class Impl;
 public:
-    explicit Window(std::string_view title);
+    Window(std::string_view title, const WindowInfo& info);
     ~Window();
     Window(const Window& other) = delete;
     Window(Window&& other);
@@ -15,7 +19,8 @@ public:
     void toggle_borderless();
     void toggle_fullscreen();
     void toggle_mouse_grab();
+    [[nodiscard]] std::vector<std::string_view> required_extensions() const;
 private:
     std::unique_ptr<Window::Impl> m_pImpl;
 };
-}    // namespace odin::gfx::window
+}    // namespace odin::graphics::window

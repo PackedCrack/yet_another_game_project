@@ -6,32 +6,19 @@
 #include "SDL3/SDL_vulkan.h"
 namespace
 {
-struct WindowSettings
-{
-    std::int32_t width;
-    std::int32_t height;
-    bool borderless;
-    bool fullscreen;
-    bool mouseGrab;
-};
-[[nodiscard]] WindowSettings make_default_settings()
-{
-    // TODO: Read these from userconfig
-    return WindowSettings{ .width = 1600, .height = 900, .borderless = false, .fullscreen = false, .mouseGrab = false };
-}
-[[nodiscard]] SDL_WindowFlags make_window_flags(const WindowSettings& settings)
+[[nodiscard]] SDL_WindowFlags make_window_flags(const odin::WindowInfo& info)
 {
     SDL_WindowFlags flags{};
 
-    if (settings.borderless)
+    if (info.borderless)
     {
         flags |= SDL_WINDOW_BORDERLESS;
     }
-    if (settings.fullscreen)
+    if (info.fullscreen)
     {
         flags |= SDL_WINDOW_FULLSCREEN;
     }
-    if (settings.mouseGrab)
+    if (info.mouseGrab)
     {
         flags |= SDL_WINDOW_MOUSE_GRABBED;
     }
@@ -54,14 +41,14 @@ struct WindowSettings
     return extensions;
 }
 }    // namespace
-namespace odin::gfx::window
+namespace odin::graphics::window
 {
 class Window::Impl
 {
 public:
-    explicit Impl(std::string_view title)
+    explicit Impl(std::string_view title, const WindowInfo& info)
         : m_pWindow{ nullptr }
-        , m_Settings{ make_default_settings() }
+        , m_Settings{ info }
     {
         SDL_CHECK(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_GAMEPAD), "SDL Failed to initialize.");
 
@@ -71,10 +58,8 @@ public:
         // !!!
         // This function should only be called on the main thread.
         // https://wiki.libsdl.org/SDL3/SDL_CreateWindow
-        m_pWindow = SDL_CreateWindow(title.data(), m_Settings.width, m_Settings.height, flags);
+        m_pWindow = SDL_CreateWindow(title.data(), get_width(m_Settings.resolution), get_height(m_Settings.resolution), flags);
         SDL_CHECK(m_pWindow != nullptr, "SDL Failed to create a window.");
-
-        std::vector<std::string_view> extensions = get_instance_extensions();
     }
     ~Impl()
     {
@@ -123,12 +108,13 @@ public:
         m_Settings.mouseGrab = not m_Settings.mouseGrab;
         SDL_SetWindowMouseGrab(m_pWindow, m_Settings.mouseGrab);
     }
+    [[nodiscard]] std::vector<std::string_view> extensions() const { return get_instance_extensions(); }
 private:
-    WindowSettings m_Settings;
+    WindowInfo m_Settings;
     SDL_Window* m_pWindow;
 };
-Window::Window(std::string_view title)
-    : m_pImpl{ std::make_unique<Impl>(title) }
+Window::Window(std::string_view title, const WindowInfo& info)
+    : m_pImpl{ std::make_unique<Impl>(title, info) }
 {}
 Window::~Window() = default;
 Window::Window(Window&& other) = default;
@@ -145,4 +131,8 @@ void Window::toggle_mouse_grab()
 {
     m_pImpl->toggle_mouse_grab();
 }
-}    // namespace odin::gfx::window
+std::vector<std::string_view> Window::required_extensions() const
+{
+    return m_pImpl->extensions();
+}
+}    // namespace odin::graphics::window
