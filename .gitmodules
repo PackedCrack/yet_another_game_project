@@ -10,3 +10,6 @@
 [submodule "external/sdl"]
 	path = external/sdl
 	url = https://github.com/libsdl-org/SDL
+[submodule "external/vma"]
+	path = external/vma
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
