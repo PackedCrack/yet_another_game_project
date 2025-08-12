@@ -3,6 +3,7 @@
 #include "PhysicalDeviceProperties.hpp"
 #include "PhysicalDeviceFeatures.hpp"
 #include "Instance.hpp"
+#include "Surface.hpp"
 #include "../window/Window.hpp"
 //
 //
@@ -18,7 +19,7 @@ namespace odin::graphics::vk
 class PhysicalDevice
 {
 public:
-    PhysicalDevice(const Instance& instance);
+    PhysicalDevice(const Instance& instance, const Surface& surface);
     ~PhysicalDevice() = default;
     PhysicalDevice(const PhysicalDevice& other);
     PhysicalDevice(PhysicalDevice&& other) noexcept;

@@ -342,21 +342,23 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
         LOG_INFO(msg);
     }
 }
-[[nodiscard]] bool supports_queue_requirements(const GPU& gpu)
+[[nodiscard]] bool supports_queue_requirements(const GPU& gpu, const odin::graphics::vk::Surface& surface)
 {
-    // Present support must call extension funcions and requires access to the surface..
-    //bool present{};
+    bool present{};
     bool graphics{};
     bool compute{};
     bool transfer{};
+    std::uint32_t index{};
     for (auto&& property : gpu.queueProperties)
     {
-        // VkBool32 surfaceSupport = false;
-        // VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(gpu, index, surface, &surfaceSupport));
-        //if (surfaceSupport)
-        //{
-        //    present = true;
-        //}
+        // Present support must call extension funcions and requires access to the surface..
+        VkBool32 surfaceSupport{};
+        VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(gpu.device, index, surface.handle(), &surfaceSupport), 
+                 "Failed to get Physical Device Surface Support for Queue Family: {}.", index);
+        if (surfaceSupport)
+        {
+            present = true;
+        }
         if (property.queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
             graphics = true;
@@ -374,14 +376,16 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
         //{
         //    sparseBinding = true;
         //}
+
+        ++index;
     }
 
-    return graphics && compute && transfer;
+    return graphics && compute && transfer && present;
 }
 [[nodiscard]] std::vector<std::reference_wrapper<GPU>> find_discrete_gpus(std::vector<GPU>& gpus)
 {
-    std::vector<std::reference_wrapper<const GPU>> discreteGpus{};
-    auto action = [&discreteGpus](const GPU& gpu)
+    std::vector<std::reference_wrapper<GPU>> discreteGpus{};
+    auto action = [&discreteGpus](GPU& gpu)
     {
         if (gpu.properties.device_type() == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
         {
@@ -392,7 +396,7 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 
     return discreteGpus;
 }
-[[nodiscard]] GPU& select_gpu(std::vector<GPU>& gpus)
+[[nodiscard]] GPU& select_gpu(std::vector<GPU>& gpus, const odin::graphics::vk::Surface& surface)
 {
     ODIN_ASSERT(!gpus.empty());
 
@@ -408,7 +412,7 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
     for (auto&& gpu : discreteGpus)
     {
         const GPU& g = gpu.get();
-        if (supports_queue_requirements(g))
+        if (supports_queue_requirements(g, surface))
         {
             alternatives.emplace_back(g);
         }
@@ -463,7 +467,7 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 }    // namespace
 namespace odin::graphics::vk
 {
-PhysicalDevice::PhysicalDevice(const Instance& instance)
+PhysicalDevice::PhysicalDevice(const Instance& instance, const Surface& surface)
     : m_PhysicalDevice{ VK_NULL_HANDLE }
     , m_Properties{}
     , m_Features{}
@@ -474,7 +478,7 @@ PhysicalDevice::PhysicalDevice(const Instance& instance)
 //, m_QueueFamilies{}
 {
     std::vector<GPU> gpus = get_gpus(instance);
-    GPU& selectedGPU = select_gpu(gpus);
+    GPU& selectedGPU = select_gpu(gpus, surface);
     log_gpus(gpus, selectedGPU);
 
     m_PhysicalDevice = selectedGPU.device;
