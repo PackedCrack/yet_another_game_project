@@ -8,13 +8,13 @@
 //
 namespace odin::graphics::vk
 {
-struct QueueFamilyIndices
-{
-    std::optional<uint32_t> graphics;
-    std::optional<uint32_t> present;
-    std::optional<uint32_t> compute;
-    std::optional<uint32_t> transfer;
-};
+//struct QueueFamilyIndices
+//{
+//    std::optional<uint32_t> graphics;
+//    std::optional<uint32_t> present;
+//    std::optional<uint32_t> compute;
+//    std::optional<uint32_t> transfer;
+//};
 class PhysicalDevice
 {
 public:
@@ -32,10 +32,12 @@ public:
     [[nodiscard]] uint32_t queue_index_transfer() const;*/
     [[nodiscard]] const PhysicalDeviceProperties& properties() const;
     [[nodiscard]] const PhysicalDeviceFeatures& features() const;
+    [[nodiscard]] const std::vector<VkQueueFamilyProperties>& queue_families_properties() const;
 private:
     VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
     PhysicalDeviceProperties m_Properties;
     PhysicalDeviceFeatures m_Features;
+    std::vector<VkQueueFamilyProperties> m_QueueProperties;
     //VkPhysicalDeviceProperties2 m_Properties;
     //VkPhysicalDeviceVulkan11Properties m_11Properties;
     //VkPhysicalDeviceVulkan12Properties m_12Properties;

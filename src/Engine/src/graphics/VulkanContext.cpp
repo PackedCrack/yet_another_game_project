@@ -18,8 +18,12 @@ namespace odin::graphics
 {
 VulkanContext::VulkanContext(const OdinInfo& info, const window::Window& window)
     : m_Instance{ make_application_info(info.applicationName), window.required_extensions() }
-    , m_DebugMsg{ m_Instance }
+    , m_DebugMsg{ std::nullopt }
+    , m_PhysicalDevice{ m_Instance }
     , m_Device{}
-    , m_PhysicalDevice{}
-{}
+{
+#ifndef NDEBUG
+    m_DebugMsg = std::make_optional<vk::DebugMessenger>(m_Instance);
+#endif
+}
 }    // namespace odin::graphics

@@ -20,11 +20,11 @@ instance_create_info(const VkApplicationInfo* appInfo, const std::vector<const c
 {
     return { .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
              .pNext = nullptr,
-             .flags = NULL,
+             .flags = VK_NO_FLAGS,
              .pApplicationInfo = appInfo,
-             .enabledLayerCount = static_cast<uint32_t>(layers.size()),
+             .enabledLayerCount = static_cast<std::uint32_t>(layers.size()),
              .ppEnabledLayerNames = layers.empty() ? nullptr : layers.data(),
-             .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+             .enabledExtensionCount = static_cast<std::uint32_t>(extensions.size()),
              .ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data() };
 }
 constexpr VkPhysicalDeviceFeatures2 physical_device_features_2(VkPhysicalDeviceVulkan11Features* pFeatures11 = nullptr)
@@ -35,22 +35,50 @@ constexpr VkPhysicalDeviceVulkan11Features physical_device_features_vulkan_11(Vk
 {
     return VkPhysicalDeviceVulkan11Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, .pNext = pFeatures12 };
 }
-constexpr VkPhysicalDeviceVulkan12Features physical_device_features_vulkan_12()
+constexpr VkPhysicalDeviceVulkan12Features physical_device_features_vulkan_12(VkPhysicalDeviceVulkan13Features* pFeatures13)
 {
-    return VkPhysicalDeviceVulkan12Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = nullptr };
+    return VkPhysicalDeviceVulkan12Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = pFeatures13 };
+}
+constexpr VkPhysicalDeviceVulkan13Features physical_device_features_vulkan_13(VkPhysicalDeviceVulkan14Features* pFeatures14)
+{
+    return VkPhysicalDeviceVulkan13Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = pFeatures14 };
+}
+constexpr VkPhysicalDeviceVulkan14Features physical_device_features_vulkan_14(void* pNext = nullptr)
+{
+    return VkPhysicalDeviceVulkan14Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES, .pNext = pNext };
+}
+constexpr VkPhysicalDeviceExtendedDynamicState2FeaturesEXT
+physical_device_features_dynamic_state2(VkPhysicalDeviceExtendedDynamicState3FeaturesEXT* pDynamicState3 = nullptr)
+{
+    return VkPhysicalDeviceExtendedDynamicState2FeaturesEXT{ .sType =
+                                                                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT,
+                                                             .pNext = pDynamicState3 };
+}
+constexpr VkPhysicalDeviceExtendedDynamicState3FeaturesEXT physical_device_features_dynamic_state3()
+{
+    return VkPhysicalDeviceExtendedDynamicState3FeaturesEXT{ .sType =
+                                                                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT,
+                                                             .pNext = nullptr };
 }
 constexpr VkPhysicalDeviceProperties2 physical_device_properies_2(VkPhysicalDeviceVulkan11Properties* pProperties11 = nullptr)
 {
     return VkPhysicalDeviceProperties2{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = pProperties11 };
 }
-constexpr VkPhysicalDeviceVulkan11Properties
-physical_device_properies_vulkan_11(VkPhysicalDeviceVulkan12Properties* pProperties12 = nullptr)
+constexpr VkPhysicalDeviceVulkan11Properties physical_device_properies_v11(VkPhysicalDeviceVulkan12Properties* pProperties12 = nullptr)
 {
     return VkPhysicalDeviceVulkan11Properties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES, .pNext = pProperties12 };
 }
-constexpr VkPhysicalDeviceVulkan12Properties physical_device_properies_vulkan_12()
+constexpr VkPhysicalDeviceVulkan12Properties physical_device_properies_v12(VkPhysicalDeviceVulkan13Properties* pProperties13 = nullptr)
 {
-    return VkPhysicalDeviceVulkan12Properties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES, .pNext = nullptr };
+    return VkPhysicalDeviceVulkan12Properties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES, .pNext = pProperties13 };
+}
+constexpr VkPhysicalDeviceVulkan13Properties physical_device_properies_v13(VkPhysicalDeviceVulkan14Properties* pProperties14 = nullptr)
+{
+    return VkPhysicalDeviceVulkan13Properties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES, .pNext = pProperties14 };
+}
+constexpr VkPhysicalDeviceVulkan14Properties physical_device_properies_v14()
+{
+    return VkPhysicalDeviceVulkan14Properties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_PROPERTIES, .pNext = nullptr };
 }
 template<uint32_t SIZE>
 constexpr VkDeviceCreateInfo device_create_info(const std::vector<VkDeviceQueueCreateInfo>& queueCreateInfo,

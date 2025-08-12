@@ -37,4 +37,4 @@ private:
     VkPhysicalDeviceVulkan11Properties m_v11Properties;
     VkPhysicalDeviceProperties2 m_Properties;
 };
-}	// namespace odin::graphics::vk
+}    // namespace odin::graphics::vk

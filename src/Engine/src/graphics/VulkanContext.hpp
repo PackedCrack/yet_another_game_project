@@ -5,6 +5,7 @@
 #include "vk/Device.hpp"
 #include "vk/Instance.hpp"
 #include "vk/PhysicalDevice.hpp"
+#include "vk/QueueFamilies.hpp"
 #include "window/Window.hpp"
 //
 //
@@ -16,8 +17,9 @@ public:
     VulkanContext(const OdinInfo& info, const window::Window& window);
 private:
     vk::Instance m_Instance;
-    vk::DebugMessenger m_DebugMsg;
-    vk::Device m_Device;
+    std::optional<vk::DebugMessenger> m_DebugMsg;
     vk::PhysicalDevice m_PhysicalDevice;
+    vk::QueueFamilies m_Queues;
+    vk::Device m_Device;
 };
 }    // namespace odin::graphics

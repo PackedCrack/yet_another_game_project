@@ -28,6 +28,9 @@ namespace
 }
 [[nodiscard]] std::vector<const char*> validation_layers()
 {
+#ifdef NDEBUG
+    return std::vector<const char*>{};
+#else
     // First get the available layers
     std::vector<VkLayerProperties> availableLayers = enum_layer_properties();
 
@@ -44,10 +47,7 @@ namespace
         LOG_FATAL("No validation layer found");
     }
 
-#ifndef NDEBUG
     return std::vector<const char*>{ "VK_LAYER_KHRONOS_validation" };
-#else
-    return std::vector<const char*>{};
 #endif
 }
 #ifndef NDEBUG

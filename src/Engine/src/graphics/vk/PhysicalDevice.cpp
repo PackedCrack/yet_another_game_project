@@ -1,6 +1,8 @@
 #include "PhysicalDevice.hpp"
 #include "vulkan_defines.hpp"
 #include "vulkan_info.hpp"
+//
+//
 namespace
 {
 struct GPU
@@ -8,6 +10,7 @@ struct GPU
     VkPhysicalDevice device;
     odin::graphics::vk::PhysicalDeviceProperties properties;
     odin::graphics::vk::PhysicalDeviceFeatures features;
+    std::vector<VkQueueFamilyProperties> queueProperties;
 };
 //[[nodiscard]] std::string api_version_to_str(uint32_t apiVersion)
 //{
@@ -212,97 +215,114 @@ struct GPU
 //
 //    return queueIndices;
 //}
+[[nodiscard]] std::string& log_queue_properties(const GPU& gpu, std::string& msg)
+{
+    msg += std::format("\nFound {} queue families.", gpu.queueProperties.size());
+    for (std::size_t i = 0; i < gpu.queueProperties.size(); ++i)
+    {
+        VkQueueFlags flags = gpu.queueProperties[i].queueFlags;
+        msg += std::format("\n\tQueue Family {} supports:", i);
+        if (flags & VK_QUEUE_GRAPHICS_BIT)
+        {
+            msg += "\n\t\tGraphics";
+        }
+        if (flags & VK_QUEUE_COMPUTE_BIT)
+        {
+            msg += "\n\t\tCompute";
+        }
+        if (flags & VK_QUEUE_TRANSFER_BIT)
+        {
+            msg += "\n\t\tTransfer";
+        }
+        if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
+        {
+            msg += "\n\t\tSparse Binding";
+        }
+    }
+
+    return msg;
+}
 [[nodiscard]] std::string& log_properties(const GPU& gpu, std::string& msg)
 {
     switch (gpu.properties.device_type())
     {
     case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-        msg += "\nDevice type: Other";
+        msg += "\n\tDevice type: Other";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-        msg += "\nDevice type: Integrated";
+        msg += "\n\tDevice type: Integrated";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-        msg += "\nDevice type: Discrete";
+        msg += "\n\tDevice type: Discrete";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-        msg += "\nDevice type: Virtual";
+        msg += "\n\tDevice type: Virtual";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_CPU:
-        msg += "\nDevice type: CPU";
+        msg += "\n\tDevice type: CPU";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
         LOG_FATAL("Unexpected Device Type: VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM.");
     }
 
-    msg += "\nDriver Name: ";
-    msg += gpu.properties.driver_name();
+    msg += std::format("\n\tDriver Name: {}", gpu.properties.driver_name());
 
-    msg += "\nDriver Version: ";
-    msg += gpu.properties.driver_info(); 
-    
-    msg += "\nVulkan API version: ";
-    msg += gpu.properties.api_version();
-    
-    msg += "\nMinimum Memory map alignment: ";
-    msg += std::to_string(gpu.properties.min_memory_map_alignment());
-    
-    msg += "\nMinimum Uniform buffer offset alignment: ";
-    msg += std::to_string(gpu.properties.min_uniform_buffer_offset_alignment());
-    
-    msg += "\nMinimum Storage buffer offset alignment: ";
-    msg += std::to_string(gpu.properties.min_storage_buffer_offset_alignment());
-    
-    msg += "\nMaximum Compute Work Group Total Invocations: ";
-    msg += std::to_string(gpu.properties.max_compute_work_group_invocations());
-    
-    msg += "\nMaximum Compute Work Group Size - X: ";
-    msg += std::to_string(gpu.properties.work_group_size_x());
-    
-    msg += "\nMaximum Compute Work Group Size - Y: ";
-    msg += std::to_string(gpu.properties.work_group_size_y());
-    
-    msg += "\nMaximum Compute Work Group Size - Z: ";
-    msg += std::to_string(gpu.properties.work_group_size_z());
+    msg += std::format("\n\tDriver Version: {}", gpu.properties.driver_info());
+
+    msg += std::format("\n\tVulkan API version: {}", gpu.properties.api_version());
+
+    msg += std::format("\n\tMinimum Memory map alignment: {}", gpu.properties.min_memory_map_alignment());
+
+    msg += std::format("\n\tMinimum Uniform buffer offset alignment: {}", gpu.properties.min_uniform_buffer_offset_alignment());
+
+    msg += std::format("\n\tMinimum Storage buffer offset alignment: {}", gpu.properties.min_storage_buffer_offset_alignment());
+
+    msg += std::format("\n\tMaximum Compute Work Group Total Invocations: {}", gpu.properties.max_compute_work_group_invocations());
+
+    msg += std::format("\n\tMaximum Compute Work Group Size - X: {}", gpu.properties.work_group_size_x());
+
+    msg += std::format("\n\tMaximum Compute Work Group Size - Y: {}", gpu.properties.work_group_size_y());
+
+    msg += std::format("\n\tMaximum Compute Work Group Size - Z: {}", gpu.properties.work_group_size_z());
 
     return msg;
 }
 [[nodiscard]] std::string& log_features(const GPU& gpu, std::string& msg)
 {
-    msg += "\nSupports descriptor binding partially bound: ";
+    msg += "\n\tSupports descriptor binding partially bound: ";
     msg += gpu.features.descriptor_binding_partially_bound() ? "True" : "False";
 
-    msg += "\nSupports descriptor indexing: ";
+    msg += "\n\tSupports descriptor indexing: ";
     msg += gpu.features.descriptor_indexing() ? "True" : "False";
 
-    msg += "\nSupports draw indirect count: ";
+    msg += "\n\tSupports draw indirect count: ";
     msg += gpu.features.draw_indirect_count() ? "True" : "False";
 
-    msg += "\nSupports Dynamic Rendering: ";
+    msg += "\n\tSupports Dynamic Rendering: ";
     msg += gpu.features.dynamic_rendering() ? "True" : "False";
 
-    msg += "\nSupports Dynamic Rendering Local Read: ";
+    msg += "\n\tSupports Dynamic Rendering Local Read: ";
     msg += gpu.features.dynamic_rendering_local_read() ? "True" : "False";
 
-    msg += "\nSupports Multi Draw Indirect: ";
+    msg += "\n\tSupports Multi Draw Indirect: ";
     msg += gpu.features.multi_draw_indirect() ? "True" : "False";
 
-    msg += "\nSupports Pipeline Statistic Queries: ";
+    msg += "\n\tSupports Pipeline Statistic Queries: ";
     msg += gpu.features.pipeline_statistics_query() ? "True" : "False";
 
-    msg += "\nSupports Runtime Descriptor Array: ";
+    msg += "\n\tSupports Runtime Descriptor Array: ";
     msg += gpu.features.runtime_descriptor_array() ? "True" : "False";
 
-    msg += "\nSupports Shader Draw Parameters: ";
+    msg += "\n\tSupports Shader Draw Parameters: ";
     msg += gpu.features.shader_draw_parameters() ? "True" : "False";
 
-    msg += "\nSupports Synchronization 2: ";
+    msg += "\n\tSupports Synchronization 2: ";
     msg += gpu.features.synchronization2() ? "True" : "False";
 
-    msg += "\nSupports Dynamic State 2: ";
+    msg += "\n\tSupports Dynamic State 2: ";
     msg += gpu.features.supports_dynamic_state2() ? "True" : "False";
 
-    msg += "\nSupports Dynamic State 3: ";
+    msg += "\n\tSupports Dynamic State 3: ";
     msg += gpu.features.supports_dynamic_state3() ? "True" : "False";
 
     return msg;
@@ -317,23 +337,111 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 
         msg = log_properties(gpu, msg);
         msg = log_features(gpu, msg);
+        msg = log_queue_properties(gpu, msg);
 
         LOG_INFO(msg);
     }
 }
+[[nodiscard]] bool supports_queue_requirements(const GPU& gpu)
+{
+    // Present support must call extension funcions and requires access to the surface..
+    //bool present{};
+    bool graphics{};
+    bool compute{};
+    bool transfer{};
+    for (auto&& property : gpu.queueProperties)
+    {
+        // VkBool32 surfaceSupport = false;
+        // VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(gpu, index, surface, &surfaceSupport));
+        //if (surfaceSupport)
+        //{
+        //    present = true;
+        //}
+        if (property.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+        {
+            graphics = true;
+        }
+        if (property.queueFlags & VK_QUEUE_COMPUTE_BIT)
+        {
+            compute = true;
+        }
+        if (property.queueFlags & VK_QUEUE_TRANSFER_BIT)
+        {
+            transfer = true;
+        }
+        // Spare binding is not a requirment as of now..
+        //if (property.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
+        //{
+        //    sparseBinding = true;
+        //}
+    }
+
+    return graphics && compute && transfer;
+}
+[[nodiscard]] std::vector<std::reference_wrapper<GPU>> find_discrete_gpus(std::vector<GPU>& gpus)
+{
+    std::vector<std::reference_wrapper<const GPU>> discreteGpus{};
+    auto action = [&discreteGpus](const GPU& gpu)
+    {
+        if (gpu.properties.device_type() == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        {
+            discreteGpus.emplace_back(gpu);
+        }
+    };
+    std::for_each(std::begin(gpus), std::end(gpus), action);
+
+    return discreteGpus;
+}
+[[nodiscard]] GPU& select_gpu(std::vector<GPU>& gpus)
+{
+    ODIN_ASSERT(!gpus.empty());
+
+    using Iterator = std::vector<GPU>::const_iterator;
+
+    std::vector<std::reference_wrapper<GPU>> discreteGpus = find_discrete_gpus(gpus);
+    if (discreteGpus.empty())
+    {
+        LOG_FATAL("No discrete GPU found! Integrated GPU's are not supported.");
+    }
+
+    std::vector<std::reference_wrapper<GPU>> alternatives{};
+    for (auto&& gpu : discreteGpus)
+    {
+        const GPU& g = gpu.get();
+        if (supports_queue_requirements(g))
+        {
+            alternatives.emplace_back(g);
+        }
+    }
+    if (alternatives.empty())
+    {
+        LOG_FATAL("No GPU found that supports queue requirements.");
+    }
+
+    // For now just return the first one..
+    // May need a point system in the future - but most only have 1 dedicated gpu..
+    return alternatives.front().get();
+}
+[[nodiscard]] std::vector<VkQueueFamilyProperties> queue_family_properties(VkPhysicalDevice device)
+{
+    std::uint32_t count = 0u;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, std::addressof(count), nullptr);
+    std::vector<VkQueueFamilyProperties> queueFamilies(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, queueFamilies.data());
+
+    return queueFamilies;
+}
 [[nodiscard]] std::vector<VkPhysicalDevice> enumerate_physical_devices(const odin::graphics::vk::Instance& instance)
 {
     std::uint32_t count{};
-    VK_CHECK(vkEnumeratePhysicalDevices(instance.handle(), &count, nullptr), 
-             "Failed to enumerate physical device count.");
+    VK_CHECK(vkEnumeratePhysicalDevices(instance.handle(), &count, nullptr), "Failed to enumerate physical device count.");
     if (count < 1u)
     {
         LOG_FATAL("No GPU found with Vulkan Support.");
     }
 
     std::vector<VkPhysicalDevice> devices(count);
-    VK_CHECK(vkEnumeratePhysicalDevices(instance.handle(), &count, devices.data()),
-        "Failed to enumerate physical device(s).");
+    VK_CHECK(vkEnumeratePhysicalDevices(instance.handle(), &count, devices.data()), "Failed to enumerate physical device(s).");
 
     return devices;
 }
@@ -347,26 +455,10 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
     std::vector<GPU> gpus{};
     for (VkPhysicalDevice dev : physicalDevices)
     {
-        gpus.emplace_back(dev, Properties{ dev }, Features{ dev });
+        gpus.emplace_back(dev, Properties{ dev }, Features{ dev }, queue_family_properties(dev));
     }
 
     return gpus;
-}
-[[nodiscard]] GPU select_gpu(const std::vector<GPU>& gpus)
-{
-    ODIN_ASSERT(!gpus.empty());
-
-    auto it =
-        std::find_if(std::begin(gpus),
-                     std::end(gpus),
-                     [] (const GPU& gpu) { return gpu.properties.device_type() == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU; });
-
-    if (it == std::end(gpus))
-    {
-        LOG_FATAL("No discrete GPU found! Integrated GPU's are not supported.");
-    }
-
-    return *it;
 }
 }    // namespace
 namespace odin::graphics::vk
@@ -375,43 +467,45 @@ PhysicalDevice::PhysicalDevice(const Instance& instance)
     : m_PhysicalDevice{ VK_NULL_HANDLE }
     , m_Properties{}
     , m_Features{}
-    //, m_Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 }
-    //, m_11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES }
-    //, m_12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES }
-    //, m_QueueFamilies{}
+    , m_QueueProperties{}
+//, m_Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 }
+//, m_11Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES }
+//, m_12Features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES }
+//, m_QueueFamilies{}
 {
     std::vector<GPU> gpus = get_gpus(instance);
-    GPU selectedGPU = select_gpu(gpus);
+    GPU& selectedGPU = select_gpu(gpus);
     log_gpus(gpus, selectedGPU);
 
     m_PhysicalDevice = selectedGPU.device;
     m_Properties = std::move(selectedGPU.properties);
     m_Features = std::move(selectedGPU.features);
+    m_QueueProperties = std::move(selectedGPU.queueProperties);
 
-//    // TODO:: Acctual gpu selection logic
-//    auto deviceAndProperties = enumerate_properties(availableDevices);
-//    auto selectedGPU = select_gpu(deviceAndProperties);
-//    m_PhysicalDevice = selectedGPU.device;
-//    m_Properties = std::move(selectedGPU.properties);
-//    m_11Properties = std::move(selectedGPU.properties11);
-//    m_12Properties = std::move(selectedGPU.properties12);
-//    m_Properties.pNext = &m_11Properties;
-//    m_11Properties.pNext = &m_12Properties;
-//
-//
-//#ifndef NDEBUG
-//    logger::info("Found " + std::to_string(availableDevices.size()) + " GPU(s)");
-//    for (const auto& gpu : deviceAndProperties)
-//    {
-//        std::string message{};
-//        // Log device properties
-//        log_physical_device_propertes(gpu, m_PhysicalDevice, message);
-//        // Log device features
-//        log_physical_device_features(gpu.device, message);
-//
-//        logger::info(message);
-//    }
-//#endif
+    //    // TODO:: Acctual gpu selection logic
+    //    auto deviceAndProperties = enumerate_properties(availableDevices);
+    //    auto selectedGPU = select_gpu(deviceAndProperties);
+    //    m_PhysicalDevice = selectedGPU.device;
+    //    m_Properties = std::move(selectedGPU.properties);
+    //    m_11Properties = std::move(selectedGPU.properties11);
+    //    m_12Properties = std::move(selectedGPU.properties12);
+    //    m_Properties.pNext = &m_11Properties;
+    //    m_11Properties.pNext = &m_12Properties;
+    //
+    //
+    //#ifndef NDEBUG
+    //    logger::info("Found " + std::to_string(availableDevices.size()) + " GPU(s)");
+    //    for (const auto& gpu : deviceAndProperties)
+    //    {
+    //        std::string message{};
+    //        // Log device properties
+    //        log_physical_device_propertes(gpu, m_PhysicalDevice, message);
+    //        // Log device features
+    //        log_physical_device_features(gpu.device, message);
+    //
+    //        logger::info(message);
+    //    }
+    //#endif
 
 
     // Get features
@@ -427,11 +521,13 @@ PhysicalDevice::PhysicalDevice(const PhysicalDevice& other)
     : m_PhysicalDevice{ other.m_PhysicalDevice }
     , m_Properties{ other.m_Properties }
     , m_Features{ other.m_Features }
+    , m_QueueProperties{ other.m_QueueProperties }
 {}
 PhysicalDevice::PhysicalDevice(PhysicalDevice&& other) noexcept
     : m_PhysicalDevice{ std::exchange(other.m_PhysicalDevice, VK_NULL_HANDLE) }
     , m_Properties{ std::move(other.m_Properties) }
     , m_Features{ std::move(other.m_Features) }
+    , m_QueueProperties{ std::move(other.m_QueueProperties) }
 {}
 PhysicalDevice& PhysicalDevice::operator=(const PhysicalDevice& other)
 {
@@ -440,8 +536,9 @@ PhysicalDevice& PhysicalDevice::operator=(const PhysicalDevice& other)
         m_PhysicalDevice = other.m_PhysicalDevice;
         m_Properties = other.m_Properties;
         m_Features = other.m_Features;
+        m_QueueProperties = other.m_QueueProperties;
     }
-    
+
     return *this;
 }
 PhysicalDevice& PhysicalDevice::operator=(PhysicalDevice&& other) noexcept
@@ -451,6 +548,7 @@ PhysicalDevice& PhysicalDevice::operator=(PhysicalDevice&& other) noexcept
         m_PhysicalDevice = std::exchange(other.m_PhysicalDevice, VK_NULL_HANDLE);
         m_Properties = std::move(other.m_Properties);
         m_Features = std::move(other.m_Features);
+        m_QueueProperties = std::move(other.m_QueueProperties);
     }
 
     return *this;
@@ -492,5 +590,9 @@ const PhysicalDeviceProperties& PhysicalDevice::properties() const
 const PhysicalDeviceFeatures& PhysicalDevice::features() const
 {
     return m_Features;
+}
+const std::vector<VkQueueFamilyProperties>& PhysicalDevice::queue_families_properties() const
+{
+    return m_QueueProperties;
 }
 }    // namespace odin::graphics::vk
