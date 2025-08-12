@@ -19,6 +19,7 @@ public:
 	Surface& operator=(Surface&& other) noexcept;
 public:
 	[[nodiscard]] VkSurfaceKHR handle() const;
+	[[nodiscard]] bool queue_family_supports_present(VkPhysicalDevice device, std::uint32_t index) const;
 private:
 	VkSurfaceKHR m_Surface;
 	VkInstance m_Instance;

@@ -352,10 +352,7 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
     for (auto&& property : gpu.queueProperties)
     {
         // Present support must call extension funcions and requires access to the surface..
-        VkBool32 surfaceSupport{};
-        VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(gpu.device, index, surface.handle(), &surfaceSupport), 
-                 "Failed to get Physical Device Surface Support for Queue Family: {}.", index);
-        if (surfaceSupport)
+        if (surface.queue_family_supports_present(gpu.device, index))
         {
             present = true;
         }

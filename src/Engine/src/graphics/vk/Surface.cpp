@@ -1,6 +1,6 @@
 #include "Surface.hpp"
 
-#include "debug/Logger.hpp"
+#include "vulkan_defines.hpp"
 // sdl
 #include <SDL3/SDL_vulkan.h>
 //
@@ -36,5 +36,13 @@ VkSurfaceKHR Surface::handle() const
 {
 	ODIN_ASSERT(m_Surface != VK_NULL_HANDLE);
 	return m_Surface;
+}
+bool Surface::queue_family_supports_present(VkPhysicalDevice device, std::uint32_t queueFamilyIndex) const
+{
+	VkBool32 surfaceSupport{};
+	VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(device, queueFamilyIndex, m_Surface, &surfaceSupport),
+			 "Failed to get Physical Device Surface Support for Queue Family: {}.", queueFamilyIndex);
+
+	return surfaceSupport;
 }
 }    // namespace odin::graphics::vk
