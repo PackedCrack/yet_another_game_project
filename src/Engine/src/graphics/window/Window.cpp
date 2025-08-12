@@ -4,6 +4,8 @@
 // sdl
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_vulkan.h"
+//
+//
 namespace
 {
 [[nodiscard]] SDL_WindowFlags make_window_flags(const odin::WindowInfo& info)
@@ -109,6 +111,12 @@ public:
         SDL_SetWindowMouseGrab(m_pWindow, m_Settings.mouseGrab);
     }
     [[nodiscard]] std::vector<std::string_view> extensions() const { return get_instance_extensions(); }
+    [[nodiscard]] VkSurfaceKHR make_surface(const vk::Instance& instance)
+    {
+        VkSurfaceKHR surface{};
+        SDL_CHECK(SDL_Vulkan_CreateSurface(m_pWindow, instance.handle(), nullptr, &surface), "Failed to create Vulkan Surface.");
+        return surface;
+    }
 private:
     WindowInfo m_Settings;
     SDL_Window* m_pWindow;
@@ -134,5 +142,9 @@ void Window::toggle_mouse_grab()
 std::vector<std::string_view> Window::required_extensions() const
 {
     return m_pImpl->extensions();
+}
+VkSurfaceKHR Window::make_surface(const vk::Instance& instance)
+{
+    return m_pImpl->make_surface(instance);
 }
 }    // namespace odin::graphics::window

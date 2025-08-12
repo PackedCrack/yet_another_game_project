@@ -3,24 +3,16 @@
 //
 namespace
 {
-[[nodiscard]] VkApplicationInfo make_application_info(std::string_view name)
-{
-    return VkApplicationInfo{ .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                              .pNext = nullptr,
-                              .pApplicationName = name.data(),
-                              .applicationVersion = VK_MAKE_VERSION(1, 33, 7),
-                              .pEngineName = "Odin",
-                              .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-                              .apiVersion = VK_API_VERSION_1_4 };
-}
+
 }    // namespace
 namespace odin::graphics
 {
-VulkanContext::VulkanContext(const OdinInfo& info, const window::Window& window)
-    : m_Instance{ make_application_info(info.applicationName), window.required_extensions() }
+VulkanContext::VulkanContext(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::QueueFamilies queueFamilies, vk::Device device)
+    : m_Instance{ std::move(instance) }
     , m_DebugMsg{ std::nullopt }
-    , m_PhysicalDevice{ m_Instance }
-    , m_Device{}
+    , m_PhysicalDevice{ std::move(physicalDevice) }
+    , m_Queues{ std::move(queueFamilies) }
+    , m_Device{ std::move(device) }
 {
 #ifndef NDEBUG
     m_DebugMsg = std::make_optional<vk::DebugMessenger>(m_Instance);

@@ -8,6 +8,11 @@
 //
 namespace odin::graphics::vk
 {
+class Device;
+struct QueueView
+{
+	VkQueue handle;
+};
 class QueueFamilies
 {
 public:
@@ -20,10 +25,12 @@ public:
 	};
 	explicit QueueFamilies(const PhysicalDevice& device, const Surface& surface);
 public:
-	[[nodiscard]] VkQueue present() const;
-	[[nodiscard]] VkQueue graphics() const;
-	[[nodiscard]] VkQueue compute() const;
-	[[nodiscard]] VkQueue transfer() const;
+	[[nodiscard]] QueueView present() const;
+	[[nodiscard]] QueueView graphics() const;
+	[[nodiscard]] QueueView compute() const;
+	[[nodiscard]] QueueView transfer() const;
+	[[nodiscard]] std::vector<VkDeviceQueueCreateInfo> queue_create_info() const;
+	[[nodiscard]] void store_queue_handles(const Device& device);
 private:
 	void select_queue_indices(const PhysicalDevice& device, const Surface& surface);
 private:
