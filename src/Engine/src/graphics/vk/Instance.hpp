@@ -7,6 +7,10 @@
 //
 namespace odin::graphics::vk
 {
+struct InstanceView
+{
+    VkInstance handle;
+};
 class Instance
 {
 public:
@@ -16,10 +20,9 @@ public:
     Instance(Instance&& other) noexcept;
     Instance& operator=(const Instance& other) = delete;
     Instance& operator=(Instance&& other) noexcept;
-
-    [[nodiscard]] VkInstance handle() const;
+public:
+    [[nodiscard]] InstanceView view() const;
 private:
     VkInstance m_Instance = VK_NULL_HANDLE;
-    //VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 };
 }    // namespace odin::graphics::vk

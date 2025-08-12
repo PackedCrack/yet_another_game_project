@@ -25,6 +25,6 @@ public:
     [[nodiscard]] DeviceView view() const;
     [[nodiscard]] VkQueue get_queue_handle(std::uint32_t familyIndex) const;
 private:
-    VkDevice m_Device;
+    VkDevice m_Device = VK_NULL_HANDLE;
 };
 }    // namespace odin::graphics::vk

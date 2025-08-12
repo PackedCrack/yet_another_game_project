@@ -283,7 +283,7 @@ PhysicalDevice::PhysicalDevice(const PhysicalDevice& other)
     , m_QueueProperties{ other.m_QueueProperties }
 {}
 PhysicalDevice::PhysicalDevice(PhysicalDevice&& other) noexcept
-    : m_PhysicalDevice{ std::exchange(other.m_PhysicalDevice, VK_NULL_HANDLE) }
+    : m_PhysicalDevice{ std::exchange(other.m_PhysicalDevice, m_PhysicalDevice) }
     , m_Properties{ std::move(other.m_Properties) }
     , m_Features{ std::move(other.m_Features) }
     , m_QueueProperties{ std::move(other.m_QueueProperties) }
@@ -304,7 +304,7 @@ PhysicalDevice& PhysicalDevice::operator=(PhysicalDevice&& other) noexcept
 {
     if (this != std::addressof(other))
     {
-        m_PhysicalDevice = std::exchange(other.m_PhysicalDevice, VK_NULL_HANDLE);
+        m_PhysicalDevice = std::exchange(other.m_PhysicalDevice, m_PhysicalDevice);
         m_Properties = std::move(other.m_Properties);
         m_Features = std::move(other.m_Features);
         m_QueueProperties = std::move(other.m_QueueProperties);

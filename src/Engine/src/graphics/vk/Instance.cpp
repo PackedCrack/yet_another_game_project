@@ -84,39 +84,29 @@ Instance::Instance(VkApplicationInfo appInfo, const std::vector<std::string_view
 
     VkInstanceCreateInfo createInfo = instance_create_info(&appInfo, layers, extensions);
     VK_CHECK(vkCreateInstance(&createInfo, nullptr, &m_Instance), "Failed to create Vulkan Instance.");
-
-    //window.create_surface(*this);
-    //m_Surface = window.surface();
 }
 Instance::~Instance()
 {
-    //if (m_Surface != VK_NULL_HANDLE)
-    //{
-    //    vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
-    //}
-
     if (m_Instance != VK_NULL_HANDLE)
     {
         vkDestroyInstance(m_Instance, nullptr);
     }
 }
 Instance::Instance(Instance&& other) noexcept
-    : m_Instance{ std::exchange(other.m_Instance, VK_NULL_HANDLE) }
-{
-    //std::swap(m_Surface, other.m_Surface);
-}
+    : m_Instance{ std::exchange(other.m_Instance, m_Instance) }
+{}
 Instance& Instance::operator=(Instance&& other) noexcept
 {
     if (this != std::addressof(other))
     {
         std::swap(m_Instance, other.m_Instance);
-        //std::swap(m_Surface, other.m_Surface);
     }
 
     return *this;
 }
-VkInstance Instance::handle() const
+InstanceView Instance::view() const
 {
-    return m_Instance;
+    ODIN_ASSERT(m_Instance != VK_NULL_HANDLE);
+    return InstanceView{ .handle = m_Instance };
 }
 }    // namespace odin::graphics::vk

@@ -51,16 +51,14 @@ namespace
 {
     VkPhysicalDeviceFeatures v10features{};
     v10features.pipelineStatisticsQuery = VK_TRUE;
-    
+
     return v10features;
 }
 [[nodiscard]] VkPhysicalDeviceFeatures2 required_features(VkPhysicalDeviceVulkan11Features* p11Features = nullptr)
 {
-    return VkPhysicalDeviceFeatures2{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-        .pNext = p11Features,
-        .features = required_v10_features()
-    };
+    return VkPhysicalDeviceFeatures2{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                                      .pNext = p11Features,
+                                      .features = required_v10_features() };
 }
 }    // namespace
 namespace odin::graphics::vk
@@ -70,8 +68,8 @@ Device::Device(const PhysicalDevice& gpu, QueueFamilies& queueFamilies)
 {
     static constexpr std::array<const char*, 4> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                                                                      VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME,
-                                                                        VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
-    VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME };
+                                                                     VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
+                                                                     VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME };
 
     VkPhysicalDeviceVulkan14Features v14features = required_v14_features();
     VkPhysicalDeviceVulkan13Features v13features = required_v13_features(std::addressof(v14features));
@@ -93,15 +91,15 @@ Device::~Device()
     }
 }
 Device::Device(Device&& other) noexcept
-    : m_Device{ std::exchange(other.m_Device, VK_NULL_HANDLE) }
+    : m_Device{ std::exchange(other.m_Device, m_Device) }
 {}
 Device& Device::operator=(Device&& other) noexcept
 {
     if (this != std::addressof(other))
     {
-        m_Device = std::exchange(other.m_Device, VK_NULL_HANDLE);
+        m_Device = std::exchange(other.m_Device, m_Device);
     }
-    
+
     return *this;
 }
 DeviceView Device::view() const
