@@ -13,6 +13,14 @@ SET(SOURCES
         Surface.cpp
         PhysicalDevice.hpp
         PhysicalDevice.cpp
+	PhysicalDeviceProperties.hpp
+	PhysicalDeviceProperties.cpp
+	PhysicalDeviceFeatures.hpp
+	PhysicalDeviceFeatures.cpp
+	QueueFamilies.hpp
+	QueueFamilies.cpp
+	Image.hpp
+	Image.cpp
 )
 
 
