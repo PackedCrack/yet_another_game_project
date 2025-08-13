@@ -87,7 +87,7 @@ constexpr VkDeviceCreateInfo device_create_info(const std::vector<VkDeviceQueueC
 {
     return { .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
              .pNext = &deviceFeatures2,
-             .flags = NULL,
+             .flags = VK_NO_FLAGS,
              .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfo.size()),
              .pQueueCreateInfos = queueCreateInfo.empty() ? nullptr : queueCreateInfo.data(),
              .enabledLayerCount = NULL,    // This is deprecated and ignored
@@ -96,11 +96,11 @@ constexpr VkDeviceCreateInfo device_create_info(const std::vector<VkDeviceQueueC
              .ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data(),
              .pEnabledFeatures = nullptr };
 }
-constexpr VkDeviceQueueCreateInfo device_queue_create_info(uint32_t queueIndex, uint32_t queueCount, const float* pQueuePrio)
+constexpr VkDeviceQueueCreateInfo device_queue_create_info(std::uint32_t queueIndex, std::uint32_t queueCount, const float* pQueuePrio)
 {
     return { .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
              .pNext = nullptr,
-             .flags = NULL,
+             .flags = VK_NO_FLAGS,
              .queueFamilyIndex = queueIndex,
              .queueCount = queueCount,
              .pQueuePriorities = pQueuePrio };

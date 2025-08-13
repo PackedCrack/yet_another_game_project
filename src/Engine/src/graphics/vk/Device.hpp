@@ -8,9 +8,9 @@
 namespace odin::graphics::vk
 {
 class QueueFamilies;
-struct DeviceView
+struct DeviceRef
 {
-    VkDevice device;
+    VkDevice handle;
 };
 class Device
 {
@@ -22,7 +22,7 @@ public:
     Device& operator=(const Device& other) = delete;
     Device& operator=(Device&& other) noexcept;
 public:
-    [[nodiscard]] DeviceView view() const;
+    [[nodiscard]] DeviceRef handle() const;
     [[nodiscard]] VkQueue get_queue_handle(std::uint32_t familyIndex) const;
 private:
     VkDevice m_Device = VK_NULL_HANDLE;

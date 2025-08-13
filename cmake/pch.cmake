@@ -17,6 +17,7 @@ SET(STD_PCH <cstdint>
 <functional>
 <utility>
 <optional>
+<variant>
 <memory>
 <chrono>
 <bitset>

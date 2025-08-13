@@ -1,12 +1,21 @@
 #pragma once
 
-#include "../Allocator.hpp"
+
 // vulkan
 #include <vulkan/vulkan.h>
 //
 //
 namespace odin::graphics::vk
 {
+class Allocator;
+}    // namespace odin::graphics::vk
+namespace odin::graphics::vk::resource
+{
+struct AllocatedImage
+{
+    VkImage image = VK_NULL_HANDLE;
+    void* pAllocation = nullptr;    // This is pointer to VmaAllocation
+};
 class Image
 {
 public:
@@ -22,4 +31,4 @@ private:
     std::shared_ptr<Allocator> m_pAllocator = nullptr;
     VkFormat m_Format;
 };
-}    // namespace odin::graphics::vk
+}    // namespace odin::graphics::vk::resource

@@ -7,7 +7,7 @@
 //
 namespace odin::graphics::vk
 {
-struct InstanceView
+struct InstanceRef
 {
     VkInstance handle;
 };
@@ -21,7 +21,7 @@ public:
     Instance& operator=(const Instance& other) = delete;
     Instance& operator=(Instance&& other) noexcept;
 public:
-    [[nodiscard]] InstanceView view() const;
+    [[nodiscard]] InstanceRef handle() const;
 private:
     VkInstance m_Instance = VK_NULL_HANDLE;
 };

@@ -232,14 +232,15 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 [[nodiscard]] std::vector<VkPhysicalDevice> enumerate_physical_devices(const odin::graphics::vk::Instance& instance)
 {
     std::uint32_t count{};
-    VK_CHECK(vkEnumeratePhysicalDevices(instance.handle(), &count, nullptr), "Failed to enumerate physical device count.");
+    odin::graphics::vk::InstanceRef i = instance.handle();
+    VK_CHECK(vkEnumeratePhysicalDevices(i.handle, &count, nullptr), "Failed to enumerate physical device count.");
     if (count < 1u)
     {
         LOG_FATAL("No GPU found with Vulkan Support.");
     }
 
     std::vector<VkPhysicalDevice> devices(count);
-    VK_CHECK(vkEnumeratePhysicalDevices(instance.handle(), &count, devices.data()), "Failed to enumerate physical device(s).");
+    VK_CHECK(vkEnumeratePhysicalDevices(i.handle, &count, devices.data()), "Failed to enumerate physical device(s).");
 
     return devices;
 }

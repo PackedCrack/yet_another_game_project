@@ -9,7 +9,7 @@ namespace odin::graphics::vk
 {
 Surface::Surface(window::Window& wnd, const Instance& instance)
     : m_Surface{ wnd.make_surface(instance) }
-    , m_Instance{ instance.view() }
+    , m_Instance{ instance.handle() }
 {}
 Surface::~Surface()
 {

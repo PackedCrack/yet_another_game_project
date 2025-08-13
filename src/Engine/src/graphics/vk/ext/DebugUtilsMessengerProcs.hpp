@@ -15,7 +15,7 @@ public:
     [[nodiscard]] VkDebugUtilsMessengerEXT create_debug_utils_messenger(VkDebugUtilsMessengerCreateInfoEXT info) const;
     void destroy_debug_utils_messenger(VkDebugUtilsMessengerEXT messenger) const;
 private:
-    std::reference_wrapper<const Instance> m_Instance;
+    InstanceRef m_Instance;
     PFN_create_messenger create_messenger;
     PFN_destroy_messenger destroy_messenger;
 };

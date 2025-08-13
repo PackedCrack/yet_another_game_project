@@ -102,11 +102,11 @@ Device& Device::operator=(Device&& other) noexcept
 
     return *this;
 }
-DeviceView Device::view() const
+DeviceRef Device::handle() const
 {
     ODIN_ASSERT(m_Device != VK_NULL_HANDLE);
 
-    return DeviceView{ .device = m_Device };
+    return DeviceRef{ .device = m_Device };
 }
 [[nodiscard]] VkQueue Device::get_queue_handle(std::uint32_t familyIndex) const
 {

@@ -18,7 +18,7 @@ public:
     DebugMessenger& operator=(const DebugMessenger& other) = delete;
     DebugMessenger& operator=(DebugMessenger&& other) noexcept;
 
-    [[nodiscard]] VkDebugUtilsMessengerEXT handle() const;
+    //[[nodiscard]] VkDebugUtilsMessengerEXT handle() const;
 private:
     [[nodiscard]] VkDebugUtilsMessengerEXT create_debug_messenger() const;
 private:

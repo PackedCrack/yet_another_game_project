@@ -1,9 +1,10 @@
 #include "Image.hpp"
 
-#include "vulkan_defines.hpp"
+#include "../Allocator.hpp"
+#include "../vulkan_defines.hpp"
 //
 //
-namespace odin::graphics::vk
+namespace odin::graphics::vk::resource
 {
 Image::Image(std::shared_ptr<Allocator> pAllocator, AllocatedImage image, VkFormat format)
     : m_Image{ image.image }
@@ -37,4 +38,4 @@ Image& Image::operator=(Image&& other) noexcept
 
     return *this;
 }
-}    // namespace odin::graphics::vk
+}    // namespace odin::graphics::vk::resource

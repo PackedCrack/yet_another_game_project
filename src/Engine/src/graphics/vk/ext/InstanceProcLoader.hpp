@@ -14,10 +14,9 @@ class InstanceProcLoader
 {
 protected:
     template<typename func_t>
-    [[nodiscard]] func_t get_procedure_address(std::reference_wrapper<const Instance> instance, std::string_view procedure)
+    [[nodiscard]] func_t get_procedure_address(InstanceRef instance, std::string_view procedure)
     {
-        const Instance& i = instance.get();
-        return reinterpret_cast<func_t>(vkGetInstanceProcAddr(i.handle(), procedure.data()));
+        return reinterpret_cast<func_t>(vkGetInstanceProcAddr(instance.handle, procedure.data()));
     }
 };
 }    //namespace odin::graphics::vk::ext

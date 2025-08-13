@@ -6,8 +6,7 @@ SET(SOURCES
         VulkanContext.cpp
         Graphics.hpp
         Graphics.cpp
-        Allocator.hpp
-        Allocator.cpp
+
 )
 
 set(EXPORT_HEADERS

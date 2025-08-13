@@ -104,9 +104,9 @@ Instance& Instance::operator=(Instance&& other) noexcept
 
     return *this;
 }
-InstanceView Instance::view() const
+InstanceRef Instance::handle() const
 {
     ODIN_ASSERT(m_Instance != VK_NULL_HANDLE);
-    return InstanceView{ .handle = m_Instance };
+    return InstanceRef{ .handle = m_Instance };
 }
 }    // namespace odin::graphics::vk

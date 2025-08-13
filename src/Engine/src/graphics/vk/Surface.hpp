@@ -22,6 +22,6 @@ public:
     [[nodiscard]] bool queue_family_supports_present(VkPhysicalDevice device, std::uint32_t index) const;
 private:
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
-    InstanceView m_Instance;
+    InstanceRef m_Instance;
 };
 }    // namespace odin::graphics::vk
