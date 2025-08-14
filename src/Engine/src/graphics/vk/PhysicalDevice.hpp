@@ -9,6 +9,10 @@
 //
 namespace odin::graphics::vk
 {
+struct PhysicalDeviceRef
+{
+    VkPhysicalDevice handle;
+};
 class PhysicalDevice
 {
 public:
@@ -19,7 +23,7 @@ public:
     PhysicalDevice& operator=(const PhysicalDevice& other);
     PhysicalDevice& operator=(PhysicalDevice&& other) noexcept;
 
-    [[nodiscard]] VkPhysicalDevice handle() const;
+    [[nodiscard]] PhysicalDeviceRef handle() const;
     [[nodiscard]] const PhysicalDeviceProperties& properties() const;
     [[nodiscard]] const PhysicalDeviceFeatures& features() const;
     [[nodiscard]] const std::vector<VkQueueFamilyProperties>& queue_families_properties() const;

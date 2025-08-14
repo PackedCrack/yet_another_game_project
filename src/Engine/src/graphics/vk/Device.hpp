@@ -15,7 +15,7 @@ struct DeviceRef
 class Device
 {
 public:
-    Device(const PhysicalDevice& gpu, QueueFamilies& queueFamilies);
+    Device(const PhysicalDevice& phyDevice, QueueFamilies& queueFamilies);
     ~Device();
     Device(const Device& other) = delete;
     Device(Device&& other) noexcept;

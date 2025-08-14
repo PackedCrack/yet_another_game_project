@@ -313,11 +313,11 @@ PhysicalDevice& PhysicalDevice::operator=(PhysicalDevice&& other) noexcept
 
     return *this;
 }
-VkPhysicalDevice PhysicalDevice::handle() const
+PhysicalDeviceRef PhysicalDevice::handle() const
 {
     ODIN_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE);
 
-    return m_PhysicalDevice;
+    return PhysicalDeviceRef{ .handle = m_PhysicalDevice };
 }
 const PhysicalDeviceProperties& PhysicalDevice::properties() const
 {

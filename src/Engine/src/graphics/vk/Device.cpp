@@ -63,7 +63,7 @@ namespace
 }    // namespace
 namespace odin::graphics::vk
 {
-Device::Device(const PhysicalDevice& gpu, QueueFamilies& queueFamilies)
+Device::Device(const PhysicalDevice& phyDevice, QueueFamilies& queueFamilies)
     : m_Device{ VK_NULL_HANDLE }
 {
     static constexpr std::array<const char*, 4> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -77,9 +77,11 @@ Device::Device(const PhysicalDevice& gpu, QueueFamilies& queueFamilies)
     VkPhysicalDeviceVulkan11Features v11features = required_v11_features(std::addressof(v12features));
     VkPhysicalDeviceFeatures2 features = required_features(std::addressof(v11features));
 
+
+    PhysicalDeviceRef phyDev = phyDevice.handle();
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfo = queueFamilies.queue_create_info();
     VkDeviceCreateInfo info = device_create_info(queueCreateInfo, deviceExtensions, features);
-    VK_CHECK(vkCreateDevice(gpu.handle(), &info, nullptr, &m_Device), "Failed to create Vulkan Device.");
+    VK_CHECK(vkCreateDevice(phyDev.handle, &info, nullptr, &m_Device), "Failed to create Vulkan Device.");
 
     queueFamilies.store_queue_handles(*this);
 }
@@ -106,7 +108,7 @@ DeviceRef Device::handle() const
 {
     ODIN_ASSERT(m_Device != VK_NULL_HANDLE);
 
-    return DeviceRef{ .device = m_Device };
+    return DeviceRef{ .handle = m_Device };
 }
 [[nodiscard]] VkQueue Device::get_queue_handle(std::uint32_t familyIndex) const
 {
