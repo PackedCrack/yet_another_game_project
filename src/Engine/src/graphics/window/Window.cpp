@@ -111,10 +111,11 @@ public:
         SDL_SetWindowMouseGrab(m_pWindow, m_Settings.mouseGrab);
     }
     [[nodiscard]] std::vector<std::string_view> extensions() const { return get_instance_extensions(); }
-    [[nodiscard]] VkSurfaceKHR make_surface(const vk::Instance& instance)
+    [[nodiscard]] VkSurfaceKHR make_surface(vk::InstanceRef instance)
     {
         VkSurfaceKHR surface{};
-        SDL_CHECK(SDL_Vulkan_CreateSurface(m_pWindow, instance.handle(), nullptr, &surface), "Failed to create Vulkan Surface.");
+        SDL_CHECK(SDL_Vulkan_CreateSurface(m_pWindow, instance.handle, nullptr, std::addressof(surface)),
+                  "Failed to create Vulkan Surface.");
         return surface;
     }
 private:
@@ -143,7 +144,7 @@ std::vector<std::string_view> Window::required_extensions() const
 {
     return m_pImpl->extensions();
 }
-VkSurfaceKHR Window::make_surface(const vk::Instance& instance)
+VkSurfaceKHR Window::make_surface(vk::InstanceRef instance)
 {
     return m_pImpl->make_surface(instance);
 }

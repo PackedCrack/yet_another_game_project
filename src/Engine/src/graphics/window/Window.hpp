@@ -2,7 +2,6 @@
 
 #include "../../OdinInfo.hpp"
 #include "../vk/Instance.hpp"
-#include "../vk/Surface.hpp"
 //
 //
 namespace odin::graphics::window
@@ -22,7 +21,7 @@ public:
     void toggle_fullscreen();
     void toggle_mouse_grab();
     [[nodiscard]] std::vector<std::string_view> required_extensions() const;
-    [[nodiscard]] VkSurfaceKHR make_surface(const vk::Instance& instance);
+    [[nodiscard]] VkSurfaceKHR make_surface(vk::InstanceRef instance);
 private:
     std::unique_ptr<Window::Impl> m_pImpl;
 };

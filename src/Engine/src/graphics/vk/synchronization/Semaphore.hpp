@@ -7,21 +7,21 @@ namespace odin::graphics::vk::synchronization
 {
 struct SemaphoreRef
 {
-	VkSemaphore handle;
+    VkSemaphore handle;
 };
 class Semaphore
 {
 public:
-	Semaphore(DeviceRef device);
-	~Semaphore();
-	Semaphore(const Semaphore& other) = delete;
-	Semaphore(Semaphore&& other) noexcept;
-	Semaphore& operator=(const Semaphore& other) = delete;
-	Semaphore& operator=(Semaphore&& other) noexcept;
+    Semaphore(DeviceRef device);
+    ~Semaphore();
+    Semaphore(const Semaphore& other) = delete;
+    Semaphore(Semaphore&& other) noexcept;
+    Semaphore& operator=(const Semaphore& other) = delete;
+    Semaphore& operator=(Semaphore&& other) noexcept;
 
-	[[nodiscard]] SemaphoreRef handle() const;
+    [[nodiscard]] SemaphoreRef handle() const;
 private:
-	VkSemaphore m_Semaphore = VK_NULL_HANDLE;
-	DeviceRef m_Device;
+    VkSemaphore m_Semaphore = VK_NULL_HANDLE;
+    DeviceRef m_Device;
 };
-}	// namespace odin::graphics::vk::synchronization
+}    // namespace odin::graphics::vk::synchronization
