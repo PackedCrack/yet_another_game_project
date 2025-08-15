@@ -1,5 +1,6 @@
 add_subdirectory("ext")
 add_subdirectory("resource")
+add_subdirectory("synchronization")
 
 SET(SOURCES
         vulkan_defines.hpp
