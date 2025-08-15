@@ -25,6 +25,10 @@ SET(SOURCES
         Surface.cpp
         Swapchain.hpp
         Swapchain.cpp
+        CommandBuffer.hpp
+        CommandBuffer.cpp
+        CommandPool.hpp
+        CommandPool.cpp
 )
 
 
