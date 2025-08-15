@@ -25,14 +25,14 @@ public:
 public:
     [[nodiscard]] SurfaceRef handle() const;
     [[nodiscard]] bool queue_family_supports_present(VkPhysicalDevice device, std::uint32_t index) const;
-    [[nodiscard]] std::vector<VkPresentModeKHR> present_modes(const PhysicalDevice& physicalDevice) const;
-    [[nodiscard]] std::vector<VkSurfaceFormatKHR> available_formats(const PhysicalDevice& physicalDevice) const;
-    [[nodiscard]] std::uint32_t min_image_count(const PhysicalDevice& physicalDevice);
-    [[nodiscard]] std::uint32_t max_image_count(const PhysicalDevice& physicalDevice);
-    [[nodiscard]] VkSurfaceTransformFlagBitsKHR current_transform(const PhysicalDevice& physicalDevice);
-    [[nodiscard]] VkExtent2D current_extent(const PhysicalDevice& physicalDevice);
+    [[nodiscard]] std::vector<VkPresentModeKHR> present_modes(PhysicalDeviceRef physicalDevice) const;
+    [[nodiscard]] std::vector<VkSurfaceFormatKHR> available_formats(PhysicalDeviceRef physicalDevice) const;
+    [[nodiscard]] std::uint32_t min_image_count(PhysicalDeviceRef physicalDevice);
+    [[nodiscard]] std::uint32_t max_image_count(PhysicalDeviceRef physicalDevice);
+    [[nodiscard]] VkSurfaceTransformFlagBitsKHR current_transform(PhysicalDeviceRef physicalDevice);
+    [[nodiscard]] VkExtent2D current_extent(PhysicalDeviceRef physicalDevice);
 private:
-    [[nodiscard]] const VkSurfaceCapabilitiesKHR& get_surface_capabilities(const PhysicalDevice& physicalDevice);
+    [[nodiscard]] const VkSurfaceCapabilitiesKHR& get_surface_capabilities(PhysicalDeviceRef physicalDevice);
 private:
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
     InstanceRef m_Instance;

@@ -16,6 +16,13 @@ ImageView::ImageView(const Device& device, const VkImageViewCreateInfo& info)
     ODIN_ASSERT(info.image != VK_NULL_HANDLE);
     VK_CHECK(vkCreateImageView(m_Device.handle, std::addressof(info), nullptr, &m_View), "Failed to create Vulkan ImageView");
 }
+ImageView::ImageView(DeviceRef device, const VkImageViewCreateInfo& info)
+    : m_View{ VK_NULL_HANDLE }
+    , m_Device{ device }
+{
+    ODIN_ASSERT(info.image != VK_NULL_HANDLE);
+    VK_CHECK(vkCreateImageView(m_Device.handle, std::addressof(info), nullptr, &m_View), "Failed to create Vulkan ImageView");
+}
 ImageView::~ImageView()
 {
     if (m_View != VK_NULL_HANDLE)

@@ -14,6 +14,7 @@ class ImageView
 public:
     ImageView(const Device& device, VkImageView view);
     ImageView(const Device& device, const VkImageViewCreateInfo& info);
+    ImageView(DeviceRef device, const VkImageViewCreateInfo& info);
     ~ImageView();
     ImageView(const ImageView& other) = delete;
     ImageView(ImageView&& other) noexcept;

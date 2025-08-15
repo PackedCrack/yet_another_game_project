@@ -13,7 +13,7 @@ namespace
     return it != std::end(modes);
 }
 using namespace odin::graphics::vk;
-[[nodiscard]] VkPresentModeKHR select_present_mode(const PhysicalDevice& physicalDevice, Surface& surface)
+[[nodiscard]] VkPresentModeKHR select_present_mode(PhysicalDeviceRef physicalDevice, Surface& surface)
 {
     std::vector<VkPresentModeKHR> modes = surface.present_modes(physicalDevice);
     if (mode_exists(modes, VK_PRESENT_MODE_MAILBOX_KHR))
@@ -32,13 +32,13 @@ using namespace odin::graphics::vk;
     ODIN_ASSERT(mode_exists(modes, VK_PRESENT_MODE_FIFO_KHR));
     return VK_PRESENT_MODE_FIFO_KHR;
 }
-[[nodiscard]] std::uint32_t image_count(const PhysicalDevice& physicalDevice, Surface& surface)
+[[nodiscard]] std::uint32_t image_count(PhysicalDeviceRef physicalDevice, Surface& surface)
 {
     std::uint32_t desired = 3;
     std::uint32_t max = surface.max_image_count(physicalDevice);
     return std::min(desired, max);
 }
-[[nodiscard]] VkSurfaceFormatKHR select_surface_format(const PhysicalDevice& physicalDevice, Surface& surface)
+[[nodiscard]] VkSurfaceFormatKHR select_surface_format(PhysicalDeviceRef physicalDevice, Surface& surface)
 {
     using Iterator = std::vector<VkSurfaceFormatKHR>::const_iterator;
     std::vector<VkSurfaceFormatKHR> formats = surface.available_formats(physicalDevice);
@@ -53,23 +53,23 @@ using namespace odin::graphics::vk;
 }    // namespace
 namespace odin::graphics::vk
 {
-Swapchain::Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
-    : m_Details{ make_details(physicalDevice, surface) }
+Swapchain::Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface)
+    : m_Details{ make_details(physicalDevice.handle(), surface)}
     , m_Device{ device.handle() }
+    , m_Swapchain{ create_swapchain(device.handle(), physicalDevice.handle(), surface, VK_NULL_HANDLE) }
+    , m_Images{ swapchain_images(device.handle()) }
+    , m_Views{}
+{
+    emplace_image_views();
+}
+Swapchain::Swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
+    : m_Details{ make_details(physicalDevice, surface) }
+    , m_Device{ device }
     , m_Swapchain{ create_swapchain(device, physicalDevice, surface, oldSwapchain) }
     , m_Images{ swapchain_images(device) }
     , m_Views{}
 {
-    ODIN_ASSERT(!m_Images.empty());
-    ODIN_ASSERT(m_Views.empty());
-
-    VkFormat f = m_Details.format.format;
-    VkImageViewCreateInfo info = image_view_create_info(VK_NULL_HANDLE, f, VK_IMAGE_ASPECT_COLOR_BIT);
-    for (auto&& image : m_Images)
-    {
-        info.image = image;
-        m_Views.emplace_back(device, info);
-    }
+    emplace_image_views();
 }
 Swapchain::~Swapchain()
 {
@@ -109,18 +109,17 @@ Swapchain& Swapchain::operator=(Swapchain&& other) noexcept
 //	std::swap(m_pDevice, newSwapchain.m_pDevice);
 //	std::swap(m_Swapchain, newSwapchain.m_Swapchain);
 //}
-VkSwapchainKHR Swapchain::handle() const
+SwapchainRef Swapchain::handle() const
 {
     ODIN_ASSERT(m_Swapchain != VK_NULL_HANDLE);
-
-    return m_Swapchain;
+    return SwapchainRef{ .handle = m_Swapchain };
 }
-std::expected<resource::ImageRef, Swapchain::Error> Swapchain::acquire(VkSemaphore renderer, uint32_t* pAquiredImage) const
+std::expected<resource::ImageRef, Swapchain::Error> Swapchain::acquire(VkSemaphore renderer) const
 {
     static constexpr uint64_t timeout = std::numeric_limits<std::uint64_t>::max();
-    
+
     std::uint32_t aquiredImage{};
-    VkResult result = vkAcquireNextImageKHR(m_Device.handle, m_Swapchain, timeout, renderer, VK_NULL_HANDLE, std::addressof(aquiredImage);
+    VkResult result = vkAcquireNextImageKHR(m_Device.handle, m_Swapchain, timeout, renderer, VK_NULL_HANDLE, std::addressof(aquiredImage));
     if (result == VK_SUBOPTIMAL_KHR)
     {
         return std::unexpected{ Error::requiresRebuild };
@@ -142,29 +141,29 @@ std::expected<resource::ImageRef, Swapchain::Error> Swapchain::acquire(VkSemapho
     resource::ImageRef image{ .handle = m_Images[index] };
     return std::expected<resource::ImageRef, Error>{ std::in_place, image };
 }
-bool Swapchain::release(const QueueView& present, const std::vector<VkSemaphore>& renderer)
-{
-    // TODO: Maybe this should be in presenter?
-    VkPresentInfoKHR info = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                              .pNext = nullptr,
-                              .waitSemaphoreCount = static_cast<uint32_t>(renderer.size()),
-                              .pWaitSemaphores = renderer.empty() ? nullptr : renderer.data(),
-                              .swapchainCount = 1u,
-                              .pSwapchains = std::addressof(m_Swapchain),
-                              .pImageIndices = std::addressof(present.index),
-                              .pResults = nullptr };
-
-    if (VkResult result = vkQueuePresentKHR(present.handle, std::addressof(info)); result != VK_SUCCESS)
-    {
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
-        {
-            return false;
-        }
-        LOG_FATAL("Unexpected error when attempting to present image: {}", err_to_str(result));
-    }
-
-    return true;
-}
+//bool Swapchain::release(const QueueView& present, const std::vector<VkSemaphore>& renderer)
+//{
+//    // TODO: Maybe this should be in presenter?
+//    VkPresentInfoKHR info = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+//                              .pNext = nullptr,
+//                              .waitSemaphoreCount = static_cast<uint32_t>(renderer.size()),
+//                              .pWaitSemaphores = renderer.empty() ? nullptr : renderer.data(),
+//                              .swapchainCount = 1u,
+//                              .pSwapchains = std::addressof(m_Swapchain),
+//                              .pImageIndices = std::addressof(present.index),
+//                              .pResults = nullptr };
+//
+//    if (VkResult result = vkQueuePresentKHR(present.handle, std::addressof(info)); result != VK_SUCCESS)
+//    {
+//        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+//        {
+//            return false;
+//        }
+//        LOG_FATAL("Unexpected error when attempting to present image: {}", err_to_str(result));
+//    }
+//
+//    return true;
+//}
 VkFormat Swapchain::color_format() const
 {
     return m_Details.format.format;
@@ -178,19 +177,16 @@ const VkExtent2D& Swapchain::extent() const
 {
     return m_Details.extent;
 }
-[[nodiscard]] Swapchain::SwapchainDetails Swapchain::make_details(const PhysicalDevice& physicalDevice, Surface& surface) const
+[[nodiscard]] Swapchain::SwapchainDetails Swapchain::make_details(PhysicalDeviceRef physicalDevice, Surface& surface) const
 {
     return SwapchainDetails{ .extent = surface.current_extent(physicalDevice),
                              .format = select_surface_format(physicalDevice, surface),
                              .presentMode = select_present_mode(physicalDevice, surface),
                              .imageCount = image_count(physicalDevice, surface) };
 }
-VkSwapchainKHR
-Swapchain::create_swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
+VkSwapchainKHR Swapchain::create_swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
 {
     SurfaceRef s = surface.handle();
-    DeviceRef d = device.handle();
-
     VkSwapchainCreateInfoKHR info = swapchain_create_info(s.handle,
                                                           m_Details.imageCount,
                                                           m_Details.presentMode,
@@ -199,20 +195,32 @@ Swapchain::create_swapchain(const Device& device, const PhysicalDevice& physical
                                                           m_Details.extent,
                                                           surface.current_transform(physicalDevice),
                                                           oldSwapchain);
-    VK_CHECK(vkCreateSwapchainKHR(d.handle, std::addressof(info), nullptr, std::addressof(m_Swapchain)),
+    VK_CHECK(vkCreateSwapchainKHR(device.handle, std::addressof(info), nullptr, std::addressof(m_Swapchain)),
              "Failed to create Vulkan Swapchain.");
 
     return m_Swapchain;
 }
-std::vector<VkImage> Swapchain::swapchain_images(const Device& device)
+std::vector<VkImage> Swapchain::swapchain_images(DeviceRef device)
 {
-    DeviceRef d = device.handle();
     std::vector<VkImage> images(m_Details.imageCount);
-    if (vkGetSwapchainImagesKHR(d.handle, m_Swapchain, std::addressof(m_Details.imageCount), images.data()) == VK_INCOMPLETE)
+    if (vkGetSwapchainImagesKHR(device.handle, m_Swapchain, std::addressof(m_Details.imageCount), images.data()) == VK_INCOMPLETE)
     {
         LOG_WARN("Did not recieve all images from the swapchain when calling GetSwapchainImages.");
     }
 
     return images;
+}
+void Swapchain::emplace_image_views()
+{
+    ODIN_ASSERT(!m_Images.empty());
+    ODIN_ASSERT(m_Views.empty());
+
+    VkFormat f = m_Details.format.format;
+    VkImageViewCreateInfo info = image_view_create_info(VK_NULL_HANDLE, f, VK_IMAGE_ASPECT_COLOR_BIT);
+    for (auto&& image : m_Images)
+    {
+        info.image = image;
+        m_Views.emplace_back(m_Device, info);
+    }
 }
 }    // namespace odin::graphics::vk

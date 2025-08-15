@@ -48,51 +48,49 @@ bool Surface::queue_family_supports_present(VkPhysicalDevice device, std::uint32
 
     return surfaceSupport;
 }
-std::vector<VkPresentModeKHR> Surface::present_modes(const PhysicalDevice& physicalDevice) const
+std::vector<VkPresentModeKHR> Surface::present_modes(PhysicalDeviceRef physicalDevice) const
 {
-    PhysicalDeviceRef device = physicalDevice.handle();
     std::uint32_t count{};
-    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(device.handle, m_Surface, std::addressof(count), nullptr),
+    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.handle, m_Surface, std::addressof(count), nullptr),
              "Failed to get Vulkan Surface Present Mode count.");
     std::vector<VkPresentModeKHR> modes(count);
-    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(device.handle, m_Surface, std::addressof(count), modes.data()),
+    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.handle, m_Surface, std::addressof(count), modes.data()),
              "Failed to get Vulkan Surface Present Mode(s)");
 
     return modes;
 }
-std::vector<VkSurfaceFormatKHR> Surface::available_formats(const PhysicalDevice& physicalDevice) const
+std::vector<VkSurfaceFormatKHR> Surface::available_formats(PhysicalDeviceRef physicalDevice) const
 {
-    PhysicalDeviceRef device = physicalDevice.handle();
     std::uint32_t count{};
-    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device.handle, m_Surface, std::addressof(count), nullptr),
+    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.handle, m_Surface, std::addressof(count), nullptr),
              "Failed to get Vulkan Surface Format(s) count.");
     std::vector<VkSurfaceFormatKHR> formats(count);
-    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device.handle, m_Surface, std::addressof(count), formats.data()),
+    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.handle, m_Surface, std::addressof(count), formats.data()),
              "Failed to get Vulkan Surface Format(s).");
 
     return formats;
 }
-[[nodiscard]] std::uint32_t Surface::min_image_count(const PhysicalDevice& physicalDevice)
+[[nodiscard]] std::uint32_t Surface::min_image_count(PhysicalDeviceRef physicalDevice)
 {
     const VkSurfaceCapabilitiesKHR& capabilities = get_surface_capabilities(physicalDevice);
     return capabilities.minImageCount;
 }
-[[nodiscard]] std::uint32_t Surface::max_image_count(const PhysicalDevice& physicalDevice)
+[[nodiscard]] std::uint32_t Surface::max_image_count(PhysicalDeviceRef physicalDevice)
 {
     const VkSurfaceCapabilitiesKHR& capabilities = get_surface_capabilities(physicalDevice);
     return capabilities.maxImageCount;
 }
-VkSurfaceTransformFlagBitsKHR Surface::current_transform(const PhysicalDevice& physicalDevice)
+VkSurfaceTransformFlagBitsKHR Surface::current_transform(PhysicalDeviceRef physicalDevice)
 {
     const VkSurfaceCapabilitiesKHR& capabilities = get_surface_capabilities(physicalDevice);
     return capabilities.currentTransform;
 }
-VkExtent2D Surface::current_extent(const PhysicalDevice& physicalDevice)
+VkExtent2D Surface::current_extent(PhysicalDeviceRef physicalDevice)
 {
     const VkSurfaceCapabilitiesKHR& capabilities = get_surface_capabilities(physicalDevice);
     return capabilities.currentExtent;
 }
-const VkSurfaceCapabilitiesKHR& Surface::get_surface_capabilities(const PhysicalDevice& physicalDevice)
+const VkSurfaceCapabilitiesKHR& Surface::get_surface_capabilities(PhysicalDeviceRef physicalDevice)
 {
     ODIN_ASSERT(m_Surface != VK_NULL_HANDLE);
     if (m_Capabilities)
@@ -100,9 +98,8 @@ const VkSurfaceCapabilitiesKHR& Surface::get_surface_capabilities(const Physical
         return m_Capabilities.value();
     }
 
-    PhysicalDeviceRef device = physicalDevice.handle();
     m_Capabilities = std::make_optional<VkSurfaceCapabilitiesKHR>();
-    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.handle, m_Surface, std::addressof(m_Capabilities.value())),
+    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.handle, m_Surface, std::addressof(m_Capabilities.value())),
              "Failed to get Vulkan Surface Capabilities");
 
     return m_Capabilities.value();

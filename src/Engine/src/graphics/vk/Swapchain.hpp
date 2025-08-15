@@ -7,11 +7,15 @@
 #include "resource/Image.hpp"
 #include "resource/ImageView.hpp"
 // std
-#include <expected> // pch?
+#include <expected>    // pch?
 //
 //
 namespace odin::graphics::vk
 {
+struct SwapchainRef
+{
+    VkSwapchainKHR handle;
+};
 class Swapchain
 {
     struct SwapchainDetails
@@ -27,8 +31,9 @@ public:
         requiresRebuild,
         timeout
     };
-public: 
-    Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
+public:
+    Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface);
+    Swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain);
     ~Swapchain();
     Swapchain(const Swapchain& other) = delete;
     Swapchain(Swapchain&& other) noexcept;
@@ -36,18 +41,18 @@ public:
     Swapchain& operator=(Swapchain&& other) noexcept;
 public:
     //void rebuild(Swapchain&& newSwapchain);
-    [[nodiscard]] VkSwapchainKHR handle() const;
-    [[nodiscard]] std::expected<resource::ImageRef, Error> acquire(VkSemaphore renderer, uint32_t* pAquiredImage) const;
-    // Should be in Presenter?
-    [[nodiscard]] bool release(const QueueView& present, const std::vector<VkSemaphore>& renderer);
+    [[nodiscard]] SwapchainRef handle() const;
+    [[nodiscard]] std::expected<resource::ImageRef, Error> acquire(VkSemaphore renderer) const;
+    //[[nodiscard]] bool release(const QueueView& present, const std::vector<VkSemaphore>& renderer);
     [[nodiscard]] VkFormat color_format() const;
     [[nodiscard]] const std::vector<resource::ImageView>& image_views() const;
     [[nodiscard]] const VkExtent2D& extent() const;
 private:
-    [[nodiscard]] SwapchainDetails make_details(const PhysicalDevice& physicalDevice, Surface& surface) const;
+    [[nodiscard]] SwapchainDetails make_details(PhysicalDeviceRef physicalDevice, Surface& surface) const;
     [[nodiscard]] VkSwapchainKHR
-    create_swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain);
-    [[nodiscard]] std::vector<VkImage> swapchain_images(const Device& device);
+    create_swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain);
+    [[nodiscard]] std::vector<VkImage> swapchain_images(DeviceRef device);
+    void emplace_image_views();
 private:
     SwapchainDetails m_Details;
     DeviceRef m_Device;

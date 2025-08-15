@@ -6,7 +6,8 @@ SET(SOURCES
         VulkanContext.cpp
         Graphics.hpp
         Graphics.cpp
-
+        Presenter.hpp
+        Presenter.cpp
 )
 
 set(EXPORT_HEADERS
