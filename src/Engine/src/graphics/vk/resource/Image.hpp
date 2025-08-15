@@ -16,6 +16,10 @@ struct AllocatedImage
     VkImage image = VK_NULL_HANDLE;
     void* pAllocation = nullptr;    // This is pointer to VmaAllocation
 };
+struct ImageRef
+{
+    VkImage handle;
+};
 class Image
 {
 public:

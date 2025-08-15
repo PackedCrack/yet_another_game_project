@@ -5,6 +5,10 @@
 //
 namespace odin::graphics::vk::resource
 {
+ImageView::ImageView(const Device& device, VkImageView view)
+    : m_View{ view }
+    , m_Device{ device.handle() }
+{}
 ImageView::ImageView(const Device& device, const VkImageViewCreateInfo& info)
     : m_View{ VK_NULL_HANDLE }
     , m_Device{ device.handle() }

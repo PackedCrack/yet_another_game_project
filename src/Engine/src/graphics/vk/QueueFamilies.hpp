@@ -11,12 +11,14 @@ namespace odin::graphics::vk
 class Device;
 struct QueueView
 {
+    using index_t = std::uint32_t;
     VkQueue handle;
+    index_t index;
 };
 class QueueFamilies
 {
 public:
-    using index_t = std::uint32_t;
+    using index_t = QueueView::index_t;
     static constexpr index_t INVALID_INDEX = std::numeric_limits<index_t>::max();
     struct Queue
     {

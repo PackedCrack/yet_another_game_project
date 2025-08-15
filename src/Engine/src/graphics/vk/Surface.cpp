@@ -6,9 +6,6 @@
 #include <SDL3/SDL_vulkan.h>
 //
 //
-namespace
-{
-}
 namespace odin::graphics::vk
 {
 Surface::Surface(window::Window& wnd, const Instance& instance)
