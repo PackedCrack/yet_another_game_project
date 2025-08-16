@@ -209,19 +209,23 @@ QueueView QueueFamilies::transfer() const
 }
 std::vector<VkDeviceQueueCreateInfo> QueueFamilies::queue_create_info() const
 {
-    float priority = 1.0f;
-    std::uint32_t count{};
+    // Just hard set all queue prio to 1.. Not sure if it matters
+    static constexpr float priority = 1.0f;
+    std::uint32_t count = 1;
     std::vector<VkDeviceQueueCreateInfo> createInfos{ device_queue_create_info(m_Graphics.index, count, std::addressof(priority)) };
     if (m_Graphics.index != m_Present.index)
     {
+        ++count;
         createInfos.emplace_back(device_queue_create_info(m_Present.index, count, std::addressof(priority)));
     }
     if (m_Graphics.index != m_Transfer.index)
     {
+        ++count;
         createInfos.emplace_back(device_queue_create_info(m_Transfer.index, count, std::addressof(priority)));
     }
     if (m_Graphics.index != m_Compute.index)
     {
+        ++count;
         createInfos.emplace_back(device_queue_create_info(m_Compute.index, count, std::addressof(priority)));
     }
 

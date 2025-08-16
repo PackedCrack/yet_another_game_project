@@ -15,7 +15,8 @@ namespace
     VkPhysicalDeviceVulkan14Features v14features{};
     v14features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
     v14features.pNext = nullptr;
-    v14features.dynamicRenderingLocalRead = VK_TRUE;
+    // This is for tiled gpus
+    //v14features.dynamicRenderingLocalRead = VK_TRUE;
 
     return v14features;
 }
