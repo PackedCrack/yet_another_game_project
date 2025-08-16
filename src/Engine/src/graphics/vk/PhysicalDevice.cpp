@@ -88,45 +88,49 @@ struct GPU
 
     return msg;
 }
+[[nodiscard]] std::string log_feature_support(VkBool32 support)
+{
+    return support ? "Yes" : "No";
+}
 [[nodiscard]] std::string log_features(const GPU& gpu)
 {
     std::string msg = "\n\tFeature Support:";
 
     msg += "\n\t\tSupports descriptor binding partially bound: ";
-    msg += gpu.features.descriptor_binding_partially_bound() ? "True" : "False";
+    msg += log_feature_support(gpu.features.descriptor_binding_partially_bound());
 
     msg += "\n\t\tSupports descriptor indexing: ";
-    msg += gpu.features.descriptor_indexing() ? "True" : "False";
+    msg += log_feature_support(gpu.features.descriptor_indexing());
 
     msg += "\n\t\tSupports draw indirect count: ";
-    msg += gpu.features.draw_indirect_count() ? "True" : "False";
+    msg += log_feature_support(gpu.features.draw_indirect_count());
 
     msg += "\n\t\tSupports Dynamic Rendering: ";
-    msg += gpu.features.dynamic_rendering() ? "True" : "False";
+    msg += log_feature_support(gpu.features.dynamic_rendering());
 
     msg += "\n\t\tSupports Dynamic Rendering Local Read: ";
-    msg += gpu.features.dynamic_rendering_local_read() ? "True" : "False";
+    msg += log_feature_support(gpu.features.dynamic_rendering_local_read());
 
     msg += "\n\t\tSupports Multi Draw Indirect: ";
-    msg += gpu.features.multi_draw_indirect() ? "True" : "False";
+    msg += log_feature_support(gpu.features.multi_draw_indirect());
 
     msg += "\n\t\tSupports Pipeline Statistic Queries: ";
-    msg += gpu.features.pipeline_statistics_query() ? "True" : "False";
+    msg += log_feature_support(gpu.features.pipeline_statistics_query());
 
     msg += "\n\t\tSupports Runtime Descriptor Array: ";
-    msg += gpu.features.runtime_descriptor_array() ? "True" : "False";
+    msg += log_feature_support(gpu.features.runtime_descriptor_array());
 
     msg += "\n\t\tSupports Shader Draw Parameters: ";
-    msg += gpu.features.shader_draw_parameters() ? "True" : "False";
+    msg += log_feature_support(gpu.features.shader_draw_parameters());
 
     msg += "\n\t\tSupports Synchronization 2: ";
-    msg += gpu.features.synchronization2() ? "True" : "False";
+    msg += log_feature_support(gpu.features.synchronization2());
 
     msg += "\n\t\tSupports Dynamic State 2: ";
-    msg += gpu.features.supports_dynamic_state2() ? "True" : "False";
+    msg += log_feature_support(gpu.features.supports_dynamic_state2());
 
     msg += "\n\t\tSupports Dynamic State 3: ";
-    msg += gpu.features.supports_dynamic_state3() ? "True" : "False";
+    msg += log_feature_support(gpu.features.supports_dynamic_state3());
 
     return msg;
 }
