@@ -21,9 +21,11 @@ Fence::~Fence()
     }
 }
 Fence::Fence(Fence&& other) noexcept
-    : m_Fence{ std::exchange(other.m_Fence, m_Fence) }
-    , m_Device{ std::exchange(other.m_Device, m_Device) }
-{}
+    : m_Fence{ VK_NULL_HANDLE }
+    , m_Device{ other.m_Device }
+{
+    std::swap(m_Fence, other.m_Fence);
+}
 Fence& Fence::operator=(Fence&& other) noexcept
 {
     if (this != std::addressof(other))

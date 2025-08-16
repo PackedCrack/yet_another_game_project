@@ -93,8 +93,10 @@ Device::~Device()
     }
 }
 Device::Device(Device&& other) noexcept
-    : m_Device{ std::exchange(other.m_Device, m_Device) }
-{}
+    : m_Device{ VK_NULL_HANDLE }
+{
+    std::swap(m_Device, other.m_Device);
+}
 Device& Device::operator=(Device&& other) noexcept
 {
     if (this != std::addressof(other))

@@ -10,20 +10,10 @@ CommandBuffer::CommandBuffer(VkCommandBuffer cmdBuffer)
 {
 	ODIN_ASSERT(cmdBuffer != VK_NULL_HANDLE);
 }
-CommandBuffer::CommandBuffer(const CommandBuffer& other) noexcept
-	: m_CommandBuffer{ std::exchange(other.m_CommandBuffer, m_CommandBuffer) }
-{}
 CommandBuffer::CommandBuffer(CommandBuffer&& other) noexcept
-	: m_CommandBuffer{ std::exchange(other.m_CommandBuffer, m_CommandBuffer) }
-{}
-CommandBuffer& CommandBuffer::operator=(const CommandBuffer& other) noexcept
+	: m_CommandBuffer{ VK_NULL_HANDLE }
 {
-	if (this != std::addressof(other))
-	{
-		m_CommandBuffer = std::exchange(other.m_CommandBuffer, m_CommandBuffer);
-	}
-
-	return *this;
+	std::swap(m_CommandBuffer, other.m_CommandBuffer);
 }
 CommandBuffer& CommandBuffer::operator=(CommandBuffer&& other) noexcept
 {

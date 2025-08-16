@@ -21,11 +21,14 @@ Image::~Image()
     }
 }
 Image::Image(Image&& other) noexcept
-    : m_Image{ std::exchange(other.m_Image, m_Image) }
-    , m_pAllocation{ std::exchange(other.m_pAllocation, m_pAllocation) }
-    , m_pAllocator{ std::exchange(other.m_pAllocator, m_pAllocator) }
-    , m_Format{ std::exchange(other.m_Format, m_Format) }
-{}
+    : m_Image{ VK_NULL_HANDLE }
+    , m_pAllocation{ nullptr }
+    , m_pAllocator{ std::move(other.m_pAllocator) }
+    , m_Format{ other.m_Format }
+{
+    std::swap(m_Image, other.m_Image);
+    std::swap(m_pAllocation, other.m_pAllocation);
+}
 Image& Image::operator=(Image&& other) noexcept
 {
     if (this != std::addressof(other))

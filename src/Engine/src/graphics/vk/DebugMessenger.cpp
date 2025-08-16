@@ -108,8 +108,10 @@ DebugMessenger::~DebugMessenger()
 }
 DebugMessenger::DebugMessenger(DebugMessenger&& other) noexcept
     : m_Procedures{ std::move(other.m_Procedures) }
-    , m_Messenger{ std::exchange(other.m_Messenger, m_Messenger) }
-{}
+    , m_Messenger{ VK_NULL_HANDLE }
+{
+    std::swap(m_Messenger, other.m_Messenger);
+}
 DebugMessenger& DebugMessenger::operator=(DebugMessenger&& other) noexcept
 {
     if (this != std::addressof(other))

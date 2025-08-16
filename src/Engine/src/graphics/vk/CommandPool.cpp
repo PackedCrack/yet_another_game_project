@@ -29,9 +29,11 @@ CommandPool::~CommandPool()
 	}
 }
 CommandPool::CommandPool(CommandPool&& other) noexcept
-	: m_CommandPool{ std::exchange(other.m_CommandPool, m_CommandPool) }
-	, m_Device{ std::exchange(other.m_Device, m_Device) }
-{}
+	: m_CommandPool{ VK_NULL_HANDLE }
+	, m_Device{ other.m_Device }
+{
+	std::swap(m_CommandPool, other.m_CommandPool);
+}
 CommandPool& CommandPool::operator=(CommandPool&& other) noexcept
 {
 	if (this != std::addressof(other))

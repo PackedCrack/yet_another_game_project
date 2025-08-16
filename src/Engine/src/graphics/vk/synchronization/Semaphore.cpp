@@ -24,9 +24,11 @@ Semaphore::~Semaphore()
     }
 }
 Semaphore::Semaphore(Semaphore&& other) noexcept
-    : m_Semaphore{ std::exchange(other.m_Semaphore, m_Semaphore) }
-    , m_Device{ std::exchange(other.m_Device, m_Device) }
-{}
+    : m_Semaphore{ VK_NULL_HANDLE }
+    , m_Device{ other.m_Device }
+{
+    std::swap(m_Semaphore, other.m_Semaphore);
+}
 Semaphore& Semaphore::operator=(Semaphore&& other) noexcept
 {
     if (this != std::addressof(other))

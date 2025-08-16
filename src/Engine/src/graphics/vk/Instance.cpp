@@ -93,8 +93,10 @@ Instance::~Instance()
     }
 }
 Instance::Instance(Instance&& other) noexcept
-    : m_Instance{ std::exchange(other.m_Instance, m_Instance) }
-{}
+    : m_Instance{ VK_NULL_HANDLE }
+{
+    std::swap(m_Instance, other.m_Instance);
+}
 Instance& Instance::operator=(Instance&& other) noexcept
 {
     if (this != std::addressof(other))

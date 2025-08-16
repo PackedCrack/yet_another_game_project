@@ -21,9 +21,12 @@ Surface::~Surface()
     }
 }
 Surface::Surface(Surface&& other) noexcept
-    : m_Surface{ std::exchange(other.m_Surface, m_Surface) }
-    , m_Instance{ std::exchange(other.m_Instance, m_Instance) }
-{}
+    : m_Surface{ VK_NULL_HANDLE }
+    , m_Instance{}
+{
+    std::swap(m_Surface, other.m_Surface);
+    m_Instance = other.m_Instance;
+}
 Surface& Surface::operator=(Surface&& other) noexcept
 {
     if (this != std::addressof(other))

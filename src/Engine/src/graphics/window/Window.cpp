@@ -72,19 +72,19 @@ public:
     }
     Impl(const Impl& other) = delete;
     Impl(Impl&& other) noexcept
-        : m_pWindow{ std::exchange(other.m_pWindow, nullptr) }
+        : m_pWindow{ nullptr }
         , m_Settings{ other.m_Settings }
-    {}
+    {
+        std::swap(m_pWindow, other.m_pWindow);
+    }
     Impl& operator=(const Impl& other) = delete;
     Impl& operator=(Impl&& other) noexcept
     {
-        if (this == std::addressof(other))
+        if (this != std::addressof(other))
         {
-            return *this;
+            m_pWindow = std::exchange(other.m_pWindow, nullptr);
+            m_Settings = other.m_Settings;
         }
-
-        m_pWindow = std::exchange(other.m_pWindow, nullptr);
-        m_Settings = other.m_Settings;
 
         return *this;
     }

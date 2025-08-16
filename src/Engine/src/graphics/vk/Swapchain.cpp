@@ -85,7 +85,7 @@ Swapchain::~Swapchain()
 Swapchain::Swapchain(Swapchain&& other) noexcept
     : m_Details{ other.m_Details }
     , m_Device{ other.m_Device }
-    , m_Swapchain{}
+    , m_Swapchain{ VK_NULL_HANDLE }
     , m_Images{}
     , m_Views{}
 {

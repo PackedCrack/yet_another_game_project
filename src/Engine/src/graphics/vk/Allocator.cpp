@@ -114,8 +114,10 @@ public:
     }
     Impl(const Impl& other) = delete;
     Impl(Impl&& other) noexcept
-        : m_Allocator{ std::exchange(other.m_Allocator, m_Allocator) }
-    {}
+        : m_Allocator{ nullptr }
+    {
+        std::swap(m_Allocator, other.m_Allocator);
+    }
     Impl& operator=(const Impl& other) = delete;
     Impl& operator=(Impl&& other) noexcept
     {

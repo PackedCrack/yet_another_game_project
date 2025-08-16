@@ -31,9 +31,11 @@ ImageView::~ImageView()
     }
 }
 ImageView::ImageView(ImageView&& other) noexcept
-    : m_Device{ std::exchange(other.m_Device, m_Device) }
-    , m_View{ std::exchange(other.m_View, m_View) }
-{}
+    : m_Device{ other.m_Device }
+    , m_View{ VK_NULL_HANDLE }
+{
+    std::swap(m_View, other.m_View);
+}
 ImageView& ImageView::operator=(ImageView&& other) noexcept
 {
     if (this != std::addressof(other))
