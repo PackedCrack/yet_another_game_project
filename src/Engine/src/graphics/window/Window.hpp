@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 10/08/2025.
+//
 #pragma once
 
 #include "../../OdinInfo.hpp"
@@ -13,9 +16,9 @@ public:
     Window(std::string_view title, const WindowInfo& info);
     ~Window();
     Window(const Window& other) = delete;
-    Window(Window&& other);
+    Window(Window&& other) noexcept;
     Window& operator=(const Window& other) = delete;
-    Window& operator=(Window&& other);
+    Window& operator=(Window&& other) noexcept;
 public:
     void toggle_borderless();
     void toggle_fullscreen();

@@ -2,9 +2,6 @@ import os
 import subprocess
 import sys
 
-
-print("\n---------CPPCHECK----------")
-
 if not os.path.exists('build-cppcheck'):
     os.mkdir('build-cppcheck')
 
@@ -15,6 +12,7 @@ cppcheckCommand = [
     '--enable=all',
     '--suppressions-list=.suppress.cppcheck',
     '--inline-suppr',
+    '--check-level=exhaustive',
     '--std=c++20',
     '--language=c++'
 ]
@@ -37,5 +35,4 @@ if result.returncode != 0:
     print(f"Cppcheck failed with exit code {result.returncode}")
     exit(result.returncode)
 
-print("-------CPPCHECK DONE----------")
 exit(result.returncode)

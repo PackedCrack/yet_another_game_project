@@ -33,3 +33,7 @@ target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/.
 add_dependencies(${GAME_TARGET} ${ENGINE_TARGET})
 target_link_libraries(${GAME_TARGET} PRIVATE ${ENGINE_TARGET})
 target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Engine/include")
+
+# TODO: Find a better way to link to vulkan.
+find_package(Vulkan REQUIRED)
+target_link_libraries(${GAME_TARGET} PRIVATE "$ENV{VULKAN_SDK}/Lib/vulkan-1.lib")

@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿//
+// Created by qwerty on 11/08/2025.
+//
+#pragma once
 //
 //
 // nHD		16:9	640		360

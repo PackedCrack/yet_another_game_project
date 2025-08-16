@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 12/08/2025.
+//
 #include "Surface.hpp"
 
 #include "PhysicalDevice.hpp"
@@ -8,9 +11,9 @@
 //
 namespace odin::graphics::vk
 {
-Surface::Surface(window::Window& wnd, const Instance& instance)
+Surface::Surface(window::Window& wnd, InstanceRef instance)
     : m_Surface{ wnd.make_surface(instance) }
-    , m_Instance{ instance.handle() }
+    , m_Instance{ instance }
     , m_Capabilities{ std::nullopt }
 {}
 Surface::~Surface()

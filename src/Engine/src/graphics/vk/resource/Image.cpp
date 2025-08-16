@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 12/08/2025.
+//
 #include "Image.hpp"
 
 #include "../Allocator.hpp"

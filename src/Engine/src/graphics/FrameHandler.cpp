@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 16/08/2025.
+//
 #include "FrameHandler.hpp"
 
 #include "vk/vulkan_defines.hpp"
@@ -6,42 +9,37 @@
 namespace
 {
 using namespace odin::graphics;
-[[nodiscard]] std::vector<vk::CommandPool> make_command_pools(std::uint32_t numFramesInFlight, vk::DeviceRef device, const vk::QueueView& queue)
+[[nodiscard]] std::vector<vk::CommandPool>
+make_command_pools(std::uint32_t numFramesInFlight, vk::DeviceRef device, const vk::QueueView& queue)
 {
     std::vector<vk::CommandPool> pools{};
-    for (std::uint32_t i = 0; i < numFramesInFlight; ++i)
-    {
-        pools.emplace_back(device, queue);
-    }
+    auto generator = [device, &queue]() { return vk::CommandPool{ device, queue }; };
+    std::generate_n(std::back_inserter(pools), numFramesInFlight, generator);
 
     return pools;
 }
 [[nodiscard]] std::vector<vk::CommandBuffer> make_command_buffers(const std::vector<vk::CommandPool>& pools)
 {
     std::vector<vk::CommandBuffer> buffers{};
-    for (auto&& pool : pools)
-    {
-        buffers.emplace_back(pool.make_command_buffer());
-    }
+    auto transform = [](const vk::CommandPool& pool) { return pool.make_command_buffer(); };
+    std::transform(std::begin(pools), std::end(pools), std::back_inserter(buffers), transform);
 
     return buffers;
 }
 [[nodiscard]] std::vector<vk::synchronization::Semaphore> make_semaphores(std::uint32_t numFramesInFlight, vk::DeviceRef device)
 {
     std::vector<vk::synchronization::Semaphore> semaphores{};
-    for (std::uint32_t i = 0; i < numFramesInFlight; ++i)
-    {
-        semaphores.emplace_back(device);
-    }
+    auto generator = [device]() { return vk::synchronization::Semaphore{ device }; };
+    std::generate_n(std::back_inserter(semaphores), numFramesInFlight, generator);
+
     return semaphores;
 }
 [[nodiscard]] std::vector<vk::synchronization::Fence> make_fences(std::uint32_t numFramesInFlight, vk::DeviceRef device)
 {
     std::vector<vk::synchronization::Fence> fences{};
-    for (std::uint32_t i = 0; i < numFramesInFlight; ++i)
-    {
-        fences.emplace_back(device);
-    }
+    auto generator = [device]() { return vk::synchronization::Fence{ device }; };
+    std::generate_n(std::back_inserter(fences), numFramesInFlight, generator);
+
     return fences;
 }
 void wait_for_frame_in_flight(vk::DeviceRef device, vk::synchronization::FenceRef frameFence)
@@ -49,10 +47,9 @@ void wait_for_frame_in_flight(vk::DeviceRef device, vk::synchronization::FenceRe
     static constexpr std::uint64_t timeout = UINT64_MAX;
     VK_CHECK(vkWaitForFences(device.handle, 1u, std::addressof(frameFence.handle), VK_TRUE, timeout),
              "Failed to wait for frame in flight Fence.");
-    VK_CHECK(vkResetFences(device.handle, 1u, std::addressof(frameFence.handle)), 
-             "Failed to reset frame in flight Fence.");
+    VK_CHECK(vkResetFences(device.handle, 1u, std::addressof(frameFence.handle)), "Failed to reset frame in flight Fence.");
 }
-}   // namespace
+}    // namespace
 namespace odin::graphics
 {
 FrameHandler::FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, const vk::QueueView& compute)
@@ -75,12 +72,10 @@ FrameContext FrameHandler::start_frame()
     wait_for_frame_in_flight(m_Device, frameFence);
     ++m_Frame;
 
-    return FrameContext{
-        .frame = index,
-        .inFlight = frameFence,
-        .colorAttachmentAvailable = m_ColorAttachmentAvailable[index].handle(),
-        .renderingFinished = m_RenderingFinished[index].handle()
-    };
+    return FrameContext{ .frame = index,
+                         .inFlight = frameFence,
+                         .colorAttachmentAvailable = m_ColorAttachmentAvailable[index].handle(),
+                         .renderingFinished = m_RenderingFinished[index].handle() };
 }
 FrameIndex FrameHandler::frame_index() const
 {

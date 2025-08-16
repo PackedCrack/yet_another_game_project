@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 12/08/2025.
+//
 #include "Device.hpp"
 
 #include "QueueFamilies.hpp"
@@ -114,9 +117,9 @@ DeviceRef Device::handle() const
 }
 [[nodiscard]] VkQueue Device::get_queue_handle(std::uint32_t familyIndex) const
 {
-    VkQueue handle = VK_NULL_HANDLE;
-    vkGetDeviceQueue(m_Device, familyIndex, 0, std::addressof(handle));
+    VkQueue qHandle = VK_NULL_HANDLE;
+    vkGetDeviceQueue(m_Device, familyIndex, 0, std::addressof(qHandle));
 
-    return handle;
+    return qHandle;
 }
 }    // namespace odin::graphics::vk

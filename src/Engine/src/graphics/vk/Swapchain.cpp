@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 15/08/2025.
+//
 #include "Swapchain.hpp"
 
 #include "vulkan_defines.hpp"
@@ -13,7 +16,7 @@ using namespace odin::graphics::vk;
     Iterator it = std::find(std::begin(modes), std::end(modes), mode);
     return it != std::end(modes);
 }
-[[nodiscard]] VkPresentModeKHR select_present_mode(PhysicalDeviceRef physicalDevice, Surface& surface)
+[[nodiscard]] VkPresentModeKHR select_present_mode(PhysicalDeviceRef physicalDevice, const Surface& surface)
 {
     std::vector<VkPresentModeKHR> modes = surface.present_modes(physicalDevice);
     if (mode_exists(modes, VK_PRESENT_MODE_MAILBOX_KHR))
@@ -42,7 +45,7 @@ using namespace odin::graphics::vk;
     max = max == 0 ? 3 : max;
     return std::min(desired, max);
 }
-[[nodiscard]] VkSurfaceFormatKHR select_surface_format(PhysicalDeviceRef physicalDevice, Surface& surface)
+[[nodiscard]] VkSurfaceFormatKHR select_surface_format(PhysicalDeviceRef physicalDevice, const Surface& surface)
 {
     using Iterator = std::vector<VkSurfaceFormatKHR>::const_iterator;
     std::vector<VkSurfaceFormatKHR> formats = surface.available_formats(physicalDevice);
@@ -50,8 +53,8 @@ using namespace odin::graphics::vk;
     auto action = [](const VkSurfaceFormatKHR& format)
     { return format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; };
     Iterator it = std::find_if(std::begin(formats), std::end(formats), action);
-    ODIN_ASSERT(it != std::end(formats), "Expecting this to exist for now..");
 
+    ODIN_ASSERT(it != std::end(formats));    // Expecting this to exist for now
     return *it;
 }
 }    // namespace
@@ -101,7 +104,7 @@ Swapchain& Swapchain::operator=(Swapchain&& other) noexcept
         m_Device = other.m_Device;
         m_Swapchain = std::exchange(other.m_Swapchain, m_Swapchain);
         m_Images = std::exchange(other.m_Images, m_Images);
-        m_Views = std::exchange(other.m_Views, m_Views);
+        //m_Views = std::exchange(other.m_Views, m_Views);
     }
 
     return *this;

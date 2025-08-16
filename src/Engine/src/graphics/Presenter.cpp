@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 15/08/2025.
+//
 #include "Presenter.hpp"
 
 #include "vk/vulkan_defines.hpp"
@@ -67,7 +70,7 @@ std::optional<vk::resource::ImageViewRef> Presenter::rebuild_and_acquire(vk::syn
 {
     using AcquiredImage = vk::Swapchain::AcquiredImage;
     using Error = vk::Swapchain::Error;
-    
+
     vk::SwapchainRef swapchain = m_Swapchain.handle();
     rebuild(swapchain.handle);
 

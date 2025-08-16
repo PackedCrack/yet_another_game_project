@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 11/08/2025.
+//
 #include "Graphics.hpp"
 
 #include "debug/Logger.hpp"
@@ -35,7 +38,7 @@ public:
         // Make instance
         vk::Instance instance{ make_application_info(info.applicationName), wnd.required_extensions() };
         // Make surface
-        vk::Surface surface{ wnd, instance };
+        vk::Surface surface{ wnd, instance.handle() };
         // Make physdev
         vk::PhysicalDevice physicalDevice{ instance, surface };
         // Make q fams
@@ -52,7 +55,10 @@ public:
         // Make Vulkan Context
         VulkanContext context{ std::move(instance), std::move(physicalDevice), std::move(queueFamilies), std::move(device) };
         // return Graphics as r value
-        return Graphics::Impl{ std::move(wnd), std::move(context), std::move(frameHandler), std::move(presenter) /*, std::move(renderer)*/ };
+        return Graphics::Impl{ std::move(wnd),
+                               std::move(context),
+                               std::move(frameHandler),
+                               std::move(presenter) /*, std::move(renderer)*/ };
     }
 public:
     // TODO: give better name
@@ -92,6 +98,9 @@ private:
 };
 // Pimpl
 Graphics::Graphics(const OdinInfo& info)
-    : m_pImpl{ std::make_unique<Graphics::Impl>(Graphics::Impl::make_graphics(info)) }
+    : m_pImpl{ std::make_unique<Impl>(Graphics::Impl::make_graphics(info)) }
 {}
+Graphics::~Graphics() = default;
+Graphics::Graphics(Graphics&& other) noexcept = default;
+Graphics& Graphics::operator=(Graphics&& other) noexcept = default;
 }    // namespace odin::graphics

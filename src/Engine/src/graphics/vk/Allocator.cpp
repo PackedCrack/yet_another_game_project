@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 12/08/2025.
+//
 #include "Allocator.hpp"
 
 #include "vulkan_defines.hpp"
@@ -86,7 +89,8 @@ namespace
 
     vk::InstanceRef inst = instance.handle();
     info.instance = inst.handle;
-    info.physicalDevice = gpu.handle();
+    vk::PhysicalDeviceRef g = gpu.handle();
+    info.physicalDevice = g.handle;
 
     vk::DeviceRef dev = device.handle();
     info.device = dev.handle;

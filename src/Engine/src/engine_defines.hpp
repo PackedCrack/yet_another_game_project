@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 10/08/2025.
+//
 #pragma once
 
 #define NO_FLAGS 0

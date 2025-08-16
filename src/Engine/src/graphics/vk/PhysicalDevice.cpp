@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 11/08/2025.
+//
 #include "PhysicalDevice.hpp"
 #include "vulkan_defines.hpp"
 #include "vulkan_info.hpp"
@@ -12,9 +15,9 @@ struct GPU
     odin::graphics::vk::PhysicalDeviceFeatures features;
     std::vector<VkQueueFamilyProperties> queueProperties;
 };
-[[nodiscard]] std::string& log_queue_properties(const GPU& gpu, std::string& msg)
+[[nodiscard]] std::string log_queue_properties(const GPU& gpu)
 {
-    msg += std::format("\nFound {} queue families.", gpu.queueProperties.size());
+    std::string msg = std::format("\nFound {} queue families.", gpu.queueProperties.size());
     for (std::size_t i = 0; i < gpu.queueProperties.size(); ++i)
     {
         VkQueueFlags flags = gpu.queueProperties[i].queueFlags;
@@ -39,8 +42,9 @@ struct GPU
 
     return msg;
 }
-[[nodiscard]] std::string& log_properties(const GPU& gpu, std::string& msg)
+[[nodiscard]] std::string log_properties(const GPU& gpu)
 {
+    std::string msg{};
     switch (gpu.properties.device_type())
     {
     case VK_PHYSICAL_DEVICE_TYPE_OTHER:
@@ -84,9 +88,9 @@ struct GPU
 
     return msg;
 }
-[[nodiscard]] std::string& log_features(const GPU& gpu, std::string& msg)
+[[nodiscard]] std::string log_features(const GPU& gpu)
 {
-    msg += "\n\tSupports descriptor binding partially bound: ";
+    std::string msg = "\n\tSupports descriptor binding partially bound: ";
     msg += gpu.features.descriptor_binding_partially_bound() ? "True" : "False";
 
     msg += "\n\tSupports descriptor indexing: ";
@@ -132,9 +136,9 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
         msg += gpu.properties.device_name();
         msg += (gpu.device == selected.device) ? " (Selected) " : "";
 
-        msg = log_properties(gpu, msg);
-        msg = log_features(gpu, msg);
-        msg = log_queue_properties(gpu, msg);
+        msg += log_properties(gpu);
+        msg += log_features(gpu);
+        msg += log_queue_properties(gpu);
 
         LOG_INFO(msg);
     }
@@ -252,10 +256,14 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
     std::vector<VkPhysicalDevice> physicalDevices = enumerate_physical_devices(instance);
 
     std::vector<GPU> gpus{};
-    for (VkPhysicalDevice dev : physicalDevices)
+    auto t = [](VkPhysicalDevice dev)
     {
-        gpus.emplace_back(dev, Properties{ dev }, Features{ dev }, queue_family_properties(dev));
-    }
+        return GPU{ .device = dev,
+                    .properties = Properties{ dev },
+                    .features = Features{ dev },
+                    .queueProperties = queue_family_properties(dev) };
+    };
+    std::transform(std::begin(physicalDevices), std::end(physicalDevices), std::back_inserter(gpus), t);
 
     return gpus;
 }

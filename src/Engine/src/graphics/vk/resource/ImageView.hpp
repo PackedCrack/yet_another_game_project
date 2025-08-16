@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 13/08/2025.
+//
 #pragma once
 
 #include "../Device.hpp"

@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 10/08/2025.
+//
 #include "Window.hpp"
 
 #include "sdl_defines.hpp"
@@ -126,8 +129,8 @@ Window::Window(std::string_view title, const WindowInfo& info)
     : m_pImpl{ std::make_unique<Impl>(title, info) }
 {}
 Window::~Window() = default;
-Window::Window(Window&& other) = default;
-Window& Window::operator=(Window&& other) = default;
+Window::Window(Window&& other) noexcept = default;
+Window& Window::operator=(Window&& other) noexcept = default;
 void Window::toggle_borderless()
 {
     m_pImpl->toggle_borderless();

@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 12/08/2025.
+//
 #include "QueueFamilies.hpp"
 
 #include "Device.hpp"
@@ -35,9 +38,11 @@ using index_t = odin::graphics::vk::QueueFamilies::index_t;
 
     return false;
 }
-index_t select_present(const odin::graphics::vk::PhysicalDevice& device, const odin::graphics::vk::Surface& surface)
+index_t select_present(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
 {
-    const std::vector<VkQueueFamilyProperties>& properties = device.queue_families_properties();
+    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
+
+    const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
     std::optional<index_t> backup{};
@@ -45,8 +50,9 @@ index_t select_present(const odin::graphics::vk::PhysicalDevice& device, const o
     {
         const VkQueueFamilyProperties& property = properties[i];
 
+        PhysicalDeviceRef physDev = physDevice.handle();
         auto index = static_cast<index_t>(i);
-        if (surface.queue_family_supports_present(device.handle(), index))
+        if (surface.queue_family_supports_present(physDev.handle, index))
         {
             if (!backup.has_value())
             {
@@ -67,9 +73,11 @@ index_t select_present(const odin::graphics::vk::PhysicalDevice& device, const o
     ODIN_ASSERT(backup);
     return bestCandidate.has_value() ? bestCandidate.value() : backup.value();
 };
-index_t select_graphics(const odin::graphics::vk::PhysicalDevice& device, const odin::graphics::vk::Surface& surface)
+index_t select_graphics(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
 {
-    const std::vector<VkQueueFamilyProperties>& properties = device.queue_families_properties();
+    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
+
+    const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
     std::optional<index_t> backup{};
@@ -84,7 +92,8 @@ index_t select_graphics(const odin::graphics::vk::PhysicalDevice& device, const 
                 backup = std::make_optional(index);
             }
 
-            if (family_supports_compute(property) && surface.queue_family_supports_present(device.handle(), index))
+            PhysicalDeviceRef physDev = physDevice.handle();
+            if (family_supports_compute(property) && surface.queue_family_supports_present(physDev.handle, index))
             {
                 bestCandidate = std::make_optional(index);
             }
@@ -98,9 +107,11 @@ index_t select_graphics(const odin::graphics::vk::PhysicalDevice& device, const 
     ODIN_ASSERT(backup);
     return bestCandidate.has_value() ? bestCandidate.value() : backup.value();
 };
-index_t select_compute(const odin::graphics::vk::PhysicalDevice& device, const odin::graphics::vk::Surface& surface)
+index_t select_compute(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
 {
-    const std::vector<VkQueueFamilyProperties>& properties = device.queue_families_properties();
+    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
+
+    const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
     std::optional<index_t> backup{};
@@ -115,7 +126,8 @@ index_t select_compute(const odin::graphics::vk::PhysicalDevice& device, const o
                 backup = std::make_optional(index);
             }
 
-            if (family_supports_graphics(property) && surface.queue_family_supports_present(device.handle(), index))
+            PhysicalDeviceRef physDev = physDevice.handle();
+            if (family_supports_graphics(property) && surface.queue_family_supports_present(physDev.handle, index))
             {
                 bestCandidate = std::make_optional(index);
             }
@@ -129,9 +141,11 @@ index_t select_compute(const odin::graphics::vk::PhysicalDevice& device, const o
     ODIN_ASSERT(backup);
     return bestCandidate.has_value() ? bestCandidate.value() : backup.value();
 };
-index_t select_transfer(const odin::graphics::vk::PhysicalDevice& device, const odin::graphics::vk::Surface& surface)
+index_t select_transfer(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
 {
-    const std::vector<VkQueueFamilyProperties>& properties = device.queue_families_properties();
+    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
+
+    const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
     std::optional<index_t> backup{};
@@ -146,7 +160,8 @@ index_t select_transfer(const odin::graphics::vk::PhysicalDevice& device, const 
                 backup = std::make_optional(index);
             }
 
-            if (!family_supports_graphics(property) && !surface.queue_family_supports_present(device.handle(), index) &&
+            PhysicalDeviceRef physDev = physDevice.handle();
+            if (!family_supports_graphics(property) && !surface.queue_family_supports_present(physDev.handle, index) &&
                 !family_supports_compute(property))
             {
                 bestCandidate = std::make_optional(index);

@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 12/08/2025.
+//
 #pragma once
 
 #include "../window/Window.hpp"
@@ -9,6 +12,7 @@
 namespace odin::graphics::vk
 {
 class PhysicalDevice;
+struct PhysicalDeviceRef;
 struct SurfaceRef
 {
     VkSurfaceKHR handle;
@@ -16,7 +20,7 @@ struct SurfaceRef
 class Surface
 {
 public:
-    Surface(window::Window& wnd, const Instance& instance);
+    Surface(window::Window& wnd, InstanceRef instance);
     ~Surface();
     Surface(const Surface& other) = delete;
     Surface(Surface&& other) noexcept;
