@@ -17,26 +17,26 @@ struct GPU
 };
 [[nodiscard]] std::string log_queue_properties(const GPU& gpu)
 {
-    std::string msg = std::format("\nFound {} queue families.", gpu.queueProperties.size());
+    std::string msg = std::format("\n\tFound {} queue families:", gpu.queueProperties.size());
     for (std::size_t i = 0; i < gpu.queueProperties.size(); ++i)
     {
         VkQueueFlags flags = gpu.queueProperties[i].queueFlags;
-        msg += std::format("\n\tQueue Family {} supports:", i);
+        msg += std::format("\n\t\tQueue Family {} supports:", i);
         if (flags & VK_QUEUE_GRAPHICS_BIT)
         {
-            msg += "\n\t\tGraphics";
+            msg += "\n\t\t\tGraphics";
         }
         if (flags & VK_QUEUE_COMPUTE_BIT)
         {
-            msg += "\n\t\tCompute";
+            msg += "\n\t\t\tCompute";
         }
         if (flags & VK_QUEUE_TRANSFER_BIT)
         {
-            msg += "\n\t\tTransfer";
+            msg += "\n\t\t\tTransfer";
         }
         if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
         {
-            msg += "\n\t\tSparse Binding";
+            msg += "\n\t\t\tSparse Binding";
         }
     }
 
@@ -44,95 +44,99 @@ struct GPU
 }
 [[nodiscard]] std::string log_properties(const GPU& gpu)
 {
-    std::string msg{};
+    std::string msg{ "\n\tProperties: " };
     switch (gpu.properties.device_type())
     {
     case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-        msg += "\n\tDevice type: Other";
+        msg += "\n\t\tDevice type: Other";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-        msg += "\n\tDevice type: Integrated";
+        msg += "\n\t\tDevice type: Integrated";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-        msg += "\n\tDevice type: Discrete";
+        msg += "\n\t\tDevice type: Discrete";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-        msg += "\n\tDevice type: Virtual";
+        msg += "\n\t\tDevice type: Virtual";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_CPU:
-        msg += "\n\tDevice type: CPU";
+        msg += "\n\t\tDevice type: CPU";
         break;
     case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
         LOG_FATAL("Unexpected Device Type: VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM.");
     }
 
-    msg += std::format("\n\tDriver Name: {}", gpu.properties.driver_name());
+    msg += std::format("\n\t\tDriver Name: {}", gpu.properties.driver_name());
 
-    msg += std::format("\n\tDriver Version: {}", gpu.properties.driver_info());
+    msg += std::format("\n\t\tDriver Version: {}", gpu.properties.driver_info());
 
-    msg += std::format("\n\tVulkan API version: {}", gpu.properties.api_version());
+    msg += std::format("\n\t\tVulkan API version: {}", gpu.properties.api_version());
 
-    msg += std::format("\n\tMinimum Memory map alignment: {}", gpu.properties.min_memory_map_alignment());
+    msg += std::format("\n\t\tMinimum Memory map alignment: {}", gpu.properties.min_memory_map_alignment());
 
-    msg += std::format("\n\tMinimum Uniform buffer offset alignment: {}", gpu.properties.min_uniform_buffer_offset_alignment());
+    msg += std::format("\n\t\tMinimum Uniform buffer offset alignment: {}", gpu.properties.min_uniform_buffer_offset_alignment());
 
-    msg += std::format("\n\tMinimum Storage buffer offset alignment: {}", gpu.properties.min_storage_buffer_offset_alignment());
+    msg += std::format("\n\t\tMinimum Storage buffer offset alignment: {}", gpu.properties.min_storage_buffer_offset_alignment());
 
-    msg += std::format("\n\tMaximum Compute Work Group Total Invocations: {}", gpu.properties.max_compute_work_group_invocations());
+    msg += std::format("\n\t\tMaximum Compute Work Group Total Invocations: {}", gpu.properties.max_compute_work_group_invocations());
 
-    msg += std::format("\n\tMaximum Compute Work Group Size - X: {}", gpu.properties.work_group_size_x());
+    msg += std::format("\n\t\tMaximum Compute Work Group Size - X: {}", gpu.properties.work_group_size_x());
 
-    msg += std::format("\n\tMaximum Compute Work Group Size - Y: {}", gpu.properties.work_group_size_y());
+    msg += std::format("\n\t\tMaximum Compute Work Group Size - Y: {}", gpu.properties.work_group_size_y());
 
-    msg += std::format("\n\tMaximum Compute Work Group Size - Z: {}", gpu.properties.work_group_size_z());
+    msg += std::format("\n\t\tMaximum Compute Work Group Size - Z: {}", gpu.properties.work_group_size_z());
 
     return msg;
 }
 [[nodiscard]] std::string log_features(const GPU& gpu)
 {
-    std::string msg = "\n\tSupports descriptor binding partially bound: ";
+    std::string msg = "\n\tFeature Support:";
+
+    msg += "\n\t\tSupports descriptor binding partially bound: ";
     msg += gpu.features.descriptor_binding_partially_bound() ? "True" : "False";
 
-    msg += "\n\tSupports descriptor indexing: ";
+    msg += "\n\t\tSupports descriptor indexing: ";
     msg += gpu.features.descriptor_indexing() ? "True" : "False";
 
-    msg += "\n\tSupports draw indirect count: ";
+    msg += "\n\t\tSupports draw indirect count: ";
     msg += gpu.features.draw_indirect_count() ? "True" : "False";
 
-    msg += "\n\tSupports Dynamic Rendering: ";
+    msg += "\n\t\tSupports Dynamic Rendering: ";
     msg += gpu.features.dynamic_rendering() ? "True" : "False";
 
-    msg += "\n\tSupports Dynamic Rendering Local Read: ";
+    msg += "\n\t\tSupports Dynamic Rendering Local Read: ";
     msg += gpu.features.dynamic_rendering_local_read() ? "True" : "False";
 
-    msg += "\n\tSupports Multi Draw Indirect: ";
+    msg += "\n\t\tSupports Multi Draw Indirect: ";
     msg += gpu.features.multi_draw_indirect() ? "True" : "False";
 
-    msg += "\n\tSupports Pipeline Statistic Queries: ";
+    msg += "\n\t\tSupports Pipeline Statistic Queries: ";
     msg += gpu.features.pipeline_statistics_query() ? "True" : "False";
 
-    msg += "\n\tSupports Runtime Descriptor Array: ";
+    msg += "\n\t\tSupports Runtime Descriptor Array: ";
     msg += gpu.features.runtime_descriptor_array() ? "True" : "False";
 
-    msg += "\n\tSupports Shader Draw Parameters: ";
+    msg += "\n\t\tSupports Shader Draw Parameters: ";
     msg += gpu.features.shader_draw_parameters() ? "True" : "False";
 
-    msg += "\n\tSupports Synchronization 2: ";
+    msg += "\n\t\tSupports Synchronization 2: ";
     msg += gpu.features.synchronization2() ? "True" : "False";
 
-    msg += "\n\tSupports Dynamic State 2: ";
+    msg += "\n\t\tSupports Dynamic State 2: ";
     msg += gpu.features.supports_dynamic_state2() ? "True" : "False";
 
-    msg += "\n\tSupports Dynamic State 3: ";
+    msg += "\n\t\tSupports Dynamic State 3: ";
     msg += gpu.features.supports_dynamic_state3() ? "True" : "False";
 
     return msg;
 }
 void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 {
-    for (auto&& gpu : gpus)
+    for (std::size_t i = 0; i < gpus.size(); ++i)
     {
-        std::string msg{ "GPU: " };
+        const GPU& gpu = gpus[i];
+
+        std::string msg = std::format("GPU Details ({} of {}):\n", i + 1, gpus.size());
         msg += gpu.properties.device_name();
         msg += (gpu.device == selected.device) ? " (Selected) " : "";
 

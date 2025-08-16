@@ -10,17 +10,17 @@
 
 #ifndef NDEBUG
     #define SDL_CHECK(expr, ...)                                                                                                           \
-        if (expr == 0)                                                                                                                     \
+        if (expr == true)                                                                                                                  \
         {}                                                                                                                                 \
         else                                                                                                                               \
         {                                                                                                                                  \
             LOG_ERR(__VA_ARGS__);                                                                                                          \
             LOG_ERR("SDL Check failed with {}.", SDL_GetError());                                                                          \
-            ODIN_ASSERT(expr != 0);                                                                                                        \
+            ODIN_ASSERT(expr != true);                                                                                                     \
         }
 #else
     #define SDL_CHECK(expr, ...)                                                                                                           \
-        if (expr == 0)                                                                                                                     \
+        if (expr == true)                                                                                                                  \
         {}                                                                                                                                 \
         else                                                                                                                               \
         {                                                                                                                                  \
