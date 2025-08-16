@@ -116,7 +116,7 @@ constexpr VkSwapchainCreateInfoKHR swapchain_create_info(VkSurfaceKHR surface,
 {
     return { .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
              .pNext = nullptr,
-             .flags = NULL,
+             .flags = VK_NO_FLAGS,
              .surface = surface,
              .minImageCount = imageCount,
              .imageFormat = format,

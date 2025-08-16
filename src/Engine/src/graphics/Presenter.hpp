@@ -4,6 +4,7 @@
 #include "vk/PhysicalDevice.hpp"
 #include "vk/Swapchain.hpp"
 #include "vk/Surface.hpp"
+#include "vk/synchronization/Semaphore.hpp"
 //
 //
 namespace odin::graphics
@@ -11,15 +12,18 @@ namespace odin::graphics
 class Presenter
 {
 public:
-	Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface);
+    Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface);
 public:
-	void present(const vk::QueueView& present, const std::vector<VkSemaphore>& rendering);
+    [[nodiscard]] std::optional<vk::resource::ImageViewRef> acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable);
+    [[nodiscard]] bool present(const vk::QueueView& present, vk::synchronization::SemaphoreRef renderingFinished);
 private:
-	void rebuild_and_present(const vk::QueueView& present, const std::vector<VkSemaphore>& rendering, VkSwapchainKHR oldSwapchain);
+    void rebuild(VkSwapchainKHR oldSwapchain);
+    [[nodiscard]] std::optional<vk::resource::ImageViewRef> rebuild_and_acquire(vk::synchronization::SemaphoreRef imageAvailable);
 private:
-	vk::DeviceRef m_Device;
-	vk::PhysicalDeviceRef m_PhysDevice;
-	vk::Surface m_Surface;
-	vk::Swapchain m_Swapchain;
+    vk::DeviceRef m_Device;
+    vk::PhysicalDeviceRef m_PhysDevice;
+    vk::Surface m_Surface;
+    vk::Swapchain m_Swapchain;
+    std::optional<vk::Swapchain::AcquiredImage> m_ColorAttachment;
 };
-}	// namespace odin::graphics
+}    // namespace odin::graphics

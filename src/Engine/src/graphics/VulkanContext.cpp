@@ -2,9 +2,7 @@
 //
 //
 namespace
-{
-
-}    // namespace
+{}    // namespace
 namespace odin::graphics
 {
 VulkanContext::VulkanContext(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::QueueFamilies queueFamilies, vk::Device device)
@@ -17,5 +15,21 @@ VulkanContext::VulkanContext(vk::Instance instance, vk::PhysicalDevice physicalD
 #ifndef NDEBUG
     m_DebugMsg = std::make_optional<vk::DebugMessenger>(m_Instance);
 #endif
+}
+const vk::Instance& VulkanContext::instance() const
+{
+    return m_Instance;
+}
+const vk::PhysicalDevice& VulkanContext::physical_device() const
+{
+    return m_PhysicalDevice;
+}
+const vk::QueueFamilies& VulkanContext::queue_families() const
+{
+    return m_Queues;
+}
+const vk::Device& VulkanContext::device() const
+{
+    return m_Device;
 }
 }    // namespace odin::graphics

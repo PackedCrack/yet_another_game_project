@@ -6,13 +6,13 @@
 //
 namespace
 {
+using namespace odin::graphics::vk;
 [[nodiscard]] bool mode_exists(const std::vector<VkPresentModeKHR>& modes, VkPresentModeKHR mode)
 {
     using Iterator = std::vector<VkPresentModeKHR>::const_iterator;
     Iterator it = std::find(std::begin(modes), std::end(modes), mode);
     return it != std::end(modes);
 }
-using namespace odin::graphics::vk;
 [[nodiscard]] VkPresentModeKHR select_present_mode(PhysicalDeviceRef physicalDevice, Surface& surface)
 {
     std::vector<VkPresentModeKHR> modes = surface.present_modes(physicalDevice);
@@ -36,6 +36,10 @@ using namespace odin::graphics::vk;
 {
     std::uint32_t desired = 3;
     std::uint32_t max = surface.max_image_count(physicalDevice);
+    // https://registry.khronos.org/vulkan/specs/latest/man/html/VkSurfaceCapabilitiesKHR.html
+    //  A value of 0 means that there is no limit on the number of images,
+    // though there may be limits related to the total amount of memory used by presentable images.
+    max = max == 0 ? 3 : max;
     return std::min(desired, max);
 }
 [[nodiscard]] VkSurfaceFormatKHR select_surface_format(PhysicalDeviceRef physicalDevice, Surface& surface)
@@ -45,7 +49,7 @@ using namespace odin::graphics::vk;
 
     auto action = [](const VkSurfaceFormatKHR& format)
     { return format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; };
-    Iterator it = std::find(std::begin(formats), std::end(formats), action);
+    Iterator it = std::find_if(std::begin(formats), std::end(formats), action);
     ODIN_ASSERT(it != std::end(formats), "Expecting this to exist for now..");
 
     return *it;
@@ -54,7 +58,7 @@ using namespace odin::graphics::vk;
 namespace odin::graphics::vk
 {
 Swapchain::Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface)
-    : m_Details{ make_details(physicalDevice.handle(), surface)}
+    : m_Details{ make_details(physicalDevice.handle(), surface) }
     , m_Device{ device.handle() }
     , m_Swapchain{ create_swapchain(device.handle(), physicalDevice.handle(), surface, VK_NULL_HANDLE) }
     , m_Images{ swapchain_images(device.handle()) }
@@ -81,10 +85,14 @@ Swapchain::~Swapchain()
 Swapchain::Swapchain(Swapchain&& other) noexcept
     : m_Details{ other.m_Details }
     , m_Device{ other.m_Device }
-    , m_Swapchain{ std::exchange(other.m_Swapchain, m_Swapchain) }
-    , m_Images{ std::exchange(other.m_Images, m_Images) }
-    , m_Views{ std::exchange(other.m_Views, m_Views) }
-{}
+    , m_Swapchain{}
+    , m_Images{}
+    , m_Views{}
+{
+    std::swap(m_Swapchain, other.m_Swapchain);
+    std::swap(m_Images, other.m_Images);
+    std::swap(m_Views, other.m_Views);
+}
 Swapchain& Swapchain::operator=(Swapchain&& other) noexcept
 {
     if (this != std::addressof(other))
@@ -98,33 +106,29 @@ Swapchain& Swapchain::operator=(Swapchain&& other) noexcept
 
     return *this;
 }
-//void Swapchain::rebuild(vulkan::Swapchain&& newSwapchain)
-//{
-//	// Swap all the resources that should be cleaned up from the old swapchain
-//	std::swap(m_ImageCount, newSwapchain.m_ImageCount);
-//	std::swap(m_ImageFormat, newSwapchain.m_ImageFormat);
-//	std::swap(m_Images, newSwapchain.m_Images);
-//	std::swap(m_ImageViews, newSwapchain.m_ImageViews);
-//	std::swap(m_Extent, newSwapchain.m_Extent);
-//	std::swap(m_pDevice, newSwapchain.m_pDevice);
-//	std::swap(m_Swapchain, newSwapchain.m_Swapchain);
-//}
 SwapchainRef Swapchain::handle() const
 {
     ODIN_ASSERT(m_Swapchain != VK_NULL_HANDLE);
     return SwapchainRef{ .handle = m_Swapchain };
 }
-std::expected<resource::ImageRef, Swapchain::Error> Swapchain::acquire(VkSemaphore renderer) const
+std::expected<Swapchain::AcquiredImage, Swapchain::Error> Swapchain::acquire(VkSemaphore imageAvailable) const
 {
     static constexpr uint64_t timeout = std::numeric_limits<std::uint64_t>::max();
 
-    std::uint32_t aquiredImage{};
-    VkResult result = vkAcquireNextImageKHR(m_Device.handle, m_Swapchain, timeout, renderer, VK_NULL_HANDLE, std::addressof(aquiredImage));
-    if (result == VK_SUBOPTIMAL_KHR)
+    Swapchain::index_t aquiredImage{};
+    VkResult result =
+        vkAcquireNextImageKHR(m_Device.handle, m_Swapchain, timeout, imageAvailable, VK_NULL_HANDLE, std::addressof(aquiredImage));
+    if (result == VK_SUCCESS)
     {
-        return std::unexpected{ Error::requiresRebuild };
+        auto index = static_cast<std::size_t>(aquiredImage);
+        return std::expected<AcquiredImage, Error>{
+            std::in_place,
+            AcquiredImage{ .image = resource::ImageRef{ .handle = m_Images[index] },
+                          .view = m_Views[index].handle(),
+                          .index = aquiredImage }
+        };
     }
-    else if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    else if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR)
     {
         return std::unexpected{ Error::requiresRebuild };
     }
@@ -136,34 +140,7 @@ std::expected<resource::ImageRef, Swapchain::Error> Swapchain::acquire(VkSemapho
     {
         LOG_FATAL("Unexpected error when attempting to aquire image: {}", err_to_str(result));
     }
-
-    auto index = static_cast<std::size_t>(aquiredImage);
-    resource::ImageRef image{ .handle = m_Images[index] };
-    return std::expected<resource::ImageRef, Error>{ std::in_place, image };
 }
-//bool Swapchain::release(const QueueView& present, const std::vector<VkSemaphore>& renderer)
-//{
-//    // TODO: Maybe this should be in presenter?
-//    VkPresentInfoKHR info = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-//                              .pNext = nullptr,
-//                              .waitSemaphoreCount = static_cast<uint32_t>(renderer.size()),
-//                              .pWaitSemaphores = renderer.empty() ? nullptr : renderer.data(),
-//                              .swapchainCount = 1u,
-//                              .pSwapchains = std::addressof(m_Swapchain),
-//                              .pImageIndices = std::addressof(present.index),
-//                              .pResults = nullptr };
-//
-//    if (VkResult result = vkQueuePresentKHR(present.handle, std::addressof(info)); result != VK_SUCCESS)
-//    {
-//        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
-//        {
-//            return false;
-//        }
-//        LOG_FATAL("Unexpected error when attempting to present image: {}", err_to_str(result));
-//    }
-//
-//    return true;
-//}
 VkFormat Swapchain::color_format() const
 {
     return m_Details.format.format;
@@ -184,8 +161,10 @@ const VkExtent2D& Swapchain::extent() const
                              .presentMode = select_present_mode(physicalDevice, surface),
                              .imageCount = image_count(physicalDevice, surface) };
 }
-VkSwapchainKHR Swapchain::create_swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
+VkSwapchainKHR
+Swapchain::create_swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
 {
+    // SHOULD BE VK_SHARING_MODE_CONCURRENT IF GRAPHICS AND PRESENT QUEUES ARE DIFFERENT
     SurfaceRef s = surface.handle();
     VkSwapchainCreateInfoKHR info = swapchain_create_info(s.handle,
                                                           m_Details.imageCount,

@@ -26,6 +26,13 @@ class Swapchain
         std::uint32_t imageCount;
     };
 public:
+    using index_t = std::uint32_t;
+    struct AcquiredImage
+    {
+        resource::ImageRef image;
+        resource::ImageViewRef view;
+        index_t index;
+    };
     enum class Error
     {
         requiresRebuild,
@@ -40,10 +47,8 @@ public:
     Swapchain& operator=(const Swapchain& other) = delete;
     Swapchain& operator=(Swapchain&& other) noexcept;
 public:
-    //void rebuild(Swapchain&& newSwapchain);
     [[nodiscard]] SwapchainRef handle() const;
-    [[nodiscard]] std::expected<resource::ImageRef, Error> acquire(VkSemaphore renderer) const;
-    //[[nodiscard]] bool release(const QueueView& present, const std::vector<VkSemaphore>& renderer);
+    [[nodiscard]] std::expected<AcquiredImage, Error> acquire(VkSemaphore imageAvailable) const;
     [[nodiscard]] VkFormat color_format() const;
     [[nodiscard]] const std::vector<resource::ImageView>& image_views() const;
     [[nodiscard]] const VkExtent2D& extent() const;

@@ -2,6 +2,7 @@ SET(STD_PCH <cstdint>
 <cstdio>
 <iostream>
 <fstream>
+<expected>
 <string>
 <string_view>
 <array>

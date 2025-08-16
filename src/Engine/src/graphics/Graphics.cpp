@@ -1,5 +1,7 @@
 #include "Graphics.hpp"
 
+#include "debug/Logger.hpp"
+#include "FrameHandler.hpp"
 #include "Presenter.hpp"
 #include "VulkanContext.hpp"
 #include "window/Window.hpp"
@@ -40,6 +42,8 @@ public:
         vk::QueueFamilies queueFamilies{ physicalDevice, surface };
         // Make dev
         vk::Device device{ physicalDevice, queueFamilies };
+        // Make FrameHandler
+        FrameHandler frameHandler{ device.handle(), queueFamilies.graphics(), queueFamilies.compute() };
         // Make Presenter
         Presenter presenter{ device, physicalDevice, std::move(surface) };
         // Make Renderer
@@ -48,17 +52,42 @@ public:
         // Make Vulkan Context
         VulkanContext context{ std::move(instance), std::move(physicalDevice), std::move(queueFamilies), std::move(device) };
         // return Graphics as r value
-        return Graphics::Impl{ std::move(wnd), std::move(context), std::move(presenter) /*, std::move(renderer)*/ };
+        return Graphics::Impl{ std::move(wnd), std::move(context), std::move(frameHandler), std::move(presenter) /*, std::move(renderer)*/ };
+    }
+public:
+    // TODO: give better name
+    void draw()
+    {
+        using ColorAttachment = vk::resource::ImageViewRef;
+
+        FrameContext frame = m_FrameHandler.start_frame();
+
+        std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentAvailable);
+        if (colorAttach)
+        {
+            // Do uploading
+            // uploadermanager.upload()
+            // Do rendering stuff
+            // rednderer.render()
+
+            const vk::QueueFamilies& queues = m_Context.queue_families();
+            if (!m_Presenter.present(queues.present(), frame.renderingFinished))
+            {
+                LOG_WARN("Failed to present color attachment.");
+            }
+        }
     }
 private:
-    Impl(window::Window window, VulkanContext context, Presenter presenter/*, Renderer&& renderer */ )
+    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter /*, Renderer&& renderer */)
         : m_Wnd{ std::move(window) }
         , m_Context{ std::move(context) }
+        , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
     {}
 private:
     window::Window m_Wnd;
     VulkanContext m_Context;
+    FrameHandler m_FrameHandler;
     Presenter m_Presenter;
 };
 // Pimpl

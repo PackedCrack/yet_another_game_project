@@ -6,6 +6,8 @@
 #include "vulkan/vulkan.h"
 // std
 #include <string>
+namespace odin::graphics::vk
+{
 constexpr const char* err_to_str(VkResult error)
 {
     switch (error)
@@ -112,9 +114,11 @@ constexpr const char* err_to_str(VkResult error)
         return "VK_RESULT_MAX_ENUM";
     default:
         auto code = static_cast<std::uint32_t>(error);
-        return std::format("Unknown error: {}", code).c_str();
+        static std::string unknownError = std::format("Unknown error: {}", code);
+        return unknownError.c_str();
     }
 }
+}    // namespace odin::graphics::vk
 #ifndef NDEBUG
     #define VK_CHECK(expr, ...)                                                                                                            \
         if (VkResult result = expr; result == VK_SUCCESS)                                                                                  \

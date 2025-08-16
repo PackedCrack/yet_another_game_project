@@ -13,6 +13,11 @@ class VulkanContext
 {
 public:
     VulkanContext(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::QueueFamilies queueFamilies, vk::Device device);
+public:
+    [[nodiscard]] const vk::Instance& instance() const;
+    [[nodiscard]] const vk::PhysicalDevice& physical_device() const;
+    [[nodiscard]] const vk::QueueFamilies& queue_families() const;
+    [[nodiscard]] const vk::Device& device() const;
 private:
     vk::Instance m_Instance;
     std::optional<vk::DebugMessenger> m_DebugMsg;
