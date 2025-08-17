@@ -6,9 +6,6 @@
 #include "../CommandBuffer.hpp"
 #include "../Device.hpp"
 #include "../vulkan_defines.hpp"
-// std
-#include <utility>
-#include <type_traits>
 //
 //
 namespace odin::graphics::vk::pipeline
