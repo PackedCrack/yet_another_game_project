@@ -22,7 +22,7 @@ struct GPU
     {
         VkQueueFlags flags = gpu.queueProperties[i].queueFlags;
         msg += std::format("\n\t\tQueue Family {} supports:", i);
-        if (surface.queue_family_supports_present(gpu.device, i))
+        if (surface.queue_family_supports_present(gpu.device, static_cast<std::uint32_t>(i)))
         {
             msg += "\n\t\t\tPresent";
         }

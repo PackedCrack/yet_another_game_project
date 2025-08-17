@@ -14,7 +14,6 @@
 //
 namespace
 {
-odin::graphics::vk::DeviceRef testDevice{};
 [[nodiscard]] VkApplicationInfo make_application_info(std::string_view name)
 {
     return VkApplicationInfo{ .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -31,7 +30,7 @@ namespace odin::graphics
 class Graphics::Impl
 {
 public:
-    [[nodiscard]] static Graphics::Impl make_graphics(const odin::OdinInfo& info)
+    [[nodiscard]] static std::unique_ptr<Impl> make_graphics(const odin::OdinInfo& info)
     {
         // The circular dependencies for initialization is nuts..
         // So keep this as a stand alone function for clarity and then move everything into place
@@ -58,7 +57,47 @@ public:
         // Make Vulkan Context
         VulkanContext context{ std::move(instance), std::move(physicalDevice), std::move(queueFamilies), std::move(device) };
         // return Graphics as r value
-        return Graphics::Impl{ std::move(wnd), std::move(context), std::move(frameHandler), std::move(presenter), std::move(renderer) };
+        return std::make_unique<Impl>(std::move(wnd),
+                                      std::move(context),
+                                      std::move(frameHandler),
+                                      std::move(presenter),
+                                      std::move(renderer));
+    }
+public:
+    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter, Renderer renderer)
+        : m_Wnd{ std::move(window) }
+        , m_Context{ std::move(context) }
+        , m_FrameHandler{ std::move(frameHandler) }
+        , m_Presenter{ std::move(presenter) }
+        , m_Renderer{ std::move(renderer) }
+    {}
+    ~Impl()
+    {
+        // Force wait for GPU when exiting the application..
+        VkDevice device = m_Context.device().handle().handle;
+        if (device != VK_NULL_HANDLE)
+        {
+            VK_CHECK(vkDeviceWaitIdle(device), "Failed to await for GPU to idle when exiting.");
+        }
+    }
+    Impl(Impl&& other) noexcept
+        : m_Wnd{ std::move(other.m_Wnd) }
+        , m_Context{ std::move(other.m_Context) }
+        , m_FrameHandler{ std::move(other.m_FrameHandler) }
+        , m_Presenter{ std::move(other.m_Presenter) }
+        , m_Renderer{ std::move(other.m_Renderer) }
+    {}
+    Impl& operator=(Impl&& other) noexcept
+    {
+        if (this != std::addressof(other))
+        {
+            m_Wnd = std::move(other.m_Wnd);
+            m_Context = std::move(other.m_Context);
+            m_FrameHandler = std::move(other.m_FrameHandler);
+            m_Presenter = std::move(other.m_Presenter);
+            m_Renderer = std::move(other.m_Renderer);
+        }
+        return *this;
     }
 public:
     void draw()
@@ -82,43 +121,6 @@ public:
             }
         }
     }
-    ~Impl()
-    {
-        // Force wait for GPU when exiting the application..
-        if (testDevice.handle != VK_NULL_HANDLE)
-        {
-            VK_CHECK(vkDeviceWaitIdle(testDevice.handle), "Failed to await for GPU to idle when exiting.");
-        }
-    }
-    Impl(Impl&& other) noexcept
-        : m_Wnd{ std::move(other.m_Wnd) }
-        , m_Context{ std::move(other.m_Context) }
-        , m_FrameHandler{ std::move(other.m_FrameHandler) }
-        , m_Presenter{ std::move(other.m_Presenter) }
-        , m_Renderer{ std::move(other.m_Renderer) }
-    {}
-    Impl& operator=(Impl&& other) noexcept
-    {
-        if (this != std::addressof(other))
-        {
-            m_Wnd = std::move(other.m_Wnd);
-            m_Context = std::move(other.m_Context);
-            m_FrameHandler = std::move(other.m_FrameHandler);
-            m_Presenter = std::move(other.m_Presenter);
-            m_Renderer = std::move(other.m_Renderer);
-        }
-        return *this;
-    }
-private:
-    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter, Renderer renderer)
-        : m_Wnd{ std::move(window) }
-        , m_Context{ std::move(context) }
-        , m_FrameHandler{ std::move(frameHandler) }
-        , m_Presenter{ std::move(presenter) }
-        , m_Renderer{ std::move(renderer) }
-    {
-        testDevice = m_Context.device().handle();
-    }
 private:
     window::Window m_Wnd;
     VulkanContext m_Context;
@@ -128,7 +130,8 @@ private:
 };
 // Pimpl
 Graphics::Graphics(const OdinInfo& info)
-    : m_pImpl{ std::make_unique<Impl>(Graphics::Impl::make_graphics(info)) }
+    //: m_pImpl{ std::make_unique<Impl>(Graphics::Impl::make_graphics(info)) }
+    : m_pImpl{ Impl::make_graphics(info) }
 {}
 Graphics::~Graphics() = default;
 Graphics::Graphics(Graphics&& other) noexcept = default;
