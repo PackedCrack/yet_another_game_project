@@ -9,7 +9,7 @@ namespace odin
 Odin::Odin(OdinInfo info)
     : m_Gfx{ info }
 {}
-const graphics::Graphics& Odin::graphics() const
+graphics::Graphics& Odin::graphics()
 {
     return m_Gfx;
 }

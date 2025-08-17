@@ -21,7 +21,7 @@ public:
     Semaphore(Semaphore&& other) noexcept;
     Semaphore& operator=(const Semaphore& other) = delete;
     Semaphore& operator=(Semaphore&& other) noexcept;
-
+public:
     [[nodiscard]] SemaphoreRef handle() const;
 private:
     VkSemaphore m_Semaphore = VK_NULL_HANDLE;

@@ -31,7 +31,7 @@ std::optional<vk::resource::ImageViewRef> Presenter::acquire_color_attachment(vk
         return rebuild_and_acquire(imageAvailable);
     }
 }
-bool Presenter::present(const vk::QueueView& present, vk::synchronization::SemaphoreRef renderingFinished)
+bool Presenter::present(const vk::QueueView& present, vk::synchronization::SemaphoreRef graphicsFinished)
 {
     ODIN_ASSERT(m_ColorAttachment);
 
@@ -39,7 +39,7 @@ bool Presenter::present(const vk::QueueView& present, vk::synchronization::Semap
     VkPresentInfoKHR info = { .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                               .pNext = nullptr,
                               .waitSemaphoreCount = 1,
-                              .pWaitSemaphores = std::addressof(renderingFinished.handle),
+                              .pWaitSemaphores = std::addressof(graphicsFinished.handle),
                               .swapchainCount = 1u,
                               .pSwapchains = std::addressof(swapchain.handle),
                               .pImageIndices = std::addressof(m_ColorAttachment->index),

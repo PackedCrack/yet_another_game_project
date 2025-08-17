@@ -10,6 +10,8 @@ SET(SOURCES
         Presenter.cpp
         FrameHandler.hpp
         FrameHandler.cpp
+        Renderer.hpp
+        Renderer.cpp
 )
 
 set(EXPORT_HEADERS

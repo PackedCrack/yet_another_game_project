@@ -56,10 +56,10 @@ namespace
 
     return msg;
 }
-[[nodiscard]] VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                            [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                            [[maybe_unused]] void* pUserData)
+[[nodiscard]] VKAPI_ATTR VkBool32 VKAPI_CALL vulkan_debug_message_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                                           [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                                           const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                                           [[maybe_unused]] void* pUserData)
 {
     std::string message = format_debug_message(pCallbackData);
 
@@ -127,6 +127,6 @@ DebugMessenger& DebugMessenger::operator=(DebugMessenger&& other) noexcept
 }
 VkDebugUtilsMessengerEXT DebugMessenger::create_debug_messenger() const
 {
-    return m_Procedures.create_debug_utils_messenger(vk::debug_messenger_create_info(debug_callback));
+    return m_Procedures.create_debug_utils_messenger(vk::debug_messenger_create_info(vulkan_debug_message_callback));
 }
 }    // namespace odin::graphics::vk

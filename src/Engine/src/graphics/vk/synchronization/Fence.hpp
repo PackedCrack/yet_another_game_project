@@ -21,7 +21,7 @@ public:
     Fence(Fence&& other) noexcept;
     Fence& operator=(const Fence& other) = delete;
     Fence& operator=(Fence&& other) noexcept;
-
+public:
     [[nodiscard]] FenceRef handle() const;
 private:
     VkFence m_Fence = VK_NULL_HANDLE;

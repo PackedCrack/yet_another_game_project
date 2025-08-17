@@ -16,6 +16,8 @@ public:
     ~Graphics();
     Graphics(Graphics&& other) noexcept;
     Graphics& operator=(Graphics&& other) noexcept;
+public:
+    void draw();
 private:
     std::unique_ptr<Impl> m_pImpl;
 };

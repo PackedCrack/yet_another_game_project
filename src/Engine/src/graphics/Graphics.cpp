@@ -4,10 +4,12 @@
 #include "Graphics.hpp"
 
 #include "debug/Logger.hpp"
+#include "vk/vulkan_defines.hpp"
+#include "window/Window.hpp"
 #include "FrameHandler.hpp"
 #include "Presenter.hpp"
 #include "VulkanContext.hpp"
-#include "window/Window.hpp"
+#include "Renderer.hpp"
 //
 //
 namespace
@@ -50,51 +52,78 @@ public:
         // Make Presenter
         Presenter presenter{ device, physicalDevice, std::move(surface) };
         // Make Renderer
-        //Renderer renderer{};
+        Renderer renderer{};
 
         // Make Vulkan Context
         VulkanContext context{ std::move(instance), std::move(physicalDevice), std::move(queueFamilies), std::move(device) };
         // return Graphics as r value
-        return Graphics::Impl{ std::move(wnd),
-                               std::move(context),
-                               std::move(frameHandler),
-                               std::move(presenter) /*, std::move(renderer)*/ };
+        return Graphics::Impl{ std::move(wnd), std::move(context), std::move(frameHandler), std::move(presenter), std::move(renderer) };
     }
 public:
-    // TODO: give better name
     void draw()
     {
         using ColorAttachment = vk::resource::ImageViewRef;
 
         FrameContext frame = m_FrameHandler.start_frame();
 
-        std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentAvailable);
+        std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);
         if (colorAttach)
         {
             // Do uploading
             // uploadermanager.upload()
+
             // Do rendering stuff
-            // rednderer.render()
+            vk::QueueView graphicsQ = m_Context.queue_families().graphics();
+            m_Renderer.render_frame(graphicsQ, frame);
 
             const vk::QueueFamilies& queues = m_Context.queue_families();
-            if (!m_Presenter.present(queues.present(), frame.renderingFinished))
+            if (!m_Presenter.present(queues.present(), frame.graphicsFinished))
             {
                 LOG_WARN("Failed to present color attachment.");
             }
         }
     }
+    ~Impl()
+    {
+        // Force wait for GPU when exiting the application..
+        if (m_Context.device().handle().handle != VK_NULL_HANDLE)
+        {
+            VK_CHECK(vkDeviceWaitIdle(m_Context.device().handle().handle), "Failed to await for GPU to idle when exiting.");
+        }
+    }
+    Impl(Impl&& other) noexcept
+        : m_Wnd{ std::move(other.m_Wnd) }
+        , m_Context{ std::move(other.m_Context) }
+        , m_FrameHandler{ std::move(other.m_FrameHandler) }
+        , m_Presenter{ std::move(other.m_Presenter) }
+        , m_Renderer{ std::move(other.m_Renderer) }
+    {}
+    Impl& operator=(Impl&& other) noexcept
+    {
+        if (this != std::addressof(other))
+        {
+            m_Wnd = std::move(other.m_Wnd);
+            m_Context = std::move(other.m_Context);
+            m_FrameHandler = std::move(other.m_FrameHandler);
+            m_Presenter = std::move(other.m_Presenter);
+            m_Renderer = std::move(other.m_Renderer);
+        }
+        return *this;
+    }
 private:
-    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter /*, Renderer&& renderer */)
+    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter, Renderer renderer)
         : m_Wnd{ std::move(window) }
         , m_Context{ std::move(context) }
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
+        , m_Renderer{ std::move(renderer) }
     {}
 private:
     window::Window m_Wnd;
     VulkanContext m_Context;
     FrameHandler m_FrameHandler;
     Presenter m_Presenter;
+    Renderer m_Renderer;
 };
 // Pimpl
 Graphics::Graphics(const OdinInfo& info)
@@ -103,4 +132,8 @@ Graphics::Graphics(const OdinInfo& info)
 Graphics::~Graphics() = default;
 Graphics::Graphics(Graphics&& other) noexcept = default;
 Graphics& Graphics::operator=(Graphics&& other) noexcept = default;
+void Graphics::draw()
+{
+    m_pImpl->draw();
+}
 }    // namespace odin::graphics

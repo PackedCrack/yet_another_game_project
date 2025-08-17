@@ -20,6 +20,9 @@ int main()
         odin::OdinInfo info{ .applicationName = "Odin Application", .windowInfo = std::move(wndInfo) };
         odin::Odin engine{ info };
 
+        odin::graphics::Graphics& gfx = engine.graphics();
+        gfx.draw();
+
 
         asl::Model uvTestManyScenes{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\tests\TextureCoordinateTest.glb)" };
         asl::Model lanternManyGroups{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };

@@ -18,8 +18,10 @@ struct FrameContext
 {
     FrameIndex frame;
     vk::synchronization::FenceRef inFlight;
-    vk::synchronization::SemaphoreRef colorAttachmentAvailable;
-    vk::synchronization::SemaphoreRef renderingFinished;
+    vk::synchronization::SemaphoreRef colorAttachmentReady;
+    vk::synchronization::SemaphoreRef graphicsFinished;
+    std::reference_wrapper<vk::CommandBuffer> graphicsBuffer;
+    std::reference_wrapper<vk::CommandBuffer> computeBuffer;
 };
 class FrameHandler
 {
@@ -38,12 +40,12 @@ private:
     std::uint32_t m_NumInFlight;
     FrameIndex m_Frame;
     vk::DeviceRef m_Device;
-    std::vector<vk::CommandPool> m_RenderPools;
-    std::vector<vk::CommandBuffer> m_RenderBuffers;
+    std::vector<vk::CommandPool> m_GraphicsPools;
+    std::vector<vk::CommandBuffer> m_GraphicsBuffers;
     std::vector<vk::CommandPool> m_ComputePools;
     std::vector<vk::CommandBuffer> m_ComputeBuffers;
-    std::vector<vk::synchronization::Semaphore> m_ColorAttachmentAvailable;
-    std::vector<vk::synchronization::Semaphore> m_RenderingFinished;
+    std::vector<vk::synchronization::Semaphore> m_ColorAttachmentReady;
+    std::vector<vk::synchronization::Semaphore> m_GraphicsFinished;
     std::vector<vk::synchronization::Fence> m_InFlight;
 };
 }    // namespace odin::graphics

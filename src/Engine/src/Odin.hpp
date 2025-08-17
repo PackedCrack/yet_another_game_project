@@ -14,7 +14,7 @@ class Odin
 public:
     Odin(OdinInfo info);
 public:
-    [[nodiscard]] const graphics::Graphics& graphics() const;
+    [[nodiscard]] graphics::Graphics& graphics();
 private:
     graphics::Graphics m_Gfx;
 };
