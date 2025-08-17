@@ -15,13 +15,17 @@ struct GPU
     odin::graphics::vk::PhysicalDeviceFeatures features;
     std::vector<VkQueueFamilyProperties> queueProperties;
 };
-[[nodiscard]] std::string log_queue_properties(const GPU& gpu)
+[[nodiscard]] std::string log_queue_properties(const GPU& gpu, const odin::graphics::vk::Surface& surface)
 {
     std::string msg = std::format("\n\tFound {} queue families:", gpu.queueProperties.size());
     for (std::size_t i = 0; i < gpu.queueProperties.size(); ++i)
     {
         VkQueueFlags flags = gpu.queueProperties[i].queueFlags;
         msg += std::format("\n\t\tQueue Family {} supports:", i);
+        if (surface.queue_family_supports_present(gpu.device, i))
+        {
+            msg += "\n\t\t\tPresent";
+        }
         if (flags & VK_QUEUE_GRAPHICS_BIT)
         {
             msg += "\n\t\t\tGraphics";
@@ -134,7 +138,7 @@ struct GPU
 
     return msg;
 }
-void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
+void log_gpus(const std::vector<GPU>& gpus, const GPU& selected, const odin::graphics::vk::Surface& surface)
 {
     for (std::size_t i = 0; i < gpus.size(); ++i)
     {
@@ -146,7 +150,7 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 
         msg += log_properties(gpu);
         msg += log_features(gpu);
-        msg += log_queue_properties(gpu);
+        msg += log_queue_properties(gpu, surface);
 
         LOG_INFO(msg);
     }
@@ -202,7 +206,7 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 
     return discreteGpus;
 }
-[[nodiscard]] GPU& select_gpu(std::vector<GPU>& gpus, const odin::graphics::vk::Surface& surface)
+[[nodiscard]] std::reference_wrapper<GPU> select_gpu(std::vector<GPU>& gpus, const odin::graphics::vk::Surface& surface)
 {
     ODIN_ASSERT(!gpus.empty());
 
@@ -230,7 +234,7 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected)
 
     // For now just return the first one..
     // May need a point system in the future - but most only have 1 dedicated gpu..
-    return alternatives.front().get();
+    return alternatives.front();
 }
 [[nodiscard]] std::vector<VkQueueFamilyProperties> queue_family_properties(VkPhysicalDevice device)
 {
@@ -285,13 +289,15 @@ PhysicalDevice::PhysicalDevice(const Instance& instance, const Surface& surface)
     , m_QueueProperties{}
 {
     std::vector<GPU> gpus = get_gpus(instance);
-    GPU& selectedGPU = select_gpu(gpus, surface);
-    log_gpus(gpus, selectedGPU);
+    std::reference_wrapper<GPU> selectedGPU = select_gpu(gpus, surface);
+    GPU& selected = selectedGPU.get();
 
-    m_PhysicalDevice = selectedGPU.device;
-    m_Properties = std::move(selectedGPU.properties);
-    m_Features = std::move(selectedGPU.features);
-    m_QueueProperties = std::move(selectedGPU.queueProperties);
+    log_gpus(gpus, selected, surface);
+
+    m_PhysicalDevice = selected.device;
+    m_Properties = std::move(selected.properties);
+    m_Features = std::move(selected.features);
+    m_QueueProperties = std::move(selected.queueProperties);
 }
 PhysicalDevice::PhysicalDevice(const PhysicalDevice& other)
     : m_PhysicalDevice{ other.m_PhysicalDevice }

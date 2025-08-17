@@ -103,8 +103,8 @@ Swapchain& Swapchain::operator=(Swapchain&& other) noexcept
         m_Details = other.m_Details;
         m_Device = other.m_Device;
         m_Swapchain = std::exchange(other.m_Swapchain, m_Swapchain);
-        m_Images = std::exchange(other.m_Images, m_Images);
-        //m_Views = std::exchange(other.m_Views, m_Views);
+        m_Images = std::exchange(other.m_Images, std::move(m_Images));
+        m_Views = std::exchange(other.m_Views, std::move(m_Views));
     }
 
     return *this;

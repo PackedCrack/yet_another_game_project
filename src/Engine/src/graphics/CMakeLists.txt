@@ -12,6 +12,8 @@ SET(SOURCES
         FrameHandler.cpp
         Renderer.hpp
         Renderer.cpp
+        ColorAttachment.hpp
+        ColorAttachment.cpp
 )
 
 set(EXPORT_HEADERS

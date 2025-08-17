@@ -74,7 +74,7 @@ void submit(QueueView queue,
 }    // namespace
 namespace odin::graphics
 {
-void Renderer::render_frame(vk::QueueView graphics, const FrameContext& frameContext)
+void Renderer::render_frame(const ColorAttachment& colorAttachment, vk::QueueView graphics, const FrameContext& frameContext)
 {
     vk::CommandBuffer& gfxCmdBuffer = frameContext.graphicsBuffer.get();
     // Reset cmdBuffer and prepare it for commands
@@ -89,7 +89,58 @@ void Renderer::render_frame(vk::QueueView graphics, const FrameContext& frameCon
     //m_Pipeline.bind(cmdBuffer.handle());
 
 
+    // Should be handled by the forward pass?
+    VkImageMemoryBarrier2 renderBarrier = colorAttachment.barrier_to_render();
+    const VkDependencyInfo dep{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                .pNext = nullptr,
+                                .dependencyFlags = 0,
+                                .memoryBarrierCount = 0,
+                                .pMemoryBarriers = nullptr,
+                                .bufferMemoryBarrierCount = 0,
+                                .pBufferMemoryBarriers = nullptr,
+                                .imageMemoryBarrierCount = 1,
+                                .pImageMemoryBarriers = std::addressof(renderBarrier) };
+    vkCmdPipelineBarrier2(gfxCmdBuffer.handle().handle, std::addressof(dep));
+
+
     // Dynamic rendering
+    vk::resource::ImageViewRef colorView = colorAttachment.view();
+    VkRenderingAttachmentInfo colorAtt{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                                        .pNext = nullptr,
+                                        .imageView = colorView.handle,
+                                        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                        .resolveMode = VK_RESOLVE_MODE_NONE,
+                                        .resolveImageView = VK_NULL_HANDLE,
+                                        .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                                        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,    // or LOAD if you preserved previous
+                                        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                                        .clearValue = { .color = { { 1.0f, 0.0f, 1.0f, 1.0f } } } };
+    VkRenderingInfo ri{
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .renderArea = { { 0, 0 }, VkExtent2D{ .width = 1600, .height = 900 } },
+        .layerCount = 1,
+        .viewMask = 0,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAtt,
+        .pDepthAttachment = nullptr,
+        .pStencilAttachment = nullptr
+    };
+    vkCmdBeginRendering(gfxCmdBuffer.handle().handle, std::addressof(ri));
+    vkCmdEndRendering(gfxCmdBuffer.handle().handle);
+
+    VkImageMemoryBarrier2 presentBarrier = colorAttachment.barrier_to_present();
+    const VkDependencyInfo dep2{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                 .pNext = nullptr,
+                                 .dependencyFlags = 0,
+                                 .memoryBarrierCount = 0,
+                                 .pMemoryBarriers = nullptr,
+                                 .bufferMemoryBarrierCount = 0,
+                                 .pBufferMemoryBarriers = nullptr,
+                                 .imageMemoryBarrierCount = 1,
+                                 .pImageMemoryBarriers = std::addressof(presentBarrier) };
+    vkCmdPipelineBarrier2(gfxCmdBuffer.handle().handle, std::addressof(dep2));
 
 
     // End rendering

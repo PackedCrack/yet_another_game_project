@@ -14,6 +14,7 @@
 //
 namespace
 {
+odin::graphics::vk::DeviceRef testDevice{};
 [[nodiscard]] VkApplicationInfo make_application_info(std::string_view name)
 {
     return VkApplicationInfo{ .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -62,8 +63,6 @@ public:
 public:
     void draw()
     {
-        using ColorAttachment = vk::resource::ImageViewRef;
-
         FrameContext frame = m_FrameHandler.start_frame();
 
         std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);
@@ -74,7 +73,7 @@ public:
 
             // Do rendering stuff
             vk::QueueView graphicsQ = m_Context.queue_families().graphics();
-            m_Renderer.render_frame(graphicsQ, frame);
+            m_Renderer.render_frame(colorAttach.value(), graphicsQ, frame);
 
             const vk::QueueFamilies& queues = m_Context.queue_families();
             if (!m_Presenter.present(queues.present(), frame.graphicsFinished))
@@ -86,9 +85,9 @@ public:
     ~Impl()
     {
         // Force wait for GPU when exiting the application..
-        if (m_Context.device().handle().handle != VK_NULL_HANDLE)
+        if (testDevice.handle != VK_NULL_HANDLE)
         {
-            VK_CHECK(vkDeviceWaitIdle(m_Context.device().handle().handle), "Failed to await for GPU to idle when exiting.");
+            VK_CHECK(vkDeviceWaitIdle(testDevice.handle), "Failed to await for GPU to idle when exiting.");
         }
     }
     Impl(Impl&& other) noexcept
@@ -117,7 +116,9 @@ private:
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
         , m_Renderer{ std::move(renderer) }
-    {}
+    {
+        testDevice = m_Context.device().handle();
+    }
 private:
     window::Window m_Wnd;
     VulkanContext m_Context;

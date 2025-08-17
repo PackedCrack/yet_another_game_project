@@ -8,6 +8,7 @@
 #include "vk/Swapchain.hpp"
 #include "vk/Surface.hpp"
 #include "vk/synchronization/Semaphore.hpp"
+#include "ColorAttachment.hpp"
 //
 //
 namespace odin::graphics
@@ -17,11 +18,11 @@ class Presenter
 public:
     Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface);
 public:
-    [[nodiscard]] std::optional<vk::resource::ImageViewRef> acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable);
+    [[nodiscard]] std::optional<ColorAttachment> acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable);
     [[nodiscard]] bool present(const vk::QueueView& present, vk::synchronization::SemaphoreRef renderingFinished);
 private:
     void rebuild(VkSwapchainKHR oldSwapchain);
-    [[nodiscard]] std::optional<vk::resource::ImageViewRef> rebuild_and_acquire(vk::synchronization::SemaphoreRef imageAvailable);
+    [[nodiscard]] std::optional<ColorAttachment> rebuild_and_acquire(vk::synchronization::SemaphoreRef imageAvailable);
 private:
     vk::DeviceRef m_Device;
     vk::PhysicalDeviceRef m_PhysDevice;

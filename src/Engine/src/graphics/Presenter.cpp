@@ -15,7 +15,7 @@ Presenter::Presenter(const vk::Device& device, const vk::PhysicalDevice& physDev
     , m_Swapchain{ device, physDevice, m_Surface }
     , m_ColorAttachment{ std::nullopt }
 {}
-std::optional<vk::resource::ImageViewRef> Presenter::acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable)
+std::optional<ColorAttachment> Presenter::acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable)
 {
     using AcquiredImage = vk::Swapchain::AcquiredImage;
     using Error = vk::Swapchain::Error;
@@ -23,8 +23,8 @@ std::optional<vk::resource::ImageViewRef> Presenter::acquire_color_attachment(vk
     std::expected<AcquiredImage, Error> aquired = m_Swapchain.acquire(imageAvailable.handle);
     if (aquired)
     {
-        m_ColorAttachment = std::make_optional(std::move(aquired.value()));
-        return std::make_optional(m_ColorAttachment->view);
+        m_ColorAttachment = std::make_optional<AcquiredImage>(std::move(aquired.value()));
+        return std::make_optional<ColorAttachment>(m_ColorAttachment.value());
     }
     else
     {
@@ -66,7 +66,7 @@ void Presenter::rebuild(VkSwapchainKHR oldSwapchain)
     m_Swapchain = vk::Swapchain{ m_Device, m_PhysDevice, m_Surface, oldSwapchain };
     m_ColorAttachment = std::nullopt;
 }
-std::optional<vk::resource::ImageViewRef> Presenter::rebuild_and_acquire(vk::synchronization::SemaphoreRef imageAvailable)
+std::optional<ColorAttachment> Presenter::rebuild_and_acquire(vk::synchronization::SemaphoreRef imageAvailable)
 {
     using AcquiredImage = vk::Swapchain::AcquiredImage;
     using Error = vk::Swapchain::Error;
@@ -80,7 +80,7 @@ std::optional<vk::resource::ImageViewRef> Presenter::rebuild_and_acquire(vk::syn
         return std::nullopt;
     }
 
-    m_ColorAttachment = std::make_optional(std::move(aquired.value()));
-    return std::make_optional(m_ColorAttachment->view);
+    m_ColorAttachment = std::make_optional<AcquiredImage>(std::move(aquired.value()));
+    return std::make_optional<ColorAttachment>(m_ColorAttachment.value());
 }
 }    // namespace odin::graphics

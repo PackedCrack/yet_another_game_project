@@ -10,7 +10,9 @@
 //
 namespace
 {
-using index_t = odin::graphics::vk::QueueFamilies::index_t;
+using namespace odin::graphics::vk;
+
+using index_t = QueueFamilies::index_t;
 [[nodiscard]] bool family_supports_graphics(const VkQueueFamilyProperties& property)
 {
     if (property.queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -38,10 +40,8 @@ using index_t = odin::graphics::vk::QueueFamilies::index_t;
 
     return false;
 }
-index_t select_present(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
+index_t select_present(const PhysicalDevice& physDevice, const Surface& surface)
 {
-    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
-
     const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
@@ -73,10 +73,8 @@ index_t select_present(const odin::graphics::vk::PhysicalDevice& physDevice, con
     ODIN_ASSERT(backup);
     return bestCandidate.has_value() ? bestCandidate.value() : backup.value();
 };
-index_t select_graphics(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
+index_t select_graphics(const PhysicalDevice& physDevice, const Surface& surface)
 {
-    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
-
     const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
@@ -107,10 +105,8 @@ index_t select_graphics(const odin::graphics::vk::PhysicalDevice& physDevice, co
     ODIN_ASSERT(backup);
     return bestCandidate.has_value() ? bestCandidate.value() : backup.value();
 };
-index_t select_compute(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
+index_t select_compute(const PhysicalDevice& physDevice, const Surface& surface)
 {
-    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
-
     const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
@@ -141,10 +137,8 @@ index_t select_compute(const odin::graphics::vk::PhysicalDevice& physDevice, con
     ODIN_ASSERT(backup);
     return bestCandidate.has_value() ? bestCandidate.value() : backup.value();
 };
-index_t select_transfer(const odin::graphics::vk::PhysicalDevice& physDevice, const odin::graphics::vk::Surface& surface)
+index_t select_transfer(const PhysicalDevice& physDevice, const Surface& surface)
 {
-    using PhysicalDeviceRef = odin::graphics::vk::PhysicalDeviceRef;
-
     const std::vector<VkQueueFamilyProperties>& properties = physDevice.queue_families_properties();
 
     std::optional<index_t> bestCandidate{};
@@ -176,6 +170,19 @@ index_t select_transfer(const odin::graphics::vk::PhysicalDevice& physDevice, co
     ODIN_ASSERT(backup);
     return bestCandidate.has_value() ? bestCandidate.value() : backup.value();
 };
+void log_selected_queue_families(QueueFamilies::Queue present,
+                                 QueueFamilies::Queue graphics,
+                                 QueueFamilies::Queue compute,
+                                 QueueFamilies::Queue transfer)
+{
+    std::string msg = "\n\tSelected Families:";
+    msg += std::format("\n\t\tPresent: {}", present.index);
+    msg += std::format("\n\t\tGraphics: {}", graphics.index);
+    msg += std::format("\n\t\tCompute: {}", compute.index);
+    msg += std::format("\n\t\tTransfer: {}", transfer.index);
+
+    LOG_INFO(msg);
+}
 }    // namespace
 namespace odin::graphics::vk
 {
@@ -186,6 +193,7 @@ QueueFamilies::QueueFamilies(const PhysicalDevice& device, const Surface& surfac
     , m_Transfer{ VK_NULL_HANDLE, INVALID_INDEX }
 {
     select_queue_indices(device, surface);
+    log_selected_queue_families(m_Present, m_Graphics, m_Compute, m_Transfer);
 }
 QueueView QueueFamilies::present() const
 {
