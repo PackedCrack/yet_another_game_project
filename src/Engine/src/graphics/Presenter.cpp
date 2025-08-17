@@ -24,7 +24,7 @@ std::optional<ColorAttachment> Presenter::acquire_color_attachment(vk::synchroni
     if (aquired)
     {
         m_ColorAttachment = std::make_optional<AcquiredImage>(std::move(aquired.value()));
-        return std::make_optional<ColorAttachment>(m_ColorAttachment.value());
+        return std::make_optional<ColorAttachment>(m_ColorAttachment.value(), m_Surface.current_extent(m_PhysDevice));
     }
     else
     {
@@ -81,6 +81,6 @@ std::optional<ColorAttachment> Presenter::rebuild_and_acquire(vk::synchronizatio
     }
 
     m_ColorAttachment = std::make_optional<AcquiredImage>(std::move(aquired.value()));
-    return std::make_optional<ColorAttachment>(m_ColorAttachment.value());
+    return std::make_optional<ColorAttachment>(m_ColorAttachment.value(), m_Surface.current_extent(m_PhysDevice));
 }
 }    // namespace odin::graphics

@@ -119,7 +119,7 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment, vk::QueueVie
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .renderArea = { { 0, 0 }, VkExtent2D{ .width = 1600, .height = 900 } },
+        .renderArea = { { 0, 0 }, colorAttachment.extent() },
         .layerCount = 1,
         .viewMask = 0,
         .colorAttachmentCount = 1,

@@ -25,10 +25,10 @@ Surface::~Surface()
 }
 Surface::Surface(Surface&& other) noexcept
     : m_Surface{ VK_NULL_HANDLE }
-    , m_Instance{}
+    , m_Instance{ other.m_Instance }
+    , m_Capabilities{ std::move(other.m_Capabilities) }
 {
     std::swap(m_Surface, other.m_Surface);
-    m_Instance = other.m_Instance;
 }
 Surface& Surface::operator=(Surface&& other) noexcept
 {
@@ -36,6 +36,7 @@ Surface& Surface::operator=(Surface&& other) noexcept
     {
         m_Surface = std::exchange(other.m_Surface, m_Surface);
         m_Instance = std::exchange(other.m_Instance, m_Instance);
+        m_Capabilities = std::exchange(other.m_Capabilities, std::move(m_Capabilities));
     }
 
     return *this;

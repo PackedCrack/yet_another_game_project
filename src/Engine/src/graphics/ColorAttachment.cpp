@@ -6,10 +6,11 @@
 //
 namespace odin::graphics
 {
-ColorAttachment::ColorAttachment(vk::Swapchain::AcquiredImage acquiredImage)
+ColorAttachment::ColorAttachment(vk::Swapchain::AcquiredImage acquiredImage, VkExtent2D extent)
     : m_Image{ acquiredImage.image }
     , m_ImageView{ acquiredImage.view }
     , m_Index{ acquiredImage.index }
+    , m_Extent{ extent }
 {}
 VkImageMemoryBarrier2 ColorAttachment::barrier_to_render() const
 {
@@ -54,5 +55,9 @@ VkImageMemoryBarrier2 ColorAttachment::barrier_to_present() const
 vk::resource::ImageViewRef ColorAttachment::view() const
 {
     return m_ImageView;
+}
+VkExtent2D ColorAttachment::extent() const
+{
+    return m_Extent;
 }
 }    // namespace odin::graphics

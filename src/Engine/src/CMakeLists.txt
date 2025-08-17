@@ -5,11 +5,13 @@ SET(SOURCES
         OdinInfo.hpp
         Odin.hpp
         Odin.cpp
+        ICamera.hpp
 )
 
 set(EXPORT_HEADERS
         Odin.hpp
 	OdinInfo.hpp
+	ICamera.hpp
 )
 
 target_sources(${ENGINE_TARGET} PRIVATE ${SOURCES})
