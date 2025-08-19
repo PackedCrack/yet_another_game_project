@@ -34,50 +34,64 @@
 #endif
 namespace
 {
-[[nodiscard]] constexpr VmaAllocationCreateInfo make_allocation_create_info()
+using namespace odin::graphics::vk;
+//
+//
+[[nodiscard]] constexpr VmaAllocationCreateInfo host_writable_alloc_info()
 {
-    return VmaAllocationCreateInfo{
-        .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
-        .usage = VMA_MEMORY_USAGE_AUTO,
-        .requiredFlags = VkMemoryPropertyFlagBits(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
-        .priority = 1.0f,
+    return VmaAllocationCreateInfo{ .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
+                                    .usage = VMA_MEMORY_USAGE_AUTO,
+                                    .priority = 1.0f };
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo device_only_alloc_info()
+{
+    return VmaAllocationCreateInfo{ .flags = VK_NO_FLAGS, .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, .priority = 1.0f };
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo dedicated_device_only_alloc_info()
+{
+    return VmaAllocationCreateInfo{ .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+                                    .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+                                    .priority = 1.0f };
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo uniform_buffer_alloc_info()
+{
+    return host_writable_alloc_info();
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo staging_buffer_alloc_info()
+{
+    return host_writable_alloc_info();
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo storage_buffer_alloc_info()
+{
+    return device_only_alloc_info();
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo dedicated_storage_buffer_alloc_info()
+{
+    return dedicated_device_only_alloc_info();
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo image_attachment_alloc_info()
+{
+    return dedicated_device_only_alloc_info();
+}
+[[nodiscard]] constexpr VmaAllocationCreateInfo image_alloc_info()
+{
+    return device_only_alloc_info();
+}
+[[nodiscard]] std::function<void(resource::AllocatedImage)> make_image_deleter(std::shared_ptr<Allocator> pAllocator)
+{
+    return [pAllocator = std::move(pAllocator)](resource::AllocatedImage image)
+    {
+        auto allocation = static_cast<VmaAllocation>(image.pAllocation);
+        pAllocator->destroy_image(image.handle, allocation);
     };
 }
-[[nodiscard]] constexpr VmaAllocationCreateInfo make_cpu_to_gpu_create_info()
+[[nodiscard]] std::function<void(resource::AllocatedBuffer)> make_buffer_deleter(std::shared_ptr<Allocator> pAllocator)
 {
-    return VmaAllocationCreateInfo{
-        .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
-                 VMA_ALLOCATION_CREATE_MAPPED_BIT,
-        .usage = VMA_MEMORY_USAGE_AUTO,
-        .requiredFlags = VkMemoryPropertyFlagBits(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
-        .priority = 1.0f,
+    return [pAllocator = std::move(pAllocator)](resource::AllocatedBuffer buffer)
+    {
+        auto allocation = static_cast<VmaAllocation>(buffer.pAllocation);
+        pAllocator->destroy_buffer(buffer.handle, allocation, buffer.pData);
     };
-}
-[[nodiscard]] constexpr VmaAllocationCreateInfo make_gpu_only_create_info()
-{
-    return VmaAllocationCreateInfo{
-        .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-        .usage = VMA_MEMORY_USAGE_AUTO,
-        .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        .priority = 1.0f,
-    };
-}
-[[nodiscard]] VmaAllocationCreateInfo make_allocation_create_info(VmaMemoryUsage usage)
-{
-    if (usage == VMA_MEMORY_USAGE_GPU_ONLY)
-    {
-        return make_gpu_only_create_info();
-    }
-    else if (usage == VMA_MEMORY_USAGE_CPU_TO_GPU)
-    {
-        return make_gpu_only_create_info();
-    }
-    else if (usage == VMA_MEMORY_USAGE_CPU_ONLY)
-    {
-        return make_gpu_only_create_info();
-    }
-
-    std::unreachable();
 }
 [[nodiscard]] VmaAllocator make_allocator(const odin::graphics::vk::Instance& instance,
                                           const odin::graphics::vk::PhysicalDevice& gpu,
@@ -135,23 +149,98 @@ public:
     resource::Image
     create_image(std::shared_ptr<Allocator> pAllocator, VmaAllocationCreateInfo allocInfo, const VkImageCreateInfo& imageInfo)
     {
-        resource::AllocatedImage allocatedImage{};
+        resource::AllocatedImage image{};
         VmaAllocation allocation{};
         VK_CHECK(vmaCreateImage(m_Allocator,
                                 std::addressof(imageInfo),
                                 std::addressof(allocInfo),
-                                std::addressof(allocatedImage.image),
+                                std::addressof(image.handle),
                                 std::addressof(allocation),
                                 nullptr),
                  "Failed to allocate Vulkan Image.");
 
-        allocatedImage.pAllocation = static_cast<void*>(allocation);
-        return resource::Image{ std::move(pAllocator), allocatedImage, imageInfo.format };
+        image.pAllocation = static_cast<void*>(allocation);
+        return resource::Image{ image, make_image_deleter(std::move(pAllocator)), imageInfo.format };
     }
-    void destroy_image(VkImage image, void* pAllocation) const
+    resource::StagingBuffer create_staging_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
-        auto allocation = static_cast<VmaAllocation>(pAllocation);
-        vmaDestroyImage(m_Allocator, image, allocation);
+        VmaAllocationCreateInfo allocInfo = staging_buffer_alloc_info();
+        auto [handle, allocation] = create_buffer(info, allocInfo);
+
+        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
+
+        return resource::StagingBuffer{ buffer, make_buffer_deleter(std::move(pAllocator)) };
+    }
+    resource::UniformBuffer create_uniform_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
+    {
+        VmaAllocationCreateInfo allocInfo = uniform_buffer_alloc_info();
+        auto [handle, allocation] = create_buffer(info, allocInfo);
+
+        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
+
+        return resource::UniformBuffer{ buffer, make_buffer_deleter(std::move(pAllocator)) };
+    }
+    resource::VertexBuffer
+    create_vertex_buffer(std::shared_ptr<Allocator> pAllocator, std::uint32_t numElements, const VkBufferCreateInfo& info)
+    {
+        VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
+        auto [handle, allocation] = create_buffer(info, allocInfo);
+
+        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
+
+        return resource::VertexBuffer{ numElements, buffer, make_buffer_deleter(std::move(pAllocator)) };
+    }
+    resource::StorageBuffer create_storage_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
+    {
+        VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
+        auto [handle, allocation] = create_buffer(info, allocInfo);
+
+        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
+
+        return resource::StorageBuffer{ buffer, make_buffer_deleter(std::move(pAllocator)) };
+    }
+    void destroy_buffer(VkBuffer buffer, VmaAllocation allocation, const void* pData) const
+    {
+        if (pData != nullptr)
+        {
+            vmaUnmapMemory(m_Allocator, allocation);
+        }
+        vmaDestroyBuffer(m_Allocator, buffer, allocation);
+    }
+    void destroy_image(VkImage image, VmaAllocation allocation) const { vmaDestroyImage(m_Allocator, image, allocation); }
+private:
+    std::tuple<VkBuffer, VmaAllocation> create_buffer(const VkBufferCreateInfo& bufferInfo, const VmaAllocationCreateInfo& allocInfo) const
+    {
+        /*m_BufferSize = resource::pad_uniform_buffer_size(bufferSize, m_OffsetAlignment) * m_NumEntries;
+
+        const VkBufferCreateInfo BUFFER_INFO{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = NULL,
+            .size = m_BufferSize,
+            .usage = usage,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0u,
+            .pQueueFamilyIndices = nullptr
+        };*/
+
+        VkBuffer buffer{};
+        VmaAllocation pAllocation = nullptr;
+        VK_CHECK(vmaCreateBuffer(m_Allocator,
+                                 std::addressof(bufferInfo),
+                                 std::addressof(allocInfo),
+                                 std::addressof(buffer),
+                                 std::addressof(pAllocation),
+                                 nullptr),
+                 "Failed to Create Buffer");
+
+        return { buffer, pAllocation };
+    }
+    void* map_memory(VmaAllocation allocation)
+    {
+        void* pData = nullptr;
+        VK_CHECK(vmaMapMemory(m_Allocator, allocation, std::addressof(pData)), "Failed to obtain pointer to mapped memory.");
+        return pData;
     }
 private:
     VmaAllocator m_Allocator = nullptr;
@@ -159,23 +248,40 @@ private:
 Allocator::Allocator(const Instance& instance, const PhysicalDevice& gpu, const Device& device)
     : m_pImpl{ std::make_unique<Allocator::Impl>(instance, gpu, device) }
 {}
-[[nodiscard]] resource::Image Allocator::create_image_cpu_only(const VkImageCreateInfo& info)
+resource::StagingBuffer Allocator::create_staging_buffer(const VkBufferCreateInfo& info)
 {
-    VmaAllocationCreateInfo allocInfo = make_allocation_create_info(VMA_MEMORY_USAGE_CPU_ONLY);
+    return m_pImpl->create_staging_buffer(shared_from_this(), info);
+}
+resource::UniformBuffer Allocator::create_uniform_buffer(const VkBufferCreateInfo& info)
+{
+    return m_pImpl->create_uniform_buffer(shared_from_this(), info);
+}
+resource::StorageBuffer Allocator::create_storage_buffer(const VkBufferCreateInfo& info)
+{
+    return m_pImpl->create_storage_buffer(shared_from_this(), info);
+}
+resource::Image Allocator::create_image_attachment(const VkImageCreateInfo& info)
+{
+    VmaAllocationCreateInfo allocInfo = image_attachment_alloc_info();
     return m_pImpl->create_image(shared_from_this(), allocInfo, info);
 }
-[[nodiscard]] resource::Image Allocator::create_image_gpu_only(const VkImageCreateInfo& info)
+resource::Image Allocator::create_image_texture(const VkImageCreateInfo& info)
 {
-    VmaAllocationCreateInfo allocInfo = make_allocation_create_info(VMA_MEMORY_USAGE_GPU_ONLY);
+    VmaAllocationCreateInfo allocInfo = image_alloc_info();
     return m_pImpl->create_image(shared_from_this(), allocInfo, info);
 }
-[[nodiscard]] resource::Image Allocator::create_image_cpu_to_gpu(const VkImageCreateInfo& info)
+resource::VertexBuffer Allocator::create_vertex_buffer(std::uint32_t numElements, const VkBufferCreateInfo& info)
 {
-    VmaAllocationCreateInfo allocInfo = make_allocation_create_info(VMA_MEMORY_USAGE_CPU_TO_GPU);
-    return m_pImpl->create_image(shared_from_this(), allocInfo, info);
+    return m_pImpl->create_vertex_buffer(shared_from_this(), numElements, info);
+}
+void Allocator::destroy_buffer(VkBuffer buffer, void* pAllocation, const void* pData) const
+{
+    auto allocation = static_cast<VmaAllocation>(pAllocation);
+    m_pImpl->destroy_buffer(buffer, allocation, pData);
 }
 void Allocator::destroy_image(VkImage image, void* pAllocation) const
 {
-    m_pImpl->destroy_image(image, pAllocation);
+    auto allocation = static_cast<VmaAllocation>(pAllocation);
+    m_pImpl->destroy_image(image, allocation);
 }
 }    // namespace odin::graphics::vk
