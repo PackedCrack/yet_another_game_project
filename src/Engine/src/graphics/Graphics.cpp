@@ -10,6 +10,7 @@
 #include "Presenter.hpp"
 #include "VulkanContext.hpp"
 #include "Renderer.hpp"
+#include "TransferManager.hpp"
 //
 //
 namespace
@@ -53,6 +54,8 @@ public:
         Presenter presenter{ device, physicalDevice, std::move(surface) };
         // Make Renderer
         Renderer renderer{};
+        // Make TransferManager
+        TransferManager transferManager{ device.handle(), queueFamilies.transfer() };
 
         // Make Vulkan Context
         VulkanContext context{ std::move(instance), std::move(physicalDevice), std::move(queueFamilies), std::move(device) };
@@ -61,15 +64,17 @@ public:
                                       std::move(context),
                                       std::move(frameHandler),
                                       std::move(presenter),
-                                      std::move(renderer));
+                                      std::move(renderer),
+                                      std::move(transferManager));
     }
 public:
-    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter, Renderer renderer)
+    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter, Renderer renderer, TransferManager transferManager)
         : m_Wnd{ std::move(window) }
         , m_Context{ std::move(context) }
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
         , m_Renderer{ std::move(renderer) }
+        , m_TransferManager{ std::move(m_TransferManager) }
     {}
     ~Impl()
     {
@@ -86,6 +91,7 @@ public:
         , m_FrameHandler{ std::move(other.m_FrameHandler) }
         , m_Presenter{ std::move(other.m_Presenter) }
         , m_Renderer{ std::move(other.m_Renderer) }
+        , m_TransferManager{ std::move(other.m_TransferManager) }
     {}
     Impl& operator=(Impl&& other) noexcept
     {
@@ -96,13 +102,17 @@ public:
             m_FrameHandler = std::move(other.m_FrameHandler);
             m_Presenter = std::move(other.m_Presenter);
             m_Renderer = std::move(other.m_Renderer);
+            m_TransferManager = std::move(other.m_TransferManager);
         }
-        return *this;
+        return *this; 
     }
 public:
     void draw()
     {
         FrameContext frame = m_FrameHandler.start_frame();
+
+        vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
+        std::optional<TransferEpoch> transferEpoch = m_TransferManager.submit_transfer(transferBuffer);
 
         std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);
         if (colorAttach)
@@ -127,6 +137,7 @@ private:
     FrameHandler m_FrameHandler;
     Presenter m_Presenter;
     Renderer m_Renderer;
+    TransferManager m_TransferManager;
 };
 // Pimpl
 Graphics::Graphics(const OdinInfo& info)

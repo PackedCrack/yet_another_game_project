@@ -55,8 +55,10 @@ void submit(QueueView queue,
     CommandBufferRef cb = cmdBuffer.handle();
 
     VkCommandBufferSubmitInfo cbInfo = submit_info_cmd_buffer(cb);
+
     VkSemaphoreSubmitInfo colorAttachReadyInfo =
         submit_info_binary_semaphore(colorAttachmentReady, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT);
+
     VkSemaphoreSubmitInfo graphicsFinishedInfo = submit_info_binary_semaphore(graphicsFinished, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT);
 
     VkSubmitInfo2 submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,

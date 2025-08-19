@@ -14,6 +14,8 @@ SET(SOURCES
         Renderer.cpp
         ColorAttachment.hpp
         ColorAttachment.cpp
+        TransferManager.hpp
+        TransferManager.cpp
 )
 
 set(EXPORT_HEADERS
