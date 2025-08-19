@@ -60,6 +60,8 @@ FrameHandler::FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, 
     , m_GraphicsBuffers{ make_command_buffers(m_GraphicsPools) }
     , m_ComputePools{ make_command_pools(m_NumInFlight, device, compute) }
     , m_ComputeBuffers{ make_command_buffers(m_ComputePools) }
+    , m_TransferPools{ make_command_pools(m_NumInFlight, device, compute) }
+    , m_TransferBuffers{ make_command_buffers(m_TransferPools) }
     , m_ColorAttachmentReady{ make_semaphores(m_NumInFlight, device) }
     , m_GraphicsFinished{ make_semaphores(m_NumInFlight, device) }
     , m_InFlight{ make_fences(m_NumInFlight, device) }
@@ -77,7 +79,8 @@ FrameContext FrameHandler::start_frame()
                          .colorAttachmentReady = m_ColorAttachmentReady[index].handle(),
                          .graphicsFinished = m_GraphicsFinished[index].handle(),
                          .graphicsBuffer = m_GraphicsBuffers[index],
-                         .computeBuffer = m_ComputeBuffers[index] };
+                         .computeBuffer = m_ComputeBuffers[index],
+                         .transferBuffer = m_TransferBuffers[index] };
 }
 FrameIndex FrameHandler::frame_index() const
 {

@@ -22,6 +22,7 @@ struct FrameContext
     vk::synchronization::SemaphoreRef graphicsFinished;
     std::reference_wrapper<vk::CommandBuffer> graphicsBuffer;
     std::reference_wrapper<vk::CommandBuffer> computeBuffer;
+    std::reference_wrapper<vk::CommandBuffer> transferBuffer;
 };
 class FrameHandler
 {
@@ -44,8 +45,10 @@ private:
     std::vector<vk::CommandBuffer> m_GraphicsBuffers;
     std::vector<vk::CommandPool> m_ComputePools;
     std::vector<vk::CommandBuffer> m_ComputeBuffers;
+    std::vector<vk::CommandPool> m_TransferPools;
+    std::vector<vk::CommandBuffer> m_TransferBuffers;
     std::vector<vk::synchronization::Semaphore> m_ColorAttachmentReady;
     std::vector<vk::synchronization::Semaphore> m_GraphicsFinished;
-    std::vector<vk::synchronization::Fence> m_InFlight;
+    std::vector<vk::synchronization::Fence> m_InFlight;    // Can be replaced with a single timeline semaphore
 };
 }    // namespace odin::graphics

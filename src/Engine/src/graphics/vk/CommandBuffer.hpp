@@ -26,6 +26,7 @@ public:
     void begin();
     void end();
     [[nodiscard]] CommandBufferRef handle() const;
+    [[nodiscard]] VkCommandBufferSubmitInfo submit_info() const;
 private:
     VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
 };

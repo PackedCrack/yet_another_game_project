@@ -11,6 +11,8 @@
 #include <string>
 namespace odin::graphics::vk
 {
+template<typename T>
+concept PipelineStageFlag2 = std::same_as<std::remove_cvref_t<T>, VkPipelineStageFlags2>;
 constexpr const char* err_to_str(VkResult error)
 {
     switch (error)

@@ -48,4 +48,12 @@ CommandBufferRef CommandBuffer::handle() const
     ODIN_ASSERT(m_CommandBuffer != VK_NULL_HANDLE);
     return CommandBufferRef{ .handle = m_CommandBuffer };
 }
+VkCommandBufferSubmitInfo CommandBuffer::submit_info() const
+{
+    ODIN_ASSERT(m_CommandBuffer != VK_NULL_HANDLE);
+    return VkCommandBufferSubmitInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+                                      .pNext = nullptr,
+                                      .commandBuffer = m_CommandBuffer,
+                                      .deviceMask = 0 };
+}
 }    // namespace odin::graphics::vk

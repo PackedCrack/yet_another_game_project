@@ -10,6 +10,11 @@
 //
 namespace
 {
+// Also use:
+// https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_dynamic_rendering_unused_attachments.html
+// VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME
+// VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
+//
 [[nodiscard]] VkPhysicalDeviceVulkan14Features required_v14_features()
 {
     VkPhysicalDeviceVulkan14Features v14features{};
