@@ -10,16 +10,16 @@ namespace odin::graphics::vk::pipeline
 {
 struct ComputePipelineRef
 {
-	VkPipeline handle;
+    VkPipeline handle;
 };
 class ComputePipeline : public Pipeline<ComputePipeline>
 {
-	friend class Pipeline<ComputePipeline>;
+    friend class Pipeline<ComputePipeline>;
 public:
-	ComputePipeline(DeviceRef device, const VkComputePipelineCreateInfo& info);
-	[[nodiscard]] VkPipelineBindPoint bind_point() const;
-	[[nodiscard]] ComputePipelineRef handle() const;
+    ComputePipeline(DeviceRef device, const VkComputePipelineCreateInfo& info);
+    [[nodiscard]] VkPipelineBindPoint bind_point() const;
+    [[nodiscard]] ComputePipelineRef handle() const;
 private:
-	[[nodiscard]] VkPipeline make_pipeline(DeviceRef device, const VkComputePipelineCreateInfo& info) const;
+    [[nodiscard]] VkPipeline make_pipeline(DeviceRef device, const VkComputePipelineCreateInfo& info) const;
 };
-} // namespace odin::graphics::vk::pipeline
+}    // namespace odin::graphics::vk::pipeline

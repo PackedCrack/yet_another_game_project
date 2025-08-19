@@ -6,6 +6,10 @@ SET(SOURCES
 	GraphicsPipeline.cpp
 	ComputePipeline.hpp
 	ComputePipeline.cpp
+	DescriptorSetLayout.hpp
+	DescriptorSetLayout.cpp
+	DescriptorPool.hpp
+	DescriptorPool.cpp
 )
 
 
