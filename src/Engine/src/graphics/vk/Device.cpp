@@ -44,6 +44,7 @@ namespace
     v12features.descriptorIndexing = VK_TRUE;
     v12features.descriptorBindingPartiallyBound = VK_TRUE;
     v12features.runtimeDescriptorArray = VK_TRUE;
+    v12features.timelineSemaphore = VK_TRUE;
 
     return v12features;
 }

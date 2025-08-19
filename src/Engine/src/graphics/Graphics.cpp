@@ -50,10 +50,11 @@ public:
         vk::Device device{ physicalDevice, queueFamilies };
         // Make FrameHandler
         FrameHandler frameHandler{ device.handle(), queueFamilies.graphics(), queueFamilies.compute() };
+        // Make FrameResources
         // Make Presenter
         Presenter presenter{ device, physicalDevice, std::move(surface) };
         // Make Renderer
-        Renderer renderer{};
+        Renderer renderer{ /*std::move(frameResources)*/ };
         // Make TransferManager
         TransferManager transferManager{ device.handle(), queueFamilies.transfer() };
 
@@ -68,13 +69,18 @@ public:
                                       std::move(transferManager));
     }
 public:
-    Impl(window::Window window, VulkanContext context, FrameHandler frameHandler, Presenter presenter, Renderer renderer, TransferManager transferManager)
+    Impl(window::Window window,
+         VulkanContext context,
+         FrameHandler frameHandler,
+         Presenter presenter,
+         Renderer renderer,
+         TransferManager transferManager)
         : m_Wnd{ std::move(window) }
         , m_Context{ std::move(context) }
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
         , m_Renderer{ std::move(renderer) }
-        , m_TransferManager{ std::move(m_TransferManager) }
+        , m_TransferManager{ std::move(transferManager) }
     {}
     ~Impl()
     {
@@ -104,14 +110,14 @@ public:
             m_Renderer = std::move(other.m_Renderer);
             m_TransferManager = std::move(other.m_TransferManager);
         }
-        return *this; 
+        return *this;
     }
 public:
     void draw()
     {
         FrameContext frame = m_FrameHandler.start_frame();
 
-        vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
+        const vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
         std::optional<TransferEpoch> transferEpoch = m_TransferManager.submit_transfer(transferBuffer);
 
         std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);

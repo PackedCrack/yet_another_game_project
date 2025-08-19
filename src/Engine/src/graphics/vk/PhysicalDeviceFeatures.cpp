@@ -119,6 +119,10 @@ PhysicalDeviceFeatures& PhysicalDeviceFeatures::operator=(PhysicalDeviceFeatures
     }
     return *this;
 }
+VkBool32 PhysicalDeviceFeatures::timeline_semaphore() const
+{
+    return m_v12Features.timelineSemaphore;
+}
 VkBool32 PhysicalDeviceFeatures::descriptor_binding_partially_bound() const
 {
     return m_v12Features.descriptorBindingPartiallyBound;

@@ -139,7 +139,7 @@ bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer
     }
 
     release_buffers(commandBuffer);
-    
+
     return true;
 }
 bool TransferManager::record_image_transfers(vk::CommandBufferRef commandBuffer)

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../Device.hpp"
+#include "../vulkan_defines.hpp"
 //
 //
 namespace odin::graphics::vk::synchronization

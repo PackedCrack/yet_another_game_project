@@ -100,6 +100,9 @@ struct GPU
 {
     std::string msg = "\n\tFeature Support:";
 
+    msg += "\n\t\tSupports Timeline Semaphore: ";
+    msg += log_feature_support(gpu.features.timeline_semaphore());
+
     msg += "\n\t\tSupports descriptor binding partially bound: ";
     msg += log_feature_support(gpu.features.descriptor_binding_partially_bound());
 
@@ -144,9 +147,9 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected, const odin::gra
     {
         const GPU& gpu = gpus[i];
 
-        std::string msg = std::format("GPU Details ({} of {}):\n", i + 1, gpus.size());
+        std::string msg = std::format("GPU Details ({} of {}): ", i + 1, gpus.size());
         msg += gpu.properties.device_name();
-        msg += (gpu.device == selected.device) ? " (Selected) " : "";
+        msg += (gpu.device == selected.device) ? " (Selected)\n" : "";
 
         msg += log_properties(gpu);
         msg += log_features(gpu);
