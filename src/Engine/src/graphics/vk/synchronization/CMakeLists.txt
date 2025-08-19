@@ -1,6 +1,8 @@
 SET(SOURCES
 	Semaphore.hpp
 	Semaphore.cpp
+	TimelineSemaphore.hpp
+	TimelineSemaphore.cpp
 	Fence.hpp
 	Fence.cpp
 )

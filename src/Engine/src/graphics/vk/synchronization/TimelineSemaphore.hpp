@@ -4,35 +4,36 @@
 #pragma once
 
 #include "../Device.hpp"
+#include "../vulkan_defines.hpp"
 //
 //
 namespace odin::graphics::vk::synchronization
 {
-struct SemaphoreRef
+struct TimelineSemaphoreRef
 {
     VkSemaphore handle;
 };
-class Semaphore
+class TimelineSemaphore
 {
 public:
-    Semaphore(DeviceRef device);
-    ~Semaphore();
-    Semaphore(const Semaphore& other) = delete;
-    Semaphore(Semaphore&& other) noexcept;
-    Semaphore& operator=(const Semaphore& other) = delete;
-    Semaphore& operator=(Semaphore&& other) noexcept;
+    TimelineSemaphore(DeviceRef device);
+    ~TimelineSemaphore();
+    TimelineSemaphore(const TimelineSemaphore& other) = delete;
+    TimelineSemaphore(TimelineSemaphore&& other) noexcept;
+    TimelineSemaphore& operator=(const TimelineSemaphore& other) = delete;
+    TimelineSemaphore& operator=(TimelineSemaphore&& other) noexcept;
 public:
-    [[nodiscard]] SemaphoreRef handle() const;
+    [[nodiscard]] TimelineSemaphoreRef handle() const;
     template<typename... flag_args_t>
     requires(PipelineStageFlag2<flag_args_t> && ...)
-    [[nodiscard]] VkSemaphoreSubmitInfo submit_info(flag_args_t... stages) const
+    [[nodiscard]] VkSemaphoreSubmitInfo submit_info(std::uint64_t waitValue, flag_args_t... stages) const
     {
         static_assert(sizeof...(stages) > 0, "Atleast 1 stage is requried");
         ODIN_ASSERT(m_Semaphore != VK_NULL_HANDLE);
         return VkSemaphoreSubmitInfo{ .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
                                       .pNext = nullptr,
                                       .semaphore = m_Semaphore,
-                                      .value = 0,
+                                      .value = waitValue,
                                       .stageMask = (stages | ...),
                                       .deviceIndex = 0 };
     }

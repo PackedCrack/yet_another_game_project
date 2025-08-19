@@ -1,0 +1,68 @@
+//
+// Created by qwerty on 18/08/2025.
+//
+#pragma once
+
+#include "debug/Logger.hpp"
+// vulkan
+#include <vulkan/vulkan.h>
+// std
+#include <span>
+//
+//
+namespace odin::graphics::vk::resource
+{
+struct AllocatedBuffer
+{
+    VkBuffer handle = VK_NULL_HANDLE;
+    void* pAllocation = nullptr;
+    void* pData = nullptr;
+};
+struct BufferRef
+{
+    VkBuffer handle;
+};
+template<typename dervied_t>
+class Buffer
+{
+public:
+    Buffer(AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter)
+        : m_Buffer{ buffer }
+        , m_Deleter{ std::move(deleter) }
+    {
+        ODIN_ASSERT(m_Buffer.handle != VK_NULL_HANDLE);
+        ODIN_ASSERT(m_Buffer.pAllocation != nullptr);
+    };
+    ~Buffer() { m_Deleter(m_Buffer); };
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other) noexcept
+        : m_Buffer{ other.m_Buffer }
+        , m_Deleter{}
+    {
+        std::swap(m_Deleter, other.m_Deleter);
+    }
+    Buffer& operator=(const Buffer& other) = delete;
+    Buffer& operator=(Buffer&& other) noexcept
+    {
+        if (this != std::addressof(other))
+        {
+            std::swap(m_Buffer, other.m_Buffer);
+            std::swap(m_Deleter, other.m_Deleter);
+        }
+
+        return *this;
+    }
+public:
+    [[nodiscard]] BufferRef handle() const { return BufferRef{ .handle = m_Buffer.handle }; };
+protected:
+    template<typename data_t>
+    void write_to_buffer(std::span<const data_t>& content)
+    {
+        ODIN_ASSERT(m_Buffer.pData != nullptr);
+        std::memcpy(m_Buffer.pData, content.data(), content.size());
+    }
+private:
+    AllocatedBuffer m_Buffer;
+    std::function<void(AllocatedBuffer)> m_Deleter;
+};
+}    // namespace odin::graphics::vk::resource

@@ -16,7 +16,7 @@ namespace odin::graphics::vk::resource
 {
 struct AllocatedImage
 {
-    VkImage image = VK_NULL_HANDLE;
+    VkImage handle = VK_NULL_HANDLE;
     void* pAllocation = nullptr;    // This is pointer to VmaAllocation
 };
 struct ImageRef
@@ -26,16 +26,15 @@ struct ImageRef
 class Image
 {
 public:
-    Image(std::shared_ptr<Allocator> pAllocator, AllocatedImage image, VkFormat format);
+    Image(AllocatedImage image, std::function<void(AllocatedImage)> deleter, VkFormat format);
     ~Image();
     Image(const Image& other) = delete;
     Image(Image&& other) noexcept;
     Image& operator=(const Image& other) = delete;
     Image& operator=(Image&& other) noexcept;
 private:
-    VkImage m_Image = VK_NULL_HANDLE;
-    void* m_pAllocation = nullptr;
-    std::shared_ptr<Allocator> m_pAllocator = nullptr;
+    AllocatedImage m_Image;
+    std::function<void(AllocatedImage)> m_Deleter;
     VkFormat m_Format;
 };
 }    // namespace odin::graphics::vk::resource
