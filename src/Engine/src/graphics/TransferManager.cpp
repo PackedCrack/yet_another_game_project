@@ -4,6 +4,12 @@
 #include "TransferManager.hpp"
 //
 //
+// NOTES ABOUT TRANSFERS:
+// If an application does not need the contents of a resource to remain valid when transferring
+// from one queue family to another, then the ownership transfer should be skipped.
+// https://stackoverflow.com/questions/60310004/do-i-need-to-transfer-ownership-back-to-the-transfer-queue-on-next-transfer
+//
+//
 namespace
 {
 using namespace odin::graphics;
@@ -54,6 +60,7 @@ TransferManager::TransferManager(vk::DeviceRef device, vk::QueueView transferQ)
     , m_ImageQueue{ 4 }
     , m_Semaphore{ device }
     , m_TransferID{ 1 }
+    , m_CurrentEpoch{ std::nullopt }
 {}
 void TransferManager::enqueue_buffer_transfer(BufferTransfer params)
 {
@@ -65,53 +72,15 @@ void TransferManager::enqueue_image_transfer(ImageTransfer params)
     std::vector<ImageTransfer>& q = m_ImageQueue.front();
     q.push_back(params);
 }
-std::optional<TransferEpoch> TransferManager::submit_transfer(vk::CommandBuffer& commandBuffer)
+void TransferManager::record_buffer_acquisition(vk::QueueView newOwner, vk::CommandBufferRef commandBuffer) const
 {
-    auto [bufferTransfers, imageTransfers] = cycle_transfer_lists();
-
-    commandBuffer.reset();
-    commandBuffer.begin();
-
-    bool bufferCommands = record_buffer_transfers(commandBuffer.handle(), bufferTransfers);
-    bool imageCommands = record_image_transfers(commandBuffer.handle(), imageTransfers);
-    if (!bufferCommands && !imageCommands)
+    const std::vector<BufferTransfer>& transfers = buffer_transfers();
+    if (transfers.empty())
     {
-        return std::nullopt;
+        return;
     }
 
-    commandBuffer.end();
-
-    VkCommandBufferSubmitInfo cmdInfo = commandBuffer.submit_info();
-    std::uint64_t signalValue = m_TransferID;
-    VkSemaphoreSubmitInfo timelineInfo = m_Semaphore.submit_info(signalValue, VK_PIPELINE_STAGE_2_TRANSFER_BIT);
-
-    VkSubmitInfo2 info2{ .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-                         .pNext = nullptr,
-                         .flags = VK_NO_FLAGS,
-                         .waitSemaphoreInfoCount = 0,
-                         .pWaitSemaphoreInfos = nullptr,
-                         .commandBufferInfoCount = 1,
-                         .pCommandBufferInfos = std::addressof(cmdInfo),
-                         .signalSemaphoreInfoCount = 1,
-                         .pSignalSemaphoreInfos = std::addressof(timelineInfo) };
-    vkQueueSubmit2(m_TransferQ.handle, 1, std::addressof(info2), VK_NULL_HANDLE);
-
-    ++m_TransferID;
-
-    return std::make_optional<TransferEpoch>(m_Semaphore.handle(), signalValue);
-}
-std::tuple<TransferManager::BufferTransfers&, TransferManager::ImageTransfers&> TransferManager::cycle_transfer_lists()
-{
-    m_BufferQueue.splice(std::end(m_BufferQueue), m_BufferQueue, std::begin(m_BufferQueue));
-    m_BufferQueue.front().clear();
-    m_ImageQueue.splice(std::end(m_ImageQueue), m_ImageQueue, std::begin(m_ImageQueue));
-    m_ImageQueue.front().clear();
-
-    return { m_BufferQueue.back(), m_ImageQueue.back() };
-}
-void TransferManager::acquire_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers)
-{
-    std::vector<VkBufferMemoryBarrier2> acquireBatch = make_batch_buffer_barrier_acquire(transfers);
+    std::vector<VkBufferMemoryBarrier2> acquireBatch = make_batch_buffer_barrier_acquire(newOwner, transfers);
 
     VkDependencyInfo depAcq{ VK_STRUCTURE_TYPE_DEPENDENCY_INFO };
     depAcq.bufferMemoryBarrierCount = static_cast<std::uint32_t>(acquireBatch.size());
@@ -119,7 +88,55 @@ void TransferManager::acquire_buffers(vk::CommandBufferRef commandBuffer, const 
 
     vkCmdPipelineBarrier2(commandBuffer.handle, std::addressof(depAcq));
 }
-void TransferManager::release_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers)
+void TransferManager::submit_transfer(vk::CommandBuffer& commandBuffer)
+{
+    cycle_transfer_lists();
+
+    commandBuffer.reset();
+    commandBuffer.begin();
+
+    vk::CommandBufferRef cmdBuf = commandBuffer.handle();
+    if (record_buffer_transfers(cmdBuf) || record_image_transfers(cmdBuf))
+    {
+        commandBuffer.end();
+
+        VkCommandBufferSubmitInfo cmdInfo = commandBuffer.submit_info();
+        std::uint64_t signalValue = m_TransferID;
+        VkSemaphoreSubmitInfo timelineInfo = m_Semaphore.submit_info(signalValue, VK_PIPELINE_STAGE_2_TRANSFER_BIT);
+
+        VkSubmitInfo2 info2{};
+        info2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+        info2.pNext = nullptr;
+        info2.flags = VK_NO_FLAGS;
+        info2.waitSemaphoreInfoCount = 0;
+        info2.pWaitSemaphoreInfos = nullptr;
+        info2.commandBufferInfoCount = 1;
+        info2.pCommandBufferInfos = std::addressof(cmdInfo);
+        info2.signalSemaphoreInfoCount = 1;
+        info2.pSignalSemaphoreInfos = std::addressof(timelineInfo);
+
+        vkQueueSubmit2(m_TransferQ.handle, 1, std::addressof(info2), VK_NULL_HANDLE);
+
+        ++m_TransferID;
+        m_CurrentEpoch = std::make_optional<TransferEpoch>(m_Semaphore.handle(), signalValue);
+    }
+    else
+    {
+        m_CurrentEpoch = std::nullopt;
+    }
+}
+std::optional<TransferEpoch> TransferManager::epoch() const
+{
+    return m_CurrentEpoch;
+}
+void TransferManager::cycle_transfer_lists()
+{
+    m_BufferQueue.splice(std::end(m_BufferQueue), m_BufferQueue, std::begin(m_BufferQueue));
+    m_BufferQueue.front().clear();
+    m_ImageQueue.splice(std::end(m_ImageQueue), m_ImageQueue, std::begin(m_ImageQueue));
+    m_ImageQueue.front().clear();
+}
+void TransferManager::record_buffer_releases(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers)
 {
     std::vector<VkBufferMemoryBarrier2> releaseBatch = make_batch_buffer_barrier_release(transfers);
 
@@ -129,39 +146,43 @@ void TransferManager::release_buffers(vk::CommandBufferRef commandBuffer, const 
 
     vkCmdPipelineBarrier2(commandBuffer.handle, std::addressof(depRelease));
 }
-bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers)
+bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer)
 {
+    const std::vector<BufferTransfer>& transfers = buffer_transfers();
     if (transfers.empty())
     {
         return false;
     }
 
-    acquire_buffers(commandBuffer, transfers);
-
     for (auto&& param : transfers)
     {
-        VkBufferCopy2 copy2{ .sType = VK_STRUCTURE_TYPE_BUFFER_COPY_2,
-                             .pNext = nullptr,
-                             .srcOffset = 0,
-                             .dstOffset = param.dstOffset,
-                             .size = param.size };
+        VkBufferCopy2 copy2{};
+        copy2.sType = VK_STRUCTURE_TYPE_BUFFER_COPY_2;
+        copy2.pNext = nullptr;
+        copy2.srcOffset = 0;
+        copy2.dstOffset = param.dstOffset;
+        copy2.size = param.size;
 
         vk::resource::BufferRef srcBuffer = param.pSrcBuffer->handle();
-        VkCopyBufferInfo2 info2{ .sType = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2,
-                                 .pNext = nullptr,
-                                 .srcBuffer = srcBuffer.handle,
-                                 .dstBuffer = param.dstBuffer.handle,
-                                 .regionCount = 1,
-                                 .pRegions = std::addressof(copy2) };
+        VkCopyBufferInfo2 info2{};
+        info2.sType = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2, info2.pNext = nullptr, info2.srcBuffer = srcBuffer.handle,
+        info2.dstBuffer = param.dstBuffer.handle, info2.regionCount = 1, info2.pRegions = std::addressof(copy2),
+
         vkCmdCopyBuffer2(commandBuffer.handle, std::addressof(info2));
     }
 
-    release_buffers(commandBuffer, transfers);
+    record_buffer_releases(commandBuffer, transfers);
 
     return true;
 }
-bool TransferManager::record_image_transfers(vk::CommandBufferRef commandBuffer, const std::vector<ImageTransfer>& transfers)
+bool TransferManager::record_image_transfers(vk::CommandBufferRef commandBuffer)
 {
+    const std::vector<ImageTransfer>& transfers = image_transfers();
+    if (transfers.empty())
+    {
+        return false;
+    }
+
     for (auto&& param : transfers)
     {
         // submit some how
@@ -170,15 +191,19 @@ bool TransferManager::record_image_transfers(vk::CommandBufferRef commandBuffer,
         vkCmdCopyImage2(commandBuffer.handle, std::addressof(info2));
     }
 
-    return false;
+    return true;
 }
-std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_acquire(const std::vector<BufferTransfer>& transfers) const
+std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_acquire(vk::QueueView newOwner,
+                                                                                       const std::vector<BufferTransfer>& transfers) const
 {
     std::vector<VkBufferMemoryBarrier2> batch{};
     for (auto&& param : transfers)
     {
-        VkBufferMemoryBarrier2 barrier =
-            make_buffer_barrier_acquire(param.ownerQ, m_TransferQ, param.dstBuffer.handle, param.dstOffset, param.size);
+        VkBuffer dstBuffer = param.dstBuffer.handle;
+        VkDeviceSize offset = param.dstOffset;
+        VkDeviceSize size = param.size;
+
+        VkBufferMemoryBarrier2 barrier = make_buffer_barrier_acquire(param.ownerQ, newOwner, dstBuffer, offset, size);
         batch.push_back(barrier);
     }
 
@@ -189,11 +214,22 @@ std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_r
     std::vector<VkBufferMemoryBarrier2> batch{};
     for (auto&& param : transfers)
     {
-        VkBufferMemoryBarrier2 barrier =
-            make_buffer_barrier_release(m_TransferQ, param.ownerQ, param.dstBuffer.handle, param.dstOffset, param.size);
+        VkBuffer dstBuffer = param.dstBuffer.handle;
+        VkDeviceSize offset = param.dstOffset;
+        VkDeviceSize size = param.size;
+
+        VkBufferMemoryBarrier2 barrier = make_buffer_barrier_release(m_TransferQ, param.ownerQ, dstBuffer, offset, size);
         batch.push_back(barrier);
     }
 
     return batch;
+}
+const TransferManager::BufferTransfers& TransferManager::buffer_transfers() const
+{
+    return m_BufferQueue.back();
+}
+const TransferManager::ImageTransfers& TransferManager::image_transfers() const
+{
+    return m_ImageQueue.back();
 }
 }    // namespace odin::graphics

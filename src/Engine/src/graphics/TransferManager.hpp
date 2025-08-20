@@ -38,20 +38,25 @@ public:
 public:
     void enqueue_buffer_transfer(BufferTransfer params);
     void enqueue_image_transfer(ImageTransfer params);
-    [[nodiscard]] std::optional<TransferEpoch> submit_transfer(vk::CommandBuffer& commandBuffer);
+    void record_buffer_acquisition(vk::QueueView newOwner, vk::CommandBufferRef commandBuffer) const;
+    void submit_transfer(vk::CommandBuffer& commandBuffer);
+    [[nodiscard]] std::optional<TransferEpoch> epoch() const;
 private:
-    void acquire_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);
-    void release_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);
-    [[nodiscard]] std::tuple<BufferTransfers&, ImageTransfers&> cycle_transfer_lists();
-    [[nodiscard]] bool record_buffer_transfers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);
-    [[nodiscard]] bool record_image_transfers(vk::CommandBufferRef commandBuffer, const std::vector<ImageTransfer>& transfers);
-    [[nodiscard]] std::vector<VkBufferMemoryBarrier2> make_batch_buffer_barrier_acquire(const std::vector<BufferTransfer>& transfers) const;
+    void record_buffer_releases(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);
+    void cycle_transfer_lists();
+    [[nodiscard]] bool record_buffer_transfers(vk::CommandBufferRef commandBuffer);
+    [[nodiscard]] bool record_image_transfers(vk::CommandBufferRef commandBuffer);
+    [[nodiscard]] std::vector<VkBufferMemoryBarrier2> make_batch_buffer_barrier_acquire(vk::QueueView newOwner,
+                                                                                        const std::vector<BufferTransfer>& transfers) const;
     [[nodiscard]] std::vector<VkBufferMemoryBarrier2> make_batch_buffer_barrier_release(const std::vector<BufferTransfer>& transfers) const;
+    [[nodiscard]] const BufferTransfers& buffer_transfers() const;
+    [[nodiscard]] const ImageTransfers& image_transfers() const;
 private:
     vk::QueueView m_TransferQ;
     BufferTransferQueue m_BufferQueue;
     ImageTransfersQueue m_ImageQueue;
     vk::synchronization::TimelineSemaphore m_Semaphore;
     std::uint64_t m_TransferID;
+    std::optional<TransferEpoch> m_CurrentEpoch;
 };
 }    // namespace odin::graphics

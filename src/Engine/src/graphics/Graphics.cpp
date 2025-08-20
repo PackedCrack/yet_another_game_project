@@ -134,7 +134,7 @@ public:
         VertexBuffer vertBuffer = m_Context.allocator()->create_vertex_buffer(numVerticies, sizeof(Vertex));
 
         BufferTransfer params{};
-        params.ownerQ = m_Context.queue_families().transfer();
+        params.ownerQ = m_Context.queue_families().graphics();
         params.dstBuffer = vertBuffer.handle();
         params.dstOffset = 0;
         params.size = verticies.size() * sizeof(Vertex);
@@ -155,7 +155,7 @@ public:
 
 
         vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
-        std::optional<TransferEpoch> transferEpoch = m_TransferManager.submit_transfer(transferBuffer);
+        m_TransferManager.submit_transfer(transferBuffer);
 
         std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);
         if (colorAttach)
@@ -165,7 +165,7 @@ public:
 
             // Do rendering stuff
             vk::QueueView graphicsQ = m_Context.queue_families().graphics();
-            m_Renderer.render_frame(colorAttach.value(), graphicsQ, frame, transferEpoch /*, m_TransferManager*/);
+            m_Renderer.render_frame(colorAttach.value(), graphicsQ, frame, m_TransferManager);
 
             const vk::QueueFamilies& queues = m_Context.queue_families();
             if (!m_Presenter.present(queues.present(), frame.graphicsFinished))

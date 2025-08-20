@@ -12,9 +12,9 @@ class Renderer
 public:
 public:
     void render_frame(const ColorAttachment& colorAttachment,
-                      vk::QueueView graphics,
+                      vk::QueueView graphicsQ,
                       const FrameContext& frameContext,
-                      std::optional<TransferEpoch>& transferEpoch);
+                      const TransferManager& transferManager);
 private:
 };
 }    // namespace odin::graphics

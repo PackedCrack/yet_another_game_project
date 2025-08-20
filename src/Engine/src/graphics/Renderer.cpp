@@ -88,14 +88,17 @@ void submit(QueueView queue,
 namespace odin::graphics
 {
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
-                            vk::QueueView graphics,
+                            vk::QueueView graphicsQ,
                             const FrameContext& frameContext,
-                            std::optional<TransferEpoch>& transferEpoch)
+                            const TransferManager& transferManager)
 {
     vk::CommandBuffer& gfxCmdBuffer = frameContext.graphicsBuffer.get();
     // Reset cmdBuffer and prepare it for commands
     gfxCmdBuffer.reset();
     gfxCmdBuffer.begin();
+
+    // Acquire Transfer buffers
+    transferManager.record_buffer_acquisition(graphicsQ, gfxCmdBuffer.handle());
 
     // Bind Global buffers
 
@@ -164,6 +167,7 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
 
 
     // Submit
-    submit(graphics, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight, transferEpoch);
+    std::optional<TransferEpoch> transferEpoch = transferManager.epoch();
+    submit(graphicsQ, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight, transferEpoch);
 }
 }    // namespace odin::graphics
