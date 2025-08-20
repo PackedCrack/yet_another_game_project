@@ -50,26 +50,30 @@ namespace odin::graphics
 {
 TransferManager::TransferManager(vk::DeviceRef device, vk::QueueView transferQ)
     : m_TransferQ{ transferQ }
-    , m_BufferQueue{}
-    , m_ImageQueue{}
+    , m_BufferQueue{ 4 }
+    , m_ImageQueue{ 4 }
     , m_Semaphore{ device }
     , m_TransferID{ 1 }
 {}
 void TransferManager::enqueue_buffer_transfer(BufferTransfer params)
 {
-    m_BufferQueue.push_back(std::move(params));
+    std::vector<BufferTransfer>& q = m_BufferQueue.front();
+    q.push_back(std::move(params));
 }
 void TransferManager::enqueue_image_transfer(ImageTransfer params)
 {
-    m_ImageQueue.push_back(params);
+    std::vector<ImageTransfer>& q = m_ImageQueue.front();
+    q.push_back(params);
 }
 std::optional<TransferEpoch> TransferManager::submit_transfer(vk::CommandBuffer& commandBuffer)
 {
+    auto [bufferTransfers, imageTransfers] = cycle_transfer_lists();
+
     commandBuffer.reset();
     commandBuffer.begin();
 
-    bool bufferCommands = record_buffer_transfers(commandBuffer.handle());
-    bool imageCommands = record_image_transfers(commandBuffer.handle());
+    bool bufferCommands = record_buffer_transfers(commandBuffer.handle(), bufferTransfers);
+    bool imageCommands = record_image_transfers(commandBuffer.handle(), imageTransfers);
     if (!bufferCommands && !imageCommands)
     {
         return std::nullopt;
@@ -93,14 +97,21 @@ std::optional<TransferEpoch> TransferManager::submit_transfer(vk::CommandBuffer&
     vkQueueSubmit2(m_TransferQ.handle, 1, std::addressof(info2), VK_NULL_HANDLE);
 
     ++m_TransferID;
-    m_BufferQueue.clear();
-    m_ImageQueue.clear();
 
     return std::make_optional<TransferEpoch>(m_Semaphore.handle(), signalValue);
 }
-void TransferManager::acquire_buffers(vk::CommandBufferRef commandBuffer)
+std::tuple<TransferManager::BufferTransfers&, TransferManager::ImageTransfers&> TransferManager::cycle_transfer_lists()
 {
-    std::vector<VkBufferMemoryBarrier2> acquireBatch = make_batch_buffer_barrier_acquire();
+    m_BufferQueue.splice(std::end(m_BufferQueue), m_BufferQueue, std::begin(m_BufferQueue));
+    m_BufferQueue.front().clear();
+    m_ImageQueue.splice(std::end(m_ImageQueue), m_ImageQueue, std::begin(m_ImageQueue));
+    m_ImageQueue.front().clear();
+
+    return { m_BufferQueue.back(), m_ImageQueue.back() };
+}
+void TransferManager::acquire_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers)
+{
+    std::vector<VkBufferMemoryBarrier2> acquireBatch = make_batch_buffer_barrier_acquire(transfers);
 
     VkDependencyInfo depAcq{ VK_STRUCTURE_TYPE_DEPENDENCY_INFO };
     depAcq.bufferMemoryBarrierCount = static_cast<std::uint32_t>(acquireBatch.size());
@@ -108,9 +119,9 @@ void TransferManager::acquire_buffers(vk::CommandBufferRef commandBuffer)
 
     vkCmdPipelineBarrier2(commandBuffer.handle, std::addressof(depAcq));
 }
-void TransferManager::release_buffers(vk::CommandBufferRef commandBuffer)
+void TransferManager::release_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers)
 {
-    std::vector<VkBufferMemoryBarrier2> releaseBatch = make_batch_buffer_barrier_release();
+    std::vector<VkBufferMemoryBarrier2> releaseBatch = make_batch_buffer_barrier_release(transfers);
 
     VkDependencyInfo depRelease{ VK_STRUCTURE_TYPE_DEPENDENCY_INFO };
     depRelease.bufferMemoryBarrierCount = static_cast<std::uint32_t>(releaseBatch.size());
@@ -118,16 +129,16 @@ void TransferManager::release_buffers(vk::CommandBufferRef commandBuffer)
 
     vkCmdPipelineBarrier2(commandBuffer.handle, std::addressof(depRelease));
 }
-bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer)
+bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers)
 {
-    if (m_BufferQueue.empty())
+    if (transfers.empty())
     {
         return false;
     }
 
-    acquire_buffers(commandBuffer);
+    acquire_buffers(commandBuffer, transfers);
 
-    for (auto&& param : m_BufferQueue)
+    for (auto&& param : transfers)
     {
         VkBufferCopy2 copy2{ .sType = VK_STRUCTURE_TYPE_BUFFER_COPY_2,
                              .pNext = nullptr,
@@ -145,13 +156,13 @@ bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer
         vkCmdCopyBuffer2(commandBuffer.handle, std::addressof(info2));
     }
 
-    release_buffers(commandBuffer);
+    release_buffers(commandBuffer, transfers);
 
     return true;
 }
-bool TransferManager::record_image_transfers(vk::CommandBufferRef commandBuffer)
+bool TransferManager::record_image_transfers(vk::CommandBufferRef commandBuffer, const std::vector<ImageTransfer>& transfers)
 {
-    for (auto&& param : m_ImageQueue)
+    for (auto&& param : transfers)
     {
         // submit some how
         VkImageCopy2 copy2{};
@@ -161,10 +172,10 @@ bool TransferManager::record_image_transfers(vk::CommandBufferRef commandBuffer)
 
     return false;
 }
-std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_acquire()
+std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_acquire(const std::vector<BufferTransfer>& transfers) const
 {
     std::vector<VkBufferMemoryBarrier2> batch{};
-    for (auto&& param : m_BufferQueue)
+    for (auto&& param : transfers)
     {
         VkBufferMemoryBarrier2 barrier =
             make_buffer_barrier_acquire(param.ownerQ, m_TransferQ, param.dstBuffer.handle, param.dstOffset, param.size);
@@ -173,10 +184,10 @@ std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_a
 
     return batch;
 }
-std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_release()
+std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_release(const std::vector<BufferTransfer>& transfers) const
 {
     std::vector<VkBufferMemoryBarrier2> batch{};
-    for (auto&& param : m_BufferQueue)
+    for (auto&& param : transfers)
     {
         VkBufferMemoryBarrier2 barrier =
             make_buffer_barrier_release(m_TransferQ, param.ownerQ, param.dstBuffer.handle, param.dstOffset, param.size);

@@ -29,6 +29,10 @@ struct TransferEpoch
 };
 class TransferManager
 {
+    using BufferTransfers = std::vector<BufferTransfer>;
+    using ImageTransfers = std::vector<ImageTransfer>;
+    using BufferTransferQueue = std::list<std::vector<BufferTransfer>>;
+    using ImageTransfersQueue = std::list<std::vector<ImageTransfer>>;
 public:
     TransferManager(vk::DeviceRef device, vk::QueueView transferQ);
 public:
@@ -36,16 +40,17 @@ public:
     void enqueue_image_transfer(ImageTransfer params);
     [[nodiscard]] std::optional<TransferEpoch> submit_transfer(vk::CommandBuffer& commandBuffer);
 private:
-    void acquire_buffers(vk::CommandBufferRef commandBuffer);
-    void release_buffers(vk::CommandBufferRef commandBuffer);
-    [[nodiscard]] bool record_buffer_transfers(vk::CommandBufferRef commandBuffer);
-    [[nodiscard]] bool record_image_transfers(vk::CommandBufferRef commandBuffer);
-    [[nodiscard]] std::vector<VkBufferMemoryBarrier2> make_batch_buffer_barrier_acquire();
-    [[nodiscard]] std::vector<VkBufferMemoryBarrier2> make_batch_buffer_barrier_release();
+    void acquire_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);
+    void release_buffers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);
+    [[nodiscard]] std::tuple<BufferTransfers&, ImageTransfers&> cycle_transfer_lists();
+    [[nodiscard]] bool record_buffer_transfers(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);
+    [[nodiscard]] bool record_image_transfers(vk::CommandBufferRef commandBuffer, const std::vector<ImageTransfer>& transfers);
+    [[nodiscard]] std::vector<VkBufferMemoryBarrier2> make_batch_buffer_barrier_acquire(const std::vector<BufferTransfer>& transfers) const;
+    [[nodiscard]] std::vector<VkBufferMemoryBarrier2> make_batch_buffer_barrier_release(const std::vector<BufferTransfer>& transfers) const;
 private:
     vk::QueueView m_TransferQ;
-    std::vector<BufferTransfer> m_BufferQueue;
-    std::vector<ImageTransfer> m_ImageQueue;
+    BufferTransferQueue m_BufferQueue;
+    ImageTransfersQueue m_ImageQueue;
     vk::synchronization::TimelineSemaphore m_Semaphore;
     std::uint64_t m_TransferID;
 };
