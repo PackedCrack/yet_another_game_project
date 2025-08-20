@@ -10,8 +10,6 @@ SET(SOURCES
 	UniformBuffer.cpp
 	StorageBuffer.hpp
 	StorageBuffer.cpp
-	GeometryBuffer.hpp
-	GeometryBuffer.cpp
 	VertexBuffer.hpp
 	VertexBuffer.cpp
 )
