@@ -32,13 +32,21 @@ public:
     {
         ODIN_ASSERT(m_Buffer.handle != VK_NULL_HANDLE);
         ODIN_ASSERT(m_Buffer.pAllocation != nullptr);
+        ODIN_ASSERT(m_Deleter);
     };
-    ~Buffer() { m_Deleter(m_Buffer); };
+    ~Buffer()
+    {
+        if (m_Buffer.handle)
+        {
+            m_Deleter(m_Buffer);
+        }
+    };
     Buffer(const Buffer& other) = delete;
     Buffer(Buffer&& other) noexcept
-        : m_Buffer{ other.m_Buffer }
+        : m_Buffer{}
         , m_Deleter{}
     {
+        std::swap(m_Buffer, other.m_Buffer);
         std::swap(m_Deleter, other.m_Deleter);
     }
     Buffer& operator=(const Buffer& other) = delete;

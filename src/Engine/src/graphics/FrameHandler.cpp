@@ -52,7 +52,7 @@ void wait_for_frame_in_flight(vk::DeviceRef device, vk::synchronization::FenceRe
 }    // namespace
 namespace odin::graphics
 {
-FrameHandler::FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, const vk::QueueView& compute)
+FrameHandler::FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, const vk::QueueView& compute, const vk::QueueView& transfer)
     : m_NumInFlight{ 2 }
     , m_Frame{ 0 }
     , m_Device{ device }
@@ -60,7 +60,7 @@ FrameHandler::FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, 
     , m_GraphicsBuffers{ make_command_buffers(m_GraphicsPools) }
     , m_ComputePools{ make_command_pools(m_NumInFlight, device, compute) }
     , m_ComputeBuffers{ make_command_buffers(m_ComputePools) }
-    , m_TransferPools{ make_command_pools(m_NumInFlight, device, compute) }
+    , m_TransferPools{ make_command_pools(m_NumInFlight, device, transfer) }
     , m_TransferBuffers{ make_command_buffers(m_TransferPools) }
     , m_ColorAttachmentReady{ make_semaphores(m_NumInFlight, device) }
     , m_GraphicsFinished{ make_semaphores(m_NumInFlight, device) }

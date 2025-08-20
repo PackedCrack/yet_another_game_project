@@ -53,24 +53,29 @@ TransferManager::TransferManager(vk::DeviceRef device, vk::QueueView transferQ)
     , m_BufferQueue{}
     , m_ImageQueue{}
     , m_Semaphore{ device }
-    , m_TransferID{}
+    , m_TransferID{ 1 }
 {}
 void TransferManager::enqueue_buffer_transfer(BufferTransfer params)
 {
-    m_BufferQueue.push_back(params);
+    m_BufferQueue.push_back(std::move(params));
 }
 void TransferManager::enqueue_image_transfer(ImageTransfer params)
 {
     m_ImageQueue.push_back(params);
 }
-std::optional<TransferEpoch> TransferManager::submit_transfer(const vk::CommandBuffer& commandBuffer)
+std::optional<TransferEpoch> TransferManager::submit_transfer(vk::CommandBuffer& commandBuffer)
 {
+    commandBuffer.reset();
+    commandBuffer.begin();
+
     bool bufferCommands = record_buffer_transfers(commandBuffer.handle());
     bool imageCommands = record_image_transfers(commandBuffer.handle());
     if (!bufferCommands && !imageCommands)
     {
         return std::nullopt;
     }
+
+    commandBuffer.end();
 
     VkCommandBufferSubmitInfo cmdInfo = commandBuffer.submit_info();
     std::uint64_t signalValue = m_TransferID;
@@ -126,13 +131,15 @@ bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer
     {
         VkBufferCopy2 copy2{ .sType = VK_STRUCTURE_TYPE_BUFFER_COPY_2,
                              .pNext = nullptr,
-                             .srcOffset = param.srcOffset,
+                             .srcOffset = 0,
                              .dstOffset = param.dstOffset,
                              .size = param.size };
+
+        vk::resource::BufferRef srcBuffer = param.pSrcBuffer->handle();
         VkCopyBufferInfo2 info2{ .sType = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2,
                                  .pNext = nullptr,
-                                 .srcBuffer = param.srcBuffer,
-                                 .dstBuffer = param.dstBuffer,
+                                 .srcBuffer = srcBuffer.handle,
+                                 .dstBuffer = param.dstBuffer.handle,
                                  .regionCount = 1,
                                  .pRegions = std::addressof(copy2) };
         vkCmdCopyBuffer2(commandBuffer.handle, std::addressof(info2));
@@ -160,7 +167,7 @@ std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_a
     for (auto&& param : m_BufferQueue)
     {
         VkBufferMemoryBarrier2 barrier =
-            make_buffer_barrier_acquire(param.ownerQ, m_TransferQ, param.dstBuffer, param.dstOffset, param.size);
+            make_buffer_barrier_acquire(param.ownerQ, m_TransferQ, param.dstBuffer.handle, param.dstOffset, param.size);
         batch.push_back(barrier);
     }
 
@@ -172,7 +179,7 @@ std::vector<VkBufferMemoryBarrier2> TransferManager::make_batch_buffer_barrier_r
     for (auto&& param : m_BufferQueue)
     {
         VkBufferMemoryBarrier2 barrier =
-            make_buffer_barrier_release(m_TransferQ, param.ownerQ, param.dstBuffer, param.dstOffset, param.size);
+            make_buffer_barrier_release(m_TransferQ, param.ownerQ, param.dstBuffer.handle, param.dstOffset, param.size);
         batch.push_back(barrier);
     }
 

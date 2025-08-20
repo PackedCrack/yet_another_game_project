@@ -11,6 +11,8 @@
 #include "VulkanContext.hpp"
 #include "Renderer.hpp"
 #include "TransferManager.hpp"
+
+#include "vk/resource/VertexBuffer.hpp"
 //
 //
 namespace
@@ -48,8 +50,10 @@ public:
         vk::QueueFamilies queueFamilies{ physicalDevice, surface };
         // Make dev
         vk::Device device{ physicalDevice, queueFamilies };
+        // Make Allocator
+        auto pAllocator = std::make_shared<vk::Allocator>(instance, physicalDevice, device);
         // Make FrameHandler
-        FrameHandler frameHandler{ device.handle(), queueFamilies.graphics(), queueFamilies.compute() };
+        FrameHandler frameHandler{ device.handle(), queueFamilies.graphics(), queueFamilies.compute(), queueFamilies.transfer() };
         // Make FrameResources
         // Make Presenter
         Presenter presenter{ device, physicalDevice, std::move(surface) };
@@ -59,7 +63,11 @@ public:
         TransferManager transferManager{ device.handle(), queueFamilies.transfer() };
 
         // Make Vulkan Context
-        VulkanContext context{ std::move(instance), std::move(physicalDevice), std::move(queueFamilies), std::move(device) };
+        VulkanContext context{ std::move(instance),
+                               std::move(physicalDevice),
+                               std::move(queueFamilies),
+                               std::move(device),
+                               std::move(pAllocator) };
         // return Graphics as r value
         return std::make_unique<Impl>(std::move(wnd),
                                       std::move(context),
@@ -115,9 +123,38 @@ public:
 public:
     void draw()
     {
+        ////
+        ////
+        using StagingBuffer = vk::resource::StagingBuffer;
+        using VertexBuffer = vk::resource::VertexBuffer;
+        using Vertex = vk::resource::Vertex;
+
+        std::vector<Vertex> verticies(1024 * 1024);
+        std::size_t numVerticies = verticies.size();
+        VertexBuffer vertBuffer = m_Context.allocator()->create_vertex_buffer(numVerticies, sizeof(Vertex));
+
+        BufferTransfer params{};
+        params.ownerQ = m_Context.queue_families().transfer();
+        params.dstBuffer = vertBuffer.handle();
+        params.dstOffset = 0;
+        params.size = verticies.size() * sizeof(Vertex);
+        params.pSrcBuffer = std::make_unique<StagingBuffer>(m_Context.allocator()->create_staging_buffer(verticies.size(), sizeof(Vertex)));
+
+        m_TransferManager.enqueue_buffer_transfer(std::move(params));
+        ////
+        ////
+
+
+        // build batches and prepare
+        // Camera pos
+        // Direction light
+        // TRS for entities
+
+
         FrameContext frame = m_FrameHandler.start_frame();
 
-        const vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
+
+        vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
         std::optional<TransferEpoch> transferEpoch = m_TransferManager.submit_transfer(transferBuffer);
 
         std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);
@@ -128,7 +165,7 @@ public:
 
             // Do rendering stuff
             vk::QueueView graphicsQ = m_Context.queue_families().graphics();
-            m_Renderer.render_frame(colorAttach.value(), graphicsQ, frame);
+            m_Renderer.render_frame(colorAttach.value(), graphicsQ, frame, transferEpoch /*, m_TransferManager*/);
 
             const vk::QueueFamilies& queues = m_Context.queue_families();
             if (!m_Presenter.present(queues.present(), frame.graphicsFinished))
@@ -145,9 +182,10 @@ private:
     Renderer m_Renderer;
     TransferManager m_TransferManager;
 };
-// Pimpl
+//
+//
+//
 Graphics::Graphics(const OdinInfo& info)
-    //: m_pImpl{ std::make_unique<Impl>(Graphics::Impl::make_graphics(info)) }
     : m_pImpl{ Impl::make_graphics(info) }
 {}
 Graphics::~Graphics() = default;

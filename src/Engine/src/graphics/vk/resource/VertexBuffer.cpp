@@ -46,19 +46,19 @@ using namespace odin::graphics::vk::resource;
 }    // namespace
 namespace odin::graphics::vk::resource
 {
-VertexBuffer::VertexBuffer(std::uint32_t numElements, AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter)
+VertexBuffer::VertexBuffer(std::uint64_t numElements, AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter)
     : Buffer<VertexBuffer>{ buffer, std::move(deleter) }
-    , m_InsertTracker{ numElements * static_cast<std::uint32_t>(sizeof(vertex_t)) }
+    , m_InsertTracker{ numElements * sizeof(vertex_t) }
 {}
 void VertexBuffer::bind(CommandBufferRef cmdBuffer) const
 {
     BufferRef buffer = handle();
     vkCmdBindVertexBuffers(cmdBuffer.handle, 0u, 1u, std::addressof(buffer.handle), nullptr /*?*/);
 }
-std::uint32_t VertexBuffer::push_back(std::span<const vertex_t> vertices)
+std::uint64_t VertexBuffer::push_back(std::span<const vertex_t> vertices)
 {
-    std::uint32_t bufferOffset = m_InsertTracker.queue_transfer(vertices);
-    std::uint32_t vertexOffset = static_cast<uint32_t>(bufferOffset / sizeof vertex_t);
+    std::uint64_t bufferOffset = m_InsertTracker.queue_transfer(vertices);
+    std::uint64_t vertexOffset = bufferOffset / sizeof vertex_t;
     return vertexOffset;
 }
 VertexDescription VertexBuffer::get_vertex_description()

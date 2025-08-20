@@ -30,10 +30,10 @@ class VertexBuffer : public Buffer<VertexBuffer>
 {
 public:
     using vertex_t = Vertex;
-    VertexBuffer(std::uint32_t numElements, AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter);
+    VertexBuffer(std::uint64_t numElements, AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter);
 public:
     void bind(CommandBufferRef cmdBuffer) const;
-    [[nodiscard]] std::uint32_t push_back(std::span<const vertex_t> vertices);
+    [[nodiscard]] std::uint64_t push_back(std::span<const vertex_t> vertices);
     [[nodiscard]] VertexDescription get_vertex_description();
 private:
     GeometryBuffer m_InsertTracker;

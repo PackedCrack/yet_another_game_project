@@ -131,7 +131,7 @@ constexpr const char* err_to_str(VkResult error)
         else                                                                                                                               \
         {                                                                                                                                  \
             LOG_ERR(__VA_ARGS__);                                                                                                          \
-            ODIN_ASSERT(result != VK_SUCCESS);                                                                                             \
+            ODIN_ASSERT(result == VK_SUCCESS);                                                                                             \
         }
 #else
     #define VK_CHECK(expr, ...)                                                                                                            \
@@ -151,7 +151,7 @@ constexpr const char* err_to_str(VkResult error)
         else                                                                                                                               \
         {                                                                                                                                  \
             LOG_ERR(__VA_ARGS__);                                                                                                          \
-            ODIN_ASSERT(result < 0);                                                                                                       \
+            ODIN_ASSERT(result >= 0);                                                                                                      \
         }
 #else
     #define VK_RESULT(expr, ...)                                                                                                           \
@@ -163,41 +163,3 @@ constexpr const char* err_to_str(VkResult error)
             LOG_FATAL(__VA_ARGS__);                                                                                                        \
         }
 #endif
-//    #ifdef _MSC_VER
-//        #define ODIN_ASSERT_VK_RESULT(expr)                                                                                                \
-//            if (expr >= 0)                                                                                                                 \
-//            {}                                                                                                                             \
-//            else                                                                                                                           \
-//            {                                                                                                                              \
-//                logger::fatal("Vulkan assert failure, error code: " + err_to_str(expr), __FILE__, __func__, __LINE__);                     \
-//                __debugbreak();                                                                                                            \
-//            }
-//        #define ODIN_ASSERT_VK_SUCCESS(expr)                                                                                               \
-//            if (expr == VK_SUCCESS)                                                                                                        \
-//            {}                                                                                                                             \
-//            else                                                                                                                           \
-//            {                                                                                                                              \
-//                logger::fatal("Vulkan assert failure, error code: " + err_to_str(expr), __FILE__, __func__, __LINE__);                     \
-//                __debugbreak();                                                                                                            \
-//            }
-//    #else
-//        #define ODIN_ASSERT_VK_RESULT(expr)                                                                                                \
-//            if (expr >= 0)                                                                                                                 \
-//            {}                                                                                                                             \
-//            else                                                                                                                           \
-//            {                                                                                                                              \
-//                logger::fatal("Vulkan assert failure, error code: " + err_to_str(expr), __FILE__, __func__, __LINE__);                     \
-//            }
-//        #define ODIN_ASSERT_VK_SUCCESS(expr)                                                                                               \
-//            if (expr == VK_SUCCESS)                                                                                                        \
-//            {}                                                                                                                             \
-//            else                                                                                                                           \
-//            {                                                                                                                              \
-//                logger::fatal("Vulkan assert failure, error code: " + err_to_str(expr), __FILE__, __func__, __LINE__);                     \
-//            }
-//
-//    #endif
-//#else
-//    #define ODIN_ASSERT_VK_RESULT(expr) expr;
-//    #define ODIN_ASSERT_VK_SUCCESS(expr) expr;
-//#endif

@@ -27,7 +27,7 @@ struct FrameContext
 class FrameHandler
 {
 public:
-    FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, const vk::QueueView& compute);
+    FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, const vk::QueueView& compute, const vk::QueueView& transfer);
     ~FrameHandler() = default;
     FrameHandler(const FrameHandler& other) = delete;
     FrameHandler(FrameHandler&& other) = default;

@@ -6,6 +6,7 @@
 #include "vk/CommandBuffer.hpp"
 #include "vk/Device.hpp"
 #include "vk/QueueFamilies.hpp"
+#include "vk/resource/StagingBuffer.hpp"
 #include "vk/synchronization/TimelineSemaphore.hpp"
 //
 //
@@ -14,10 +15,8 @@ namespace odin::graphics
 struct BufferTransfer
 {
     vk::QueueView ownerQ;
-    // std::unqiue_ptr<vk::resource::StagingBuffer> srcBuffer?
-    VkBuffer srcBuffer;
-    VkDeviceSize srcOffset;
-    VkBuffer dstBuffer;
+    std::unique_ptr<vk::resource::StagingBuffer> pSrcBuffer;
+    vk::resource::BufferRef dstBuffer;
     VkDeviceSize dstOffset;
     VkDeviceSize size;
 };
@@ -35,7 +34,7 @@ public:
 public:
     void enqueue_buffer_transfer(BufferTransfer params);
     void enqueue_image_transfer(ImageTransfer params);
-    [[nodiscard]] std::optional<TransferEpoch> submit_transfer(const vk::CommandBuffer& commandBuffer);
+    [[nodiscard]] std::optional<TransferEpoch> submit_transfer(vk::CommandBuffer& commandBuffer);
 private:
     void acquire_buffers(vk::CommandBufferRef commandBuffer);
     void release_buffers(vk::CommandBufferRef commandBuffer);

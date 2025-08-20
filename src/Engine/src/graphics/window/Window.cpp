@@ -125,6 +125,8 @@ private:
     WindowInfo m_Settings;
     SDL_Window* m_pWindow;
 };
+//
+//
 Window::Window(std::string_view title, const WindowInfo& info)
     : m_pImpl{ std::make_unique<Impl>(title, info) }
 {}

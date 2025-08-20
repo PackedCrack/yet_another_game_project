@@ -167,18 +167,14 @@ public:
         VmaAllocationCreateInfo allocInfo = staging_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
-
-        return resource::StagingBuffer{ buffer, make_buffer_deleter(std::move(pAllocator)) };
+        return resource::StagingBuffer{ make_allocated_buffer(handle, allocation, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     resource::UniformBuffer create_uniform_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
         VmaAllocationCreateInfo allocInfo = uniform_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
-
-        return resource::UniformBuffer{ buffer, make_buffer_deleter(std::move(pAllocator)) };
+        return resource::UniformBuffer{ make_allocated_buffer(handle, allocation, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     resource::VertexBuffer
     create_vertex_buffer(std::shared_ptr<Allocator> pAllocator, std::uint32_t numElements, const VkBufferCreateInfo& info)
@@ -186,7 +182,7 @@ public:
         VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
+        resource::AllocatedBuffer buffer = make_allocated_buffer(handle, allocation, allocInfo);
 
         return resource::VertexBuffer{ numElements, buffer, make_buffer_deleter(std::move(pAllocator)) };
     }
@@ -195,9 +191,7 @@ public:
         VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        resource::AllocatedBuffer buffer{ .handle = handle, .pAllocation = allocation, .pData = map_memory(allocation) };
-
-        return resource::StorageBuffer{ buffer, make_buffer_deleter(std::move(pAllocator)) };
+        return resource::StorageBuffer{ make_allocated_buffer(handle, allocation, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     void destroy_buffer(VkBuffer buffer, VmaAllocation allocation, const void* pData) const
     {
@@ -211,19 +205,6 @@ public:
 private:
     std::tuple<VkBuffer, VmaAllocation> create_buffer(const VkBufferCreateInfo& bufferInfo, const VmaAllocationCreateInfo& allocInfo) const
     {
-        /*m_BufferSize = resource::pad_uniform_buffer_size(bufferSize, m_OffsetAlignment) * m_NumEntries;
-
-        const VkBufferCreateInfo BUFFER_INFO{
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = NULL,
-            .size = m_BufferSize,
-            .usage = usage,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0u,
-            .pQueueFamilyIndices = nullptr
-        };*/
-
         VkBuffer buffer{};
         VmaAllocation pAllocation = nullptr;
         VK_CHECK(vmaCreateBuffer(m_Allocator,
@@ -236,6 +217,12 @@ private:
 
         return { buffer, pAllocation };
     }
+    resource::AllocatedBuffer make_allocated_buffer(VkBuffer handle, VmaAllocation allocation, const VmaAllocationCreateInfo& info)
+    {
+        return resource::AllocatedBuffer{ .handle = handle,
+                                          .pAllocation = allocation,
+                                          .pData = (info.usage & VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE) ? nullptr : map_memory(allocation) };
+    }
     void* map_memory(VmaAllocation allocation)
     {
         void* pData = nullptr;
@@ -245,11 +232,26 @@ private:
 private:
     VmaAllocator m_Allocator = nullptr;
 };
+//
+//
 Allocator::Allocator(const Instance& instance, const PhysicalDevice& gpu, const Device& device)
-    : m_pImpl{ std::make_unique<Allocator::Impl>(instance, gpu, device) }
+    : m_pImpl{ std::make_unique<Impl>(instance, gpu, device) }
 {}
-resource::StagingBuffer Allocator::create_staging_buffer(const VkBufferCreateInfo& info)
+Allocator::~Allocator() = default;
+Allocator::Allocator(Allocator&& other) noexcept = default;
+Allocator& Allocator::operator=(Allocator&& other) noexcept = default;
+resource::StagingBuffer Allocator::create_staging_buffer(std::uint64_t numElements, std::uint64_t elementSize)
 {
+    VkBufferCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = VK_NO_FLAGS;
+    info.size = numElements * elementSize;
+    info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = nullptr;
+
     return m_pImpl->create_staging_buffer(shared_from_this(), info);
 }
 resource::UniformBuffer Allocator::create_uniform_buffer(const VkBufferCreateInfo& info)
@@ -270,8 +272,18 @@ resource::Image Allocator::create_image_texture(const VkImageCreateInfo& info)
     VmaAllocationCreateInfo allocInfo = image_alloc_info();
     return m_pImpl->create_image(shared_from_this(), allocInfo, info);
 }
-resource::VertexBuffer Allocator::create_vertex_buffer(std::uint32_t numElements, const VkBufferCreateInfo& info)
+resource::VertexBuffer Allocator::create_vertex_buffer(std::uint64_t numElements, std::uint64_t elementSize)
 {
+    VkBufferCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = VK_NO_FLAGS;
+    info.size = numElements * elementSize;
+    info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = nullptr;
+
     return m_pImpl->create_vertex_buffer(shared_from_this(), numElements, info);
 }
 void Allocator::destroy_buffer(VkBuffer buffer, void* pAllocation, const void* pData) const

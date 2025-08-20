@@ -198,22 +198,22 @@ QueueFamilies::QueueFamilies(const PhysicalDevice& device, const Surface& surfac
 QueueView QueueFamilies::present() const
 {
     ODIN_ASSERT(m_Present.handle != VK_NULL_HANDLE);
-    return QueueView{ m_Present.handle };
+    return QueueView{ m_Present.handle, m_Present.index };
 }
 QueueView QueueFamilies::graphics() const
 {
     ODIN_ASSERT(m_Graphics.handle != VK_NULL_HANDLE);
-    return QueueView{ m_Graphics.handle };
+    return QueueView{ m_Graphics.handle, m_Graphics.index };
 }
 QueueView QueueFamilies::compute() const
 {
     ODIN_ASSERT(m_Compute.handle != VK_NULL_HANDLE);
-    return QueueView{ m_Compute.handle };
+    return QueueView{ m_Compute.handle, m_Compute.index };
 }
 QueueView QueueFamilies::transfer() const
 {
     ODIN_ASSERT(m_Transfer.handle != VK_NULL_HANDLE);
-    return QueueView{ m_Transfer.handle };
+    return QueueView{ m_Transfer.handle, m_Transfer.index };
 }
 std::vector<VkDeviceQueueCreateInfo> QueueFamilies::queue_create_info() const
 {

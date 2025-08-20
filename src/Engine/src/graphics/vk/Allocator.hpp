@@ -15,18 +15,23 @@
 //
 namespace odin::graphics::vk
 {
-class Allocator : std::enable_shared_from_this<Allocator>
+class Allocator : public std::enable_shared_from_this<Allocator>
 {
     class Impl;
 public:
     Allocator(const Instance& instance, const PhysicalDevice& gpu, const Device& device);
+    ~Allocator();
+    Allocator(const Allocator& other) = delete;
+    Allocator(Allocator&& other) noexcept;
+    Allocator& operator=(const Allocator& other) = delete;
+    Allocator& operator=(Allocator&& other) noexcept;
 public:
-    [[nodiscard]] resource::StagingBuffer create_staging_buffer(const VkBufferCreateInfo& info);
+    [[nodiscard]] resource::StagingBuffer create_staging_buffer(std::uint64_t numElements, std::uint64_t elementSize);
     [[nodiscard]] resource::UniformBuffer create_uniform_buffer(const VkBufferCreateInfo& info);
     [[nodiscard]] resource::StorageBuffer create_storage_buffer(const VkBufferCreateInfo& info);
     [[nodiscard]] resource::Image create_image_attachment(const VkImageCreateInfo& info);
     [[nodiscard]] resource::Image create_image_texture(const VkImageCreateInfo& info);
-    [[nodiscard]] resource::VertexBuffer create_vertex_buffer(std::uint32_t numElements, const VkBufferCreateInfo& info);
+    [[nodiscard]] resource::VertexBuffer create_vertex_buffer(std::uint64_t numElements, std::uint64_t elementSize);
     void destroy_buffer(VkBuffer buffer, void* pAllocation, const void* pData) const;
     void destroy_image(VkImage image, void* pAllocation) const;
 private:

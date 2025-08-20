@@ -4,7 +4,7 @@
 #include "GeometryBuffer.hpp"
 namespace odin::graphics::vk::resource
 {
-GeometryBuffer::GeometryBuffer(std::uint32_t size)
+GeometryBuffer::GeometryBuffer(std::uint64_t size)
     : m_BufferSize{ size }
     , m_TransferOffset{ 0u } {};
 GeometryBuffer::GeometryBuffer(GeometryBuffer&& other) noexcept

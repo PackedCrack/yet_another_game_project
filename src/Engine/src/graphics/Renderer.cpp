@@ -5,6 +5,8 @@
 //
 namespace
 {
+using TransferEpoch = odin::graphics::TransferEpoch;
+using TimelineSemaphoreRef = odin::graphics::vk::synchronization::TimelineSemaphoreRef;
 using QueueView = odin::graphics::vk::QueueView;
 using CommandBuffer = odin::graphics::vk::CommandBuffer;
 using CommandBufferRef = odin::graphics::vk::CommandBufferRef;
@@ -14,21 +16,21 @@ using SemaphoreRef = odin::graphics::vk::synchronization::SemaphoreRef;
 //
 VkSemaphoreSubmitInfo submit_info_semaphore(VkSemaphore semaphore, std::uint64_t value, VkPipelineStageFlags2 flags)
 {
-    return VkSemaphoreSubmitInfo{
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-        .pNext = nullptr,
-        .semaphore = semaphore,
-        .value = value,
-        .stageMask = flags,
-
-    };
+    return VkSemaphoreSubmitInfo{ .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                                  .pNext = nullptr,
+                                  .semaphore = semaphore,
+                                  .value = value,
+                                  .stageMask = flags,
+                                  .deviceIndex = 0 };
 }
 template<typename... stage_mask_t>
 requires(std::same_as<VkPipelineStageFlags2, std::remove_cvref_t<stage_mask_t>> && ...)
 [[nodiscard]] VkSemaphoreSubmitInfo
-submit_info_timeline_semaphore(SemaphoreRef semaphore, std::uint64_t value, VkPipelineStageFlags2 mask, stage_mask_t&&... masks)
+submit_info_timeline_semaphore(TimelineSemaphoreRef semaphore, std::uint64_t value, stage_mask_t&&... masks)
 {
-    VkPipelineStageFlags2 flags = (mask | ... | masks);
+    static_assert((sizeof(masks) + ...) > 0);
+
+    VkPipelineStageFlags2 flags = (masks | ...);
     return submit_info_semaphore(semaphore.handle, value, flags);
 }
 template<typename... stage_mask_t>
@@ -50,22 +52,31 @@ void submit(QueueView queue,
             const CommandBuffer& cmdBuffer,
             SemaphoreRef colorAttachmentReady,
             SemaphoreRef graphicsFinished,
-            FenceRef inFlight)
+            FenceRef inFlight,
+            const std::optional<TransferEpoch>& transferEpoch)
 {
     CommandBufferRef cb = cmdBuffer.handle();
 
     VkCommandBufferSubmitInfo cbInfo = submit_info_cmd_buffer(cb);
 
+    std::vector<VkSemaphoreSubmitInfo> waitSemaphores{};
+    if (transferEpoch)
+    {
+        TimelineSemaphoreRef transferSem = transferEpoch->semaphore;
+        std::uint64_t waitValue = transferEpoch->waitValue;
+        waitSemaphores.push_back(submit_info_timeline_semaphore(transferSem, waitValue, VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT));
+    }
     VkSemaphoreSubmitInfo colorAttachReadyInfo =
         submit_info_binary_semaphore(colorAttachmentReady, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT);
+    waitSemaphores.push_back(colorAttachReadyInfo);
 
     VkSemaphoreSubmitInfo graphicsFinishedInfo = submit_info_binary_semaphore(graphicsFinished, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT);
 
     VkSubmitInfo2 submitInfo = { .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
                                  .pNext = nullptr,
                                  .flags = VK_NO_FLAGS,
-                                 .waitSemaphoreInfoCount = 1,
-                                 .pWaitSemaphoreInfos = std::addressof(colorAttachReadyInfo),
+                                 .waitSemaphoreInfoCount = static_cast<std::uint32_t>(waitSemaphores.size()),
+                                 .pWaitSemaphoreInfos = waitSemaphores.data(),
                                  .commandBufferInfoCount = 1,
                                  .pCommandBufferInfos = std::addressof(cbInfo),
                                  .signalSemaphoreInfoCount = 1,
@@ -76,7 +87,10 @@ void submit(QueueView queue,
 }    // namespace
 namespace odin::graphics
 {
-void Renderer::render_frame(const ColorAttachment& colorAttachment, vk::QueueView graphics, const FrameContext& frameContext)
+void Renderer::render_frame(const ColorAttachment& colorAttachment,
+                            vk::QueueView graphics,
+                            const FrameContext& frameContext,
+                            std::optional<TransferEpoch>& transferEpoch)
 {
     vk::CommandBuffer& gfxCmdBuffer = frameContext.graphicsBuffer.get();
     // Reset cmdBuffer and prepare it for commands
@@ -150,6 +164,6 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment, vk::QueueVie
 
 
     // Submit
-    submit(graphics, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight);
+    submit(graphics, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight, transferEpoch);
 }
 }    // namespace odin::graphics
