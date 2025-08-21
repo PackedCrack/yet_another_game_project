@@ -122,6 +122,8 @@ class Allocator::Impl
 public:
     Impl(const Instance& instance, const PhysicalDevice& gpu, const Device& device)
         : m_Allocator{ make_allocator(instance, gpu, device) }
+        , m_MinUniformAlignment{ gpu.properties().min_uniform_buffer_offset_alignment() }
+        , m_MinStorageAlignment{ gpu.properties().min_storage_buffer_offset_alignment() }
     {}
     ~Impl()
     {
@@ -133,6 +135,8 @@ public:
     Impl(const Impl& other) = delete;
     Impl(Impl&& other) noexcept
         : m_Allocator{ nullptr }
+        , m_MinUniformAlignment{ other.m_MinUniformAlignment }
+        , m_MinStorageAlignment{ other.m_MinStorageAlignment }
     {
         std::swap(m_Allocator, other.m_Allocator);
     }
@@ -142,6 +146,8 @@ public:
         if (this != std::addressof(other))
         {
             m_Allocator = std::exchange(other.m_Allocator, m_Allocator);
+            m_MinUniformAlignment = other.m_MinUniformAlignment;
+            m_MinStorageAlignment = other.m_MinStorageAlignment;
         }
         return *this;
     }
@@ -160,38 +166,38 @@ public:
                  "Failed to allocate Vulkan Image.");
 
         image.pAllocation = static_cast<void*>(allocation);
-        return resource::Image{ image, make_image_deleter(std::move(pAllocator)), imageInfo.format };
+        return { image, make_image_deleter(std::move(pAllocator)), imageInfo.format };
     }
     resource::StagingBuffer create_staging_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
         VmaAllocationCreateInfo allocInfo = staging_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        return resource::StagingBuffer{ make_allocated_buffer(handle, allocation, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
+        VkDeviceSize minAlignment = 0;
+        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     resource::UniformBuffer create_uniform_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
         VmaAllocationCreateInfo allocInfo = uniform_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        return resource::UniformBuffer{ make_allocated_buffer(handle, allocation, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
+        return { make_allocated_buffer(handle, allocation, m_MinUniformAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
-    resource::VertexBuffer
-    create_vertex_buffer(std::shared_ptr<Allocator> pAllocator, std::uint32_t numElements, const VkBufferCreateInfo& info)
+    resource::VertexBuffer create_vertex_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
         VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        resource::AllocatedBuffer buffer = make_allocated_buffer(handle, allocation, allocInfo);
-
-        return resource::VertexBuffer{ numElements, buffer, make_buffer_deleter(std::move(pAllocator)) };
+        // For vertex/indxe buffers this should not matter. Only the stride in VertexDescription
+        VkDeviceSize minAlignment = 0;
+        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     resource::StorageBuffer create_storage_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
         VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        return resource::StorageBuffer{ make_allocated_buffer(handle, allocation, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
+        return { make_allocated_buffer(handle, allocation, m_MinStorageAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     void destroy_buffer(VkBuffer buffer, VmaAllocation allocation, const void* pData) const
     {
@@ -217,11 +223,14 @@ private:
 
         return { buffer, pAllocation };
     }
-    resource::AllocatedBuffer make_allocated_buffer(VkBuffer handle, VmaAllocation allocation, const VmaAllocationCreateInfo& info)
+    resource::AllocatedBuffer make_allocated_buffer(VkBuffer handle, VmaAllocation allocation, VkDeviceSize minAlignment, const VkBufferCreateInfo& bufferInfo, const VmaAllocationCreateInfo& allocInfo)
     {
         return resource::AllocatedBuffer{ .handle = handle,
                                           .pAllocation = allocation,
-                                          .pData = (info.usage & VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE) ? nullptr : map_memory(allocation) };
+                                          .pData = (allocInfo.usage & VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE) ? nullptr : map_memory(allocation),
+                                            .size = bufferInfo.size,
+                                            .minAlignment = minAlignment
+        };
     }
     void* map_memory(VmaAllocation allocation)
     {
@@ -231,6 +240,8 @@ private:
     }
 private:
     VmaAllocator m_Allocator = nullptr;
+    VkDeviceSize m_MinUniformAlignment;
+    VkDeviceSize m_MinStorageAlignment;
 };
 //
 //
@@ -284,7 +295,8 @@ resource::VertexBuffer Allocator::create_vertex_buffer(std::uint64_t numElements
     info.queueFamilyIndexCount = 0;
     info.pQueueFamilyIndices = nullptr;
 
-    return m_pImpl->create_vertex_buffer(shared_from_this(), numElements, info);
+    ODIN_ASSERT(numElements <= std::numeric_limits<std::uint32_t>::max());
+    return m_pImpl->create_vertex_buffer(shared_from_this(), info);
 }
 void Allocator::destroy_buffer(VkBuffer buffer, void* pAllocation, const void* pData) const
 {

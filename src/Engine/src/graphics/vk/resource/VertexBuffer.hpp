@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Buffer.hpp"
-#include "GeometryBuffer.hpp"
 #include "../CommandBuffer.hpp"
 // glm
 #include "glm/glm.hpp"
@@ -30,12 +29,10 @@ class VertexBuffer : public Buffer<VertexBuffer>
 {
 public:
     using vertex_t = Vertex;
-    VertexBuffer(std::uint64_t numElements, AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter);
+    VertexBuffer(AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter);
 public:
     void bind(CommandBufferRef cmdBuffer) const;
-    [[nodiscard]] std::uint64_t push_back(std::span<const vertex_t> vertices);
     [[nodiscard]] VertexDescription get_vertex_description();
-private:
-    GeometryBuffer m_InsertTracker;
+    [[nodiscard]] std::size_t capacity() const;
 };
 }    // namespace odin::graphics::vk::resource
