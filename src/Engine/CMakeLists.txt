@@ -31,6 +31,10 @@ add_dependencies(${ENGINE_TARGET} ${DEBUGGING_PROJECT})
 target_link_libraries(${ENGINE_TARGET} PRIVATE ${DEBUGGING_PROJECT})
 target_include_directories(${ENGINE_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
 
+add_dependencies(${ENGINE_TARGET} ${ASSET_LOADER_PROJECT})
+target_link_libraries(${ENGINE_TARGET} PRIVATE ${ASSET_LOADER_PROJECT})
+target_include_directories(${ENGINE_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../AssetLoader/include")
+
 add_dependencies(${ENGINE_TARGET} SDL3::SDL3)
 target_link_libraries(${ENGINE_TARGET} PRIVATE SDL3::SDL3)
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/sdl/include")
@@ -43,3 +47,4 @@ target_include_directories(${ENGINE_TARGET} PRIVATE "$ENV{VULKAN_SDK}/include/")
 
 # TODO: Doesn't work - fix it
 set_target_properties(${ENGINE_TARGET} PROPERTIES FOLDER "Engine")
+

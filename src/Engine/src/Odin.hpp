@@ -9,6 +9,7 @@
 //
 namespace odin
 {
+// May require a pimpl in the future
 class Odin
 {
 public:
@@ -16,6 +17,8 @@ public:
 public:
     [[nodiscard]] graphics::Graphics& graphics();
 private:
+    // AssetRegistry
+    // EntitiyRegistry
     graphics::Graphics m_Gfx;
 };
 }    // namespace odin

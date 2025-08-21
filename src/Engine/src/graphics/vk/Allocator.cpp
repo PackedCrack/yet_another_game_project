@@ -181,7 +181,8 @@ public:
         VmaAllocationCreateInfo allocInfo = uniform_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        return { make_allocated_buffer(handle, allocation, m_MinUniformAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
+        return { make_allocated_buffer(handle, allocation, m_MinUniformAlignment, info, allocInfo),
+                 make_buffer_deleter(std::move(pAllocator)) };
     }
     resource::VertexBuffer create_vertex_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
@@ -197,7 +198,8 @@ public:
         VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        return { make_allocated_buffer(handle, allocation, m_MinStorageAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
+        return { make_allocated_buffer(handle, allocation, m_MinStorageAlignment, info, allocInfo),
+                 make_buffer_deleter(std::move(pAllocator)) };
     }
     void destroy_buffer(VkBuffer buffer, VmaAllocation allocation, const void* pData) const
     {
@@ -223,14 +225,18 @@ private:
 
         return { buffer, pAllocation };
     }
-    resource::AllocatedBuffer make_allocated_buffer(VkBuffer handle, VmaAllocation allocation, VkDeviceSize minAlignment, const VkBufferCreateInfo& bufferInfo, const VmaAllocationCreateInfo& allocInfo)
+    resource::AllocatedBuffer make_allocated_buffer(VkBuffer handle,
+                                                    VmaAllocation allocation,
+                                                    VkDeviceSize minAlignment,
+                                                    const VkBufferCreateInfo& bufferInfo,
+                                                    const VmaAllocationCreateInfo& allocInfo)
     {
         return resource::AllocatedBuffer{ .handle = handle,
                                           .pAllocation = allocation,
-                                          .pData = (allocInfo.usage & VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE) ? nullptr : map_memory(allocation),
-                                            .size = bufferInfo.size,
-                                            .minAlignment = minAlignment
-        };
+                                          .pData =
+                                              (allocInfo.usage & VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE) ? nullptr : map_memory(allocation),
+                                          .size = bufferInfo.size,
+                                          .minAlignment = minAlignment };
     }
     void* map_memory(VmaAllocation allocation)
     {
@@ -283,13 +289,13 @@ resource::Image Allocator::create_image_texture(const VkImageCreateInfo& info)
     VmaAllocationCreateInfo allocInfo = image_alloc_info();
     return m_pImpl->create_image(shared_from_this(), allocInfo, info);
 }
-resource::VertexBuffer Allocator::create_vertex_buffer(std::uint64_t numElements, std::uint64_t elementSize)
+resource::VertexBuffer Allocator::create_vertex_buffer(std::uint64_t numElements)
 {
     VkBufferCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = VK_NO_FLAGS;
-    info.size = numElements * elementSize;
+    info.size = numElements * sizeof(resource::Vertex);
     info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     info.queueFamilyIndexCount = 0;

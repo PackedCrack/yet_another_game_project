@@ -64,14 +64,8 @@ public:
     }
 public:
     [[nodiscard]] BufferRef handle() const { return BufferRef{ .handle = m_Buffer.handle }; };
-    [[nodiscard]] VkDeviceSize byte_capacity() const
-    {
-        return m_Buffer.size;
-    }
-    [[nodiscard]] VkDeviceSize min_alignment() const
-    {
-        return m_Buffer.minAlignment;
-    }
+    [[nodiscard]] VkDeviceSize byte_capacity() const { return m_Buffer.size; }
+    [[nodiscard]] VkDeviceSize min_alignment() const { return m_Buffer.minAlignment; }
 protected:
     template<typename data_t>
     void write_to_buffer(std::span<const data_t>& content)

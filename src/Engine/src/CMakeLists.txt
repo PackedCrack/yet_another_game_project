@@ -5,8 +5,6 @@ SET(SOURCES
         OdinInfo.hpp
         Odin.hpp
         Odin.cpp
-        MeshRegistry.hpp
-        MeshRegistry.cpp
 	ArenaAllocator.hpp
 	BumpAllocator.hpp
         ICamera.hpp

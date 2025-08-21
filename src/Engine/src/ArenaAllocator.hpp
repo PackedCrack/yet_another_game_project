@@ -17,9 +17,10 @@ class ArenaAllocation
 {
     using Deleter = std::function<void(std::uint64_t, std::uint64_t)>;
 public:
-    ArenaAllocation(std::uint64_t offset, std::uint64_t size, Deleter deleter)
+    ArenaAllocation(std::uint64_t offset, std::uint64_t size, std::uint64_t elementOffset, Deleter deleter)
         : m_Offset{ offset }
         , m_Size{ size }
+        , m_ElementOffset{ elementOffset }
         , m_Deleter{ std::move(deleter) }
     {}
 public:
@@ -34,6 +35,7 @@ public:
     ArenaAllocation(ArenaAllocation&& other) noexcept
         : m_Offset{ other.m_Offset }
         , m_Size{ other.m_Size }
+        , m_ElementOffset{ other.m_ElementOffset }
         , m_Deleter{ std::move(other.m_Deleter) }
     {}
     ArenaAllocation& operator=(const ArenaAllocation& other) = delete;
@@ -43,33 +45,28 @@ public:
         {
             m_Offset = other.m_Offset;
             m_Size = other.m_Size;
+            m_ElementOffset = other.m_ElementOffset;
             m_Deleter = std::move(other.m_Deleter);
         }
         return *this;
     }
 public:
-    [[nodiscard]] std::uint64_t start() const
-    {
-        return m_Offset;
-    }
-    [[nodiscard]] std::uint64_t size() const
-    {
-        return m_Size;
-    }
+    [[nodiscard]] std::uint64_t start() const { return m_Offset; }
+    [[nodiscard]] std::uint64_t size() const { return m_Size; }
+    [[nodiscard]] std::uint64_t element_offset() const { return m_ElementOffset; }
 private:
     std::uint64_t m_Offset;
     std::uint64_t m_Size;
+    std::uint64_t m_ElementOffset;
     Deleter m_Deleter;
 };
 //
 //
 template<typename element_t>
-    requires std::is_trivially_copyable_v<element_t>
+requires std::is_trivially_copyable_v<element_t>
 class ArenaAllocator
 {
     using SubAllocator = BumpAllocator<element_t>;
-    using BufferMirror = std::vector<element_t>;
-    using Iterator = BufferMirror::iterator;
 public:
     using ByteOffset = SubAllocator::ByteOffset;
     using ElementOffset = SubAllocator::ByteOffset;
@@ -77,24 +74,20 @@ public:
     {
         ByteOffset start;
         std::uint64_t size;
-        friend bool operator<(const FreeBlock& lhs, const FreeBlock& rhs)
-        {
-            return lhs.start < rhs.start;
-        }
+        friend bool operator<(const FreeBlock& lhs, const FreeBlock& rhs) { return lhs.start < rhs.start; }
     };
 public:
     // ArenaAllocator has to be heap allocated because it requries a stable This pointer.
-    [[nodiscard]] static std::unique_ptr<ArenaAllocator<element_t>> make_arena_allocator(std::size_t elementCapacity, std::uint64_t minAlignment = 4)
+    [[nodiscard]] static std::unique_ptr<ArenaAllocator<element_t>> make_arena_allocator(std::size_t elementCapacity,
+                                                                                         std::uint64_t minAlignment = 4)
     {
         using ArenaAllocator = ArenaAllocator<element_t>;
-
         return std::make_unique<ArenaAllocator>(ArenaAllocator{ elementCapacity, minAlignment });
     }
 private:
     ArenaAllocator(std::size_t elementCapacity, std::uint64_t minAlignment)
         : m_SubAllocator(elementCapacity, minAlignment)
-        , m_Freeblocks()
-    {};
+        , m_Freeblocks() {};
 public:
     [[nodiscard]] ArenaAllocation make_allocation(std::uint64_t numElements, std::uint64_t requiredSize)
     {
@@ -109,7 +102,13 @@ public:
             m_Freeblocks.emplace(b);
         }
 
-        return ArenaAllocation{ offset, requiredSize, make_deleter() };
+        std::uint64_t elementOffset = m_SubAllocator.element_offset(offset);
+        return ArenaAllocation{ offset, requiredSize, elementOffset, make_deleter() };
+    }
+    [[nodiscard]] ArenaAllocation make_allocation(FreeBlock block)
+    {
+        std::uint64_t elementOffset = m_SubAllocator.element_offset(block.start);
+        return ArenaAllocation{ block.start, block.size, elementOffset, make_deleter() };
     }
     template<typename... ctor_arg_t>
     [[nodiscard]] ArenaAllocation insert(ctor_arg_t&&... args)
@@ -117,30 +116,27 @@ public:
         std::uint64_t requiredSize = sizeof(element_t);
         if (std::optional<FreeBlock> block = find_free_block(requiredSize); block.has_value())
         {
-            return ArenaAllocation{ block->start, block->size, make_deleter() };
+            return make_allocation(block);
         }
 
         return make_allocation(1, requiredSize);
     }
-    [[nodiscard]] ArenaAllocation insert_range(std::span<const element_t>& content)
+    [[nodiscard]] ArenaAllocation insert_range(std::span<const element_t> content)
     {
         ByteOffset requiredSize = content.size() * sizeof(element_t);
         if (std::optional<FreeBlock> block = find_free_block(requiredSize); block.has_value())
         {
-            return ArenaAllocation{ block->start, block->size, make_deleter() };
+            return make_allocation(*block);
         }
 
         return make_allocation(content.size(), requiredSize);
     }
-    [[nodiscard]] ElementOffset element_offset(ByteOffset value)
-    {
-        return m_SubAllocator.element_offset(value);
-    }
+    [[nodiscard]] ElementOffset element_offset(ByteOffset value) { return m_SubAllocator.element_offset(value); }
 private:
     void insert_free_block(std::uint64_t start, std::uint64_t size)
     {
         auto [pBlock, emplaced] = m_Freeblocks.emplace(start, size);
-        assert(emplaced);
+        ODIN_ASSERT(emplaced);
 
         merge_free_blocks();
     }
@@ -212,10 +208,7 @@ private:
 
         return bestBlock;
     }
-    [[nodiscard]] bool requires_realignment(const FreeBlock& block)
-    {
-        return block.start != m_SubAllocator.aligned_value(block.start);
-    }
+    [[nodiscard]] bool requires_realignment(const FreeBlock& block) { return block.start != m_SubAllocator.aligned_value(block.start); }
     [[nodiscard]] FreeBlock realign_block(FreeBlock block)
     {
         std::uint64_t alignedStart = m_SubAllocator.aligned_value(block.start);
@@ -231,13 +224,10 @@ private:
 
         return realignedBlock;
     }
-    [[nodiscard]] bool has_excessive_tail(FreeBlock block, std::uint64_t requiredSize)
-    {
-        return requiredSize < block.size;
-    }
+    [[nodiscard]] bool has_excessive_tail(FreeBlock block, std::uint64_t requiredSize) { return requiredSize < block.size; }
     [[nodiscard]] FreeBlock cut_tail(FreeBlock block, std::uint64_t requiredSize)
     {
-        assert(requiredSize < block.size);
+        ODIN_ASSERT(requiredSize < block.size);
 
         std::uint64_t tailStart = block.start + requiredSize;
         std::uint64_t tailSize = block.size - requiredSize;
@@ -270,13 +260,10 @@ private:
     }
     [[nodiscard]] std::function<void(std::uint64_t, std::uint64_t)> make_deleter()
     {
-        return [this] (std::uint64_t offset, std::uint64_t size)
-        {
-            this->insert_free_block(offset, size);
-        };
+        return [this](std::uint64_t offset, std::uint64_t size) { this->insert_free_block(offset, size); };
     }
 private:
     SubAllocator m_SubAllocator;
     std::set<FreeBlock> m_Freeblocks;
 };
-}	// namespace odin
+}    // namespace odin

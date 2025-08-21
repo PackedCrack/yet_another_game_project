@@ -5,13 +5,15 @@
 //
 namespace
 {
+using RenderResources = odin::graphics::RenderResources;
 using TransferEpoch = odin::graphics::TransferEpoch;
-using TimelineSemaphoreRef = odin::graphics::vk::synchronization::TimelineSemaphoreRef;
-using QueueView = odin::graphics::vk::QueueView;
+using Allocator = odin::graphics::vk::Allocator;
 using CommandBuffer = odin::graphics::vk::CommandBuffer;
 using CommandBufferRef = odin::graphics::vk::CommandBufferRef;
 using FenceRef = odin::graphics::vk::synchronization::FenceRef;
+using QueueView = odin::graphics::vk::QueueView;
 using SemaphoreRef = odin::graphics::vk::synchronization::SemaphoreRef;
+using TimelineSemaphoreRef = odin::graphics::vk::synchronization::TimelineSemaphoreRef;
 //
 //
 VkSemaphoreSubmitInfo submit_info_semaphore(VkSemaphore semaphore, std::uint64_t value, VkPipelineStageFlags2 flags)
@@ -84,9 +86,19 @@ void submit(QueueView queue,
 
     VK_CHECK(vkQueueSubmit2(queue.handle, 1, std::addressof(submitInfo), inFlight.handle), "Failed to submit to Graphics Queue!");
 }
+[[nodiscard]] RenderResources make_render_resources(const std::shared_ptr<Allocator>& pAllocator)
+{
+    static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million verticies
+    VkBufferCreateInfo meshTableInfo{};
+    return RenderResources{ .meshTable = pAllocator->create_storage_buffer(meshTableInfo),
+                            .vertexBuffer = pAllocator->create_vertex_buffer(vertexCapacity) };
+}
 }    // namespace
 namespace odin::graphics
 {
+Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator)
+    : m_RenderResources{ make_render_resources(pAllocator) }
+{}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
                             vk::QueueView graphicsQ,
                             const FrameContext& frameContext,
@@ -169,5 +181,9 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     // Submit
     std::optional<TransferEpoch> transferEpoch = transferManager.epoch();
     submit(graphicsQ, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight, transferEpoch);
+}
+const RenderResources& Renderer::render_resources() const
+{
+    return m_RenderResources;
 }
 }    // namespace odin::graphics

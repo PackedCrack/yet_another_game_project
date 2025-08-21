@@ -11,6 +11,7 @@
 #include "VulkanContext.hpp"
 #include "Renderer.hpp"
 #include "TransferManager.hpp"
+#include "MeshRegistry.hpp"
 
 #include "vk/resource/VertexBuffer.hpp"
 //
@@ -58,9 +59,11 @@ public:
         // Make Presenter
         Presenter presenter{ device, physicalDevice, std::move(surface) };
         // Make Renderer
-        Renderer renderer{ /*std::move(frameResources)*/ };
+        Renderer renderer{ pAllocator };
         // Make TransferManager
         TransferManager transferManager{ device.handle(), queueFamilies.transfer() };
+        // Make MeshRegisrty
+        MeshRegistry meshRegistry{ renderer.render_resources() };
 
         // Make Vulkan Context
         VulkanContext context{ std::move(instance),
@@ -74,7 +77,8 @@ public:
                                       std::move(frameHandler),
                                       std::move(presenter),
                                       std::move(renderer),
-                                      std::move(transferManager));
+                                      std::move(transferManager),
+                                      std::move(meshRegistry));
     }
 public:
     Impl(window::Window window,
@@ -82,13 +86,15 @@ public:
          FrameHandler frameHandler,
          Presenter presenter,
          Renderer renderer,
-         TransferManager transferManager)
+         TransferManager transferManager,
+         MeshRegistry meshRegistry)
         : m_Wnd{ std::move(window) }
         , m_Context{ std::move(context) }
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
         , m_Renderer{ std::move(renderer) }
         , m_TransferManager{ std::move(transferManager) }
+        , m_MeshRegistry{ std::move(meshRegistry) }
     {}
     ~Impl()
     {
@@ -106,6 +112,7 @@ public:
         , m_Presenter{ std::move(other.m_Presenter) }
         , m_Renderer{ std::move(other.m_Renderer) }
         , m_TransferManager{ std::move(other.m_TransferManager) }
+        , m_MeshRegistry{ std::move(other.m_MeshRegistry) }
     {}
     Impl& operator=(Impl&& other) noexcept
     {
@@ -117,12 +124,26 @@ public:
             m_Presenter = std::move(other.m_Presenter);
             m_Renderer = std::move(other.m_Renderer);
             m_TransferManager = std::move(other.m_TransferManager);
+            m_MeshRegistry = std::move(other.m_MeshRegistry);
         }
         return *this;
     }
 public:
     void draw()
     {
+        /*
+        * std::vector<InstanceInfo> batches{};
+        * registry.for_each<Mesh, TRS>{
+        *   InstanceInfo i{};
+        *   i.meshID = GeometryTracker.mesh_id(mesh.UUID)
+        *   i.pos = TRS.translation
+        *   i.orientation = TRS.orientation
+        *   i.scale = TRS.scale
+        * 
+        *   batches.push_back(i)
+        * }
+        * Do instance counting here
+        */
         ////
         ////
         using StagingBuffer = vk::resource::StagingBuffer;
@@ -131,7 +152,7 @@ public:
 
         std::vector<Vertex> verticies(1024 * 1024);
         std::size_t numVerticies = verticies.size();
-        VertexBuffer vertBuffer = m_Context.allocator()->create_vertex_buffer(numVerticies, sizeof(Vertex));
+        VertexBuffer vertBuffer = m_Context.allocator()->create_vertex_buffer(numVerticies);
 
         BufferTransfer params{};
         params.ownerQ = m_Context.queue_families().graphics();
@@ -174,6 +195,20 @@ public:
             }
         }
     }
+    [[nodiscard]] MeshID mesh_id(const std::string& filepath /* Should be UUID*/)
+    {
+        if (!m_MeshRegistry.contains(filepath))
+        {
+            // Take AssetRegistry as parameter
+            // asl::Model = assetRegistry.load(filepath);
+            asl::Model lanternManyGroups{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
+
+            vk::QueueView graphicsQ = m_Context.queue_families().graphics();
+            m_MeshRegistry.load_model(m_TransferManager, graphicsQ, m_Context.allocator(), lanternManyGroups);
+        }
+
+        return m_MeshRegistry.get_mesh(filepath);
+    }
 private:
     window::Window m_Wnd;
     VulkanContext m_Context;
@@ -181,6 +216,7 @@ private:
     Presenter m_Presenter;
     Renderer m_Renderer;
     TransferManager m_TransferManager;
+    MeshRegistry m_MeshRegistry;
 };
 //
 //

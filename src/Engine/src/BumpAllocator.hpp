@@ -11,7 +11,6 @@
 //
 namespace odin
 {
-
 template<typename element_t>
 class BumpAllocator
 {
@@ -35,8 +34,7 @@ public:
     BumpAllocator(BumpAllocator&& other) noexcept
         : m_Capacity{ other.m_Capacity }
         , m_InsertOffset{ other.m_InsertOffset }
-        , m_Alignment{ other.m_Alignment }
-    {};
+        , m_Alignment{ other.m_Alignment } {};
     BumpAllocator& operator=(const BumpAllocator& other) = delete;
     BumpAllocator& operator=(BumpAllocator&& other) noexcept
     {
@@ -66,10 +64,7 @@ public:
 
         return { insertAt, bytesToAllocate };
     }
-    [[nodiscard]] ElementOffset element_offset(ByteOffset value)
-    {
-        return value / aligned_value(sizeof(element_t));
-    }
+    [[nodiscard]] ElementOffset element_offset(ByteOffset value) { return value / aligned_value(sizeof(element_t)); }
     [[nodiscard]] std::uint64_t aligned_value(std::uint64_t value)
     {
         // Black magic
