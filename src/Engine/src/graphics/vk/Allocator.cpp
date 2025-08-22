@@ -184,12 +184,21 @@ public:
         return { make_allocated_buffer(handle, allocation, m_MinUniformAlignment, info, allocInfo),
                  make_buffer_deleter(std::move(pAllocator)) };
     }
+    resource::IndexBuffer create_index_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
+    {
+        VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
+        auto [handle, allocation] = create_buffer(info, allocInfo);
+
+        // For vertex/index buffers this should not matter.
+        VkDeviceSize minAlignment = 0;
+        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
+    }
     resource::VertexBuffer create_vertex_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
         VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        // For vertex/indxe buffers this should not matter. Only the stride in VertexDescription
+        // For vertex/index buffers this should not matter. Only the stride in VertexDescription
         VkDeviceSize minAlignment = 0;
         return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
@@ -288,6 +297,21 @@ resource::Image Allocator::create_image_texture(const VkImageCreateInfo& info)
 {
     VmaAllocationCreateInfo allocInfo = image_alloc_info();
     return m_pImpl->create_image(shared_from_this(), allocInfo, info);
+}
+resource::IndexBuffer Allocator::create_index_buffer(std::uint64_t numElements)
+{
+    VkBufferCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = VK_NO_FLAGS;
+    info.size = numElements * sizeof(resource::IndexBuffer::index_t);
+    info.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = nullptr;
+
+    ODIN_ASSERT(numElements <= std::numeric_limits<std::uint32_t>::max());
+    return m_pImpl->create_index_buffer(shared_from_this(), info);
 }
 resource::VertexBuffer Allocator::create_vertex_buffer(std::uint64_t numElements)
 {

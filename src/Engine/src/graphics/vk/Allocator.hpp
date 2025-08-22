@@ -10,6 +10,7 @@
 #include "resource/StagingBuffer.hpp"
 #include "resource/StorageBuffer.hpp"
 #include "resource/UniformBuffer.hpp"
+#include "resource/IndexBuffer.hpp"
 #include "resource/VertexBuffer.hpp"
 //
 //
@@ -31,6 +32,7 @@ public:
     [[nodiscard]] resource::StorageBuffer create_storage_buffer(const VkBufferCreateInfo& info);
     [[nodiscard]] resource::Image create_image_attachment(const VkImageCreateInfo& info);
     [[nodiscard]] resource::Image create_image_texture(const VkImageCreateInfo& info);
+    [[nodiscard]] resource::IndexBuffer create_index_buffer(std::uint64_t numElements);
     [[nodiscard]] resource::VertexBuffer create_vertex_buffer(std::uint64_t numElements);
     void destroy_buffer(VkBuffer buffer, void* pAllocation, const void* pData) const;
     void destroy_image(VkImage image, void* pAllocation) const;

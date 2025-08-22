@@ -12,6 +12,8 @@ SET(SOURCES
 	StorageBuffer.cpp
 	VertexBuffer.hpp
 	VertexBuffer.cpp
+	IndexBuffer.hpp
+	IndexBuffer.cpp
 )
 
 

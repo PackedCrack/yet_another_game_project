@@ -5,6 +5,7 @@
 #include "TransferManager.hpp"
 #include "vk/Allocator.hpp"
 #include "vk/resource/StorageBuffer.hpp"
+#include "vk/resource/IndexBuffer.hpp"
 #include "vk/resource/VertexBuffer.hpp"
 //
 //
@@ -13,6 +14,7 @@ namespace odin::graphics
 struct RenderResources
 {
     vk::resource::StorageBuffer meshTable;
+    vk::resource::IndexBuffer indexBuffer;
     vk::resource::VertexBuffer vertexBuffer;
 };
 class Renderer

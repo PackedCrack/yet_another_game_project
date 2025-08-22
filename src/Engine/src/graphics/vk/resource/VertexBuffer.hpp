@@ -16,7 +16,6 @@ struct VertexDescription
     std::vector<VkVertexInputBindingDescription> bindings;
     std::vector<VkVertexInputAttributeDescription> attributes;
 };
-typedef uint16_t Index;
 struct Vertex
 {
     glm::vec3 position;

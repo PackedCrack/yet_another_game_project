@@ -88,9 +88,11 @@ void submit(QueueView queue,
 }
 [[nodiscard]] RenderResources make_render_resources(const std::shared_ptr<Allocator>& pAllocator)
 {
-    static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million verticies
+    static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million vertices
+    static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million indices
     VkBufferCreateInfo meshTableInfo{};
     return RenderResources{ .meshTable = pAllocator->create_storage_buffer(meshTableInfo),
+                            .indexBuffer = pAllocator->create_index_buffer(indexCapacity),
                             .vertexBuffer = pAllocator->create_vertex_buffer(vertexCapacity) };
 }
 }    // namespace
