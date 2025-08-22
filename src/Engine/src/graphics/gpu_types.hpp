@@ -7,8 +7,7 @@
 #ifdef __cplusplus
     #pragma once
 
-    #include <glm/glm.hpp>
-    #include <glm/gtc/quaternion.hpp>
+    #include <glm_headers.hpp>
 
     #define int std::int32_t
     #define uint std::uint32_t
@@ -22,6 +21,10 @@ namespace odin::graphics
 #endif
 //
 //
+#define DRAW_FLAG_HAS_NORMAL 1 << 0;
+#define DRAW_FLAG_HAS_TANGENT 1 << 1;
+#define DRAW_FLAG_HAS_TEXCOORD_0 1 << 2;
+#define DRAW_FLAG_HAS_TEXCOORD_1 1 << 3;
 struct InstanceInfo
 {
     vec3 translation;
@@ -35,6 +38,7 @@ struct MeshInfo
     uint firstIndex;
     int vertexOffset;
     uint materialID;
+    uint drawFlags;
 };
 struct Material
 {
