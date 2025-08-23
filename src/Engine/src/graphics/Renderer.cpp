@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 
+#include "gpu_types.hpp"
 #include "vk/vulkan_defines.hpp"
 //
 //
@@ -89,9 +90,10 @@ void submit(QueueView queue,
 [[nodiscard]] RenderResources make_render_resources(const std::shared_ptr<Allocator>& pAllocator)
 {
     static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million vertices
-    static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million indices
-    VkBufferCreateInfo meshTableInfo{};
-    return RenderResources{ .meshTable = pAllocator->create_storage_buffer(meshTableInfo),
+    static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;     // Aproximately 8,3 million indices
+    static constexpr std::uint64_t meshTableSize = 15000 * sizeof(odin::graphics::MeshInfo);
+
+    return RenderResources{ .meshTable = pAllocator->create_storage_buffer(meshTableSize),
                             .indexBuffer = pAllocator->create_index_buffer(indexCapacity),
                             .vertexBuffer = pAllocator->create_vertex_buffer(vertexCapacity) };
 }

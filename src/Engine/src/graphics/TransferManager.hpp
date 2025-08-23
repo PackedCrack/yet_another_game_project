@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "../ArenaAllocator.hpp"
 #include "vk/CommandBuffer.hpp"
 #include "vk/Device.hpp"
 #include "vk/QueueFamilies.hpp"
@@ -36,6 +37,10 @@ class TransferManager
 public:
     TransferManager(vk::DeviceRef device, vk::QueueView transferQ);
 public:
+    void enqueue_buffer_transfer(vk::resource::BufferRef dst,
+                                 std::unique_ptr<vk::resource::StagingBuffer> pStagingBuffer,
+                                 const vk::QueueView& graphicsQ,
+                                 const ArenaAllocation& allocation);
     void enqueue_buffer_transfer(BufferTransfer params);
     void enqueue_image_transfer(ImageTransfer params);
     void record_buffer_acquisition(vk::QueueView newOwner, vk::CommandBufferRef commandBuffer) const;

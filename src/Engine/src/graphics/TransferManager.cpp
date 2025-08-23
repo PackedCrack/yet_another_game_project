@@ -62,6 +62,20 @@ TransferManager::TransferManager(vk::DeviceRef device, vk::QueueView transferQ)
     , m_TransferID{ 1 }
     , m_CurrentEpoch{ std::nullopt }
 {}
+void TransferManager::enqueue_buffer_transfer(vk::resource::BufferRef dst,
+                                              std::unique_ptr<vk::resource::StagingBuffer> pStagingBuffer,
+                                              const vk::QueueView& graphicsQ,
+                                              const ArenaAllocation& allocation)
+{
+    BufferTransfer params{};
+    params.ownerQ = graphicsQ;
+    params.dstBuffer = dst;
+    params.dstOffset = allocation.start();
+    params.size = allocation.size();
+    params.pSrcBuffer = std::move(pStagingBuffer);
+
+    enqueue_buffer_transfer(std::move(params));
+}
 void TransferManager::enqueue_buffer_transfer(BufferTransfer params)
 {
     std::vector<BufferTransfer>& q = m_BufferQueue.front();
@@ -165,8 +179,12 @@ bool TransferManager::record_buffer_transfers(vk::CommandBufferRef commandBuffer
 
         vk::resource::BufferRef srcBuffer = param.pSrcBuffer->handle();
         VkCopyBufferInfo2 info2{};
-        info2.sType = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2, info2.pNext = nullptr, info2.srcBuffer = srcBuffer.handle,
-        info2.dstBuffer = param.dstBuffer.handle, info2.regionCount = 1, info2.pRegions = std::addressof(copy2),
+        info2.sType = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2;
+        info2.pNext = nullptr;
+        info2.srcBuffer = srcBuffer.handle;
+        info2.dstBuffer = param.dstBuffer.handle;
+        info2.regionCount = 1;
+        info2.pRegions = std::addressof(copy2);
 
         vkCmdCopyBuffer2(commandBuffer.handle, std::addressof(info2));
     }
