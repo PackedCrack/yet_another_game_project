@@ -3,15 +3,15 @@
 //
 #pragma once
 
+#include "../graphics/MeshID.hpp"
 // std
 #include <cstdint>
 //
 //
 namespace odin::components
 {
-using MeshID = std::int32_t;
 struct Mesh
 {
-    MeshID id;
+    graphics::MeshID id;
 };
 }    // namespace odin::components

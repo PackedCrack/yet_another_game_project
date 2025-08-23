@@ -4,8 +4,8 @@
 #pragma once
 
 #include "../OdinInfo.hpp"
-#include "../ECS.hpp"
 #include "../components/Model.hpp"
+#include "MeshID.hpp"
 // AssetLoader
 #include <assetloader/Model.hpp>
 //
@@ -23,8 +23,8 @@ public:
 public:
     void draw();
     void register_model(const asl::Model& sceneGraph);
-    void assign_submesh_ids(ECS& ecs, const components::Model& model, std::vector<Entity>& subMeshes) const;
     [[nodiscard]] bool is_registered(const components::Model& model) const;
+    [[nodiscard]] std::vector<MeshID> mesh_ids(const components::Model& model) const;
 private:
     std::unique_ptr<Impl> m_pImpl;
 };

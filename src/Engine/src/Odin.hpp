@@ -13,24 +13,18 @@ namespace odin
 // May require a pimpl in the future
 class Odin
 {
-    enum class State
-    {
-        begin,
-        graphics,
-        end
-    };
+    class Impl;
 public:
     Odin(OdinInfo info);
+    ~Odin();
+    Odin(Odin&& other) noexcept;
+    Odin& operator=(Odin&& other) noexcept;
 public:
     void begin_frame();
     void render();
     void end_frame();
     [[nodiscard]] std::unique_ptr<ECS> make_ecs();
 private:
-private:
-    State m_State;
-    // AssetRegistry
-    graphics::Graphics m_Gfx;
-    std::optional<std::reference_wrapper<ECS>> m_ECS;
+    std::unique_ptr<Impl> m_pImpl;
 };
 }    // namespace odin

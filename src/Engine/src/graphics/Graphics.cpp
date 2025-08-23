@@ -140,9 +140,6 @@ public:
         std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);
         if (colorAttach)
         {
-            // Do uploading
-            // uploadermanager.upload()
-
             // Do rendering stuff
             vk::QueueView graphicsQ = m_Context.queue_families().graphics();
             m_Renderer.render_frame(colorAttach.value(), graphicsQ, frame, m_TransferManager);
@@ -154,19 +151,6 @@ public:
             }
         }
     }
-    void assign_submesh_ids(ECS& ecs, const components::Model& model, std::vector<Entity>& subMeshes) const
-    {
-        const std::vector<MeshEntry>& meshEntries = m_MeshRegistry.entries(model);
-        ODIN_ASSERT(subMeshes.size() == meshEntries.size());
-
-        std::size_t index{};
-        auto assign_mesh_id = [&meshEntries, &index]([[maybe_unused]] Entity e, components::Mesh& mesh)
-        {
-            const MeshEntry& entry = meshEntries[index++];
-            mesh.id = entry.id;
-        };
-        ecs.for_each<components::Mesh>(subMeshes, assign_mesh_id);
-    }
     void register_model(const asl::Model& sceneGraph)
     {
         vk::QueueView graphicsQ = m_Context.queue_families().graphics();
@@ -175,6 +159,21 @@ public:
         m_MeshRegistry.register_model(m_TransferManager, resources, graphicsQ, pAllocator, sceneGraph);
     }
     bool is_registered(const components::Model& model) const { return m_MeshRegistry.contains(model); }
+    std::vector<MeshID> mesh_ids(const components::Model& model) const
+    {
+        // This is done to make sure MeshEntry does not leak across pimpl boundary
+        // And to make sure ECS is not required in Graphics
+        // There is probably a better way of doing this than copying the IDS..
+        const std::vector<MeshEntry>& meshEntries = m_MeshRegistry.entries(model);
+        std::vector<MeshID> ids{};
+
+        std::transform(std::begin(meshEntries),
+                       std::end(meshEntries),
+                       std::back_inserter(ids),
+                       [](const MeshEntry& entry) { return entry.id; });
+
+        return ids;
+    }
 private:
     window::Window m_Wnd;
     VulkanContext m_Context;
@@ -201,12 +200,12 @@ void Graphics::register_model(const asl::Model& sceneGraph)
 {
     m_pImpl->register_model(sceneGraph);
 }
-void Graphics::assign_submesh_ids(ECS& ecs, const components::Model& model, std::vector<Entity>& subMeshes) const
-{
-    m_pImpl->assign_submesh_ids(ecs, model, subMeshes);
-}
 bool Graphics::is_registered(const components::Model& model) const
 {
     return m_pImpl->is_registered(model);
+}
+std::vector<MeshID> Graphics::mesh_ids(const components::Model& model) const
+{
+    return m_pImpl->mesh_ids(model);
 }
 }    // namespace odin::graphics

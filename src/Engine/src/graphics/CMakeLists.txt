@@ -19,10 +19,11 @@ SET(SOURCES
         TransferManager.cpp
         MeshRegistry.hpp
         MeshRegistry.cpp
+        MeshID.hpp
 )
 
 set(EXPORT_HEADERS
-	Graphics.hpp
+	MeshID.hpp
 )
 
 target_sources(${ENGINE_TARGET} PRIVATE ${SOURCES})

@@ -5,6 +5,7 @@
 
 #include "../components/Model.hpp"
 #include "../ArenaAllocator.hpp"
+#include "MeshID.hpp"
 #include "gpu_types.hpp"
 #include "Renderer.hpp"
 #include "TransferManager.hpp"
@@ -16,7 +17,6 @@
 //
 namespace odin::graphics
 {
-using MeshID = std::int32_t;
 struct EntryAllocation
 {
     ArenaAllocation vertices;
