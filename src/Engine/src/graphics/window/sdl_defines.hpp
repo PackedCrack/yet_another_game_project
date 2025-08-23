@@ -3,9 +3,11 @@
 //
 #pragma once
 
-#include "debug/Logger.hpp"
+// Debug
+#include <debug/Logger.hpp>
+#include <debug/debug_defines.hpp>
 // sdl
-#include "SDL3/SDL_error.h"
+#include <SDL3/SDL_error.h>
 
 
 #ifndef NDEBUG

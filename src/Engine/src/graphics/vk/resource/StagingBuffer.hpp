@@ -14,7 +14,7 @@ public:
     StagingBuffer(AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter);
 public:
     template<typename data_t>
-    void write(std::span<const data_t> content)
+    void write(std::span<data_t> content)
     {
         write_to_buffer(content);
     }

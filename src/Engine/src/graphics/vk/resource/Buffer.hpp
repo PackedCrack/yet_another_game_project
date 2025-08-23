@@ -3,7 +3,9 @@
 //
 #pragma once
 
-#include "debug/Logger.hpp"
+// Debug
+#include <debug/Logger.hpp>
+#include <debug/debug_defines.hpp>
 // vulkan
 #include <vulkan/vulkan.h>
 // std
@@ -68,10 +70,10 @@ public:
     [[nodiscard]] VkDeviceSize min_alignment() const { return m_Buffer.minAlignment; }
 protected:
     template<typename data_t>
-    void write_to_buffer(std::span<const data_t>& content)
+    void write_to_buffer(std::span<data_t>& content)
     {
         ODIN_ASSERT(m_Buffer.pData != nullptr);
-        std::memcpy(m_Buffer.pData, content.data(), content.size());
+        std::memcpy(m_Buffer.pData, content.data(), content.size() * sizeof(std::remove_cvref_t<data_t>));
     }
 private:
     AllocatedBuffer m_Buffer;

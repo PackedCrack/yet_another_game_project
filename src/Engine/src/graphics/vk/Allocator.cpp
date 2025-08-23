@@ -284,8 +284,17 @@ resource::UniformBuffer Allocator::create_uniform_buffer(const VkBufferCreateInf
 {
     return m_pImpl->create_uniform_buffer(shared_from_this(), info);
 }
-resource::StorageBuffer Allocator::create_storage_buffer(const VkBufferCreateInfo& info)
+resource::StorageBuffer Allocator::create_storage_buffer(VkDeviceSize size)
 {
+    VkBufferCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = VK_NO_FLAGS;
+    info.size = size;
+    info.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = nullptr;
     return m_pImpl->create_storage_buffer(shared_from_this(), info);
 }
 resource::Image Allocator::create_image_attachment(const VkImageCreateInfo& info)

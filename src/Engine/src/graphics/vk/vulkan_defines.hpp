@@ -4,9 +4,11 @@
 #pragma once
 //
 //
-#include "debug/Logger.hpp"
+// Debug
+#include <debug/Logger.hpp>
+#include <debug/debug_defines.hpp>
 // vulkan
-#include "vulkan/vulkan.h"
+#include <vulkan/vulkan.h>
 // std
 #include <string>
 namespace odin::graphics::vk
@@ -139,7 +141,7 @@ constexpr const char* err_to_str(VkResult error)
         {}                                                                                                                                 \
         else                                                                                                                               \
         {                                                                                                                                  \
-            LOG_ERR("Vulkan check failure, error code: {}", err_to_str(result));                                                           \
+            LOG_ERR("Vulkan check failure, error code: {}", odin::graphics::vk::err_to_str(result));                                       \
             LOG_FATAL(__VA_ARGS__);                                                                                                        \
         }
 #endif
@@ -159,7 +161,7 @@ constexpr const char* err_to_str(VkResult error)
         {}                                                                                                                                 \
         else                                                                                                                               \
         {                                                                                                                                  \
-            LOG_ERR("Vulkan result check failure, error code: {}", err_to_str(result));                                                    \
+            LOG_ERR("Vulkan result check failure, error code: {}", odin::graphics::vk::err_to_str(result));                                \
             LOG_FATAL(__VA_ARGS__);                                                                                                        \
         }
 #endif
