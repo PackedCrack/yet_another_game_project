@@ -5,6 +5,7 @@
 
 #include "../OdinInfo.hpp"
 #include "../components/Model.hpp"
+#include "../window/Window.hpp"
 #include "MeshID.hpp"
 // AssetLoader
 #include <assetloader/Model.hpp>
@@ -16,7 +17,7 @@ class Graphics
 {
     class Impl;
 public:
-    Graphics(const OdinInfo& info);
+    Graphics(const OdinInfo& info, window::Window& window);
     ~Graphics();
     Graphics(Graphics&& other) noexcept;
     Graphics& operator=(Graphics&& other) noexcept;

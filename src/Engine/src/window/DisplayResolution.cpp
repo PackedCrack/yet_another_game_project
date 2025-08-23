@@ -4,7 +4,7 @@
 #include "DisplayResolution.hpp"
 //
 //
-namespace odin::graphics::window
+namespace odin::window
 {
 HDPlus::HDPlus()
     : details::Resolution<HDPlus>(1600, 900)
@@ -12,4 +12,4 @@ HDPlus::HDPlus()
 FHD::FHD()
     : details::Resolution<FHD>(1920, 1080)
 {}
-}    // namespace odin::graphics::window
+}    // namespace odin::window

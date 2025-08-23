@@ -6,6 +6,7 @@
 // Enginge
 #include <engine/Odin.hpp>
 #include <engine/components/Model.hpp>
+#include <engine/window/DisplayResolution.hpp>
 // Debug
 #include <debug/Logger.hpp>
 #include <debug/debug_defines.hpp>
@@ -18,10 +19,7 @@ int main()
 {
     try
     {
-        odin::WindowInfo wndInfo{ .resolution = odin::graphics::window::HDPlus{},
-                                  .borderless = false,
-                                  .fullscreen = false,
-                                  .mouseGrab = false };
+        odin::WindowInfo wndInfo{ .resolution = odin::window::HDPlus{}, .borderless = false, .fullscreen = false, .mouseGrab = false };
         odin::OdinInfo info{ .applicationName = "Odin Application", .windowInfo = std::move(wndInfo) };
         odin::Odin engine{ info };
 

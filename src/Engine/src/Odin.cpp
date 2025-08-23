@@ -9,6 +9,7 @@
 #include "components/Model.hpp"
 #include "components/Parent.hpp"
 #include "components/WorldTRS.hpp"
+#include "window/Window.hpp"
 // Debug
 #include <debug/Logger.hpp>
 #include <debug/debug_defines.hpp>
@@ -35,7 +36,8 @@ class Odin::Impl
 public:
     Impl(OdinInfo info)
         : m_State{ State::end }
-        , m_Gfx{ info }
+        , m_Wnd{ info.applicationName, info.windowInfo }
+        , m_Gfx{ info, m_Wnd }
     {}
 public:
     void begin_frame()
@@ -132,6 +134,7 @@ private:
 private:
     State m_State;
     // AssetRegistry
+    window::Window m_Wnd;
     graphics::Graphics m_Gfx;
     std::optional<std::reference_wrapper<ECS>> m_ECS;
 };

@@ -13,7 +13,7 @@
 // QHD		16:9	2560	1440
 // UHD		16:9	3840	2160
 
-namespace odin::graphics::window
+namespace odin::window
 {
 namespace details
 {
@@ -64,4 +64,4 @@ using DisplayResolution = std::variant<HDPlus, FHD>;
 
     return height;
 }
-}    // namespace odin::graphics::window
+}    // namespace odin::window

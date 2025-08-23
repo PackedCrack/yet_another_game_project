@@ -11,4 +11,4 @@ set(EXPORT_HEADERS
 )
 
 target_sources(${ENGINE_TARGET} PRIVATE ${SOURCES})
-copy_export_headers("${EXPORT_HEADERS}" "${INCLUDE_DIR}/graphics/window")
+copy_export_headers("${EXPORT_HEADERS}" "${INCLUDE_DIR}/window")

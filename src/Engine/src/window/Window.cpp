@@ -4,6 +4,7 @@
 #include "Window.hpp"
 
 #include "sdl_defines.hpp"
+
 // sdl
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
@@ -46,7 +47,7 @@ namespace
     return extensions;
 }
 }    // namespace
-namespace odin::graphics::window
+namespace odin::window
 {
 class Window::Impl
 {
@@ -114,12 +115,20 @@ public:
         SDL_SetWindowMouseGrab(m_pWindow, m_Settings.mouseGrab);
     }
     [[nodiscard]] std::vector<std::string_view> extensions() const { return get_instance_extensions(); }
-    [[nodiscard]] VkSurfaceKHR make_surface(vk::InstanceRef instance)
+    [[nodiscard]] std::function<void*(void*)> make_create_surface()
     {
-        VkSurfaceKHR surface{};
-        SDL_CHECK(SDL_Vulkan_CreateSurface(m_pWindow, instance.handle, nullptr, std::addressof(surface)),
-                  "Failed to create Vulkan Surface.");
-        return surface;
+        // void* So vulkan concrete handles do not leak from the pimpl
+        // Creating the surface in window so SDL functions don't leak from the pimpl
+        return [this](void* pInstance)
+        {
+            ODIN_ASSERT(pInstance != nullptr);
+
+            auto instance = static_cast<VkInstance>(pInstance);
+            VkSurfaceKHR surface{};
+            SDL_CHECK(SDL_Vulkan_CreateSurface(m_pWindow, instance, nullptr, std::addressof(surface)), "Failed to create Vulkan Surface.");
+
+            return surface;
+        };
     }
 private:
     WindowInfo m_Settings;
@@ -149,8 +158,8 @@ std::vector<std::string_view> Window::required_extensions() const
 {
     return m_pImpl->extensions();
 }
-VkSurfaceKHR Window::make_surface(vk::InstanceRef instance)
+std::function<void*(void*)> Window::make_create_surface()
 {
-    return m_pImpl->make_surface(instance);
+    return m_pImpl->make_create_surface();
 }
-}    // namespace odin::graphics::window
+}    // namespace odin::window

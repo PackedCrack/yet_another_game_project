@@ -12,7 +12,6 @@
 #include "../components/Mesh.hpp"
 #include "vk/vulkan_defines.hpp"
 #include "vk/resource/VertexBuffer.hpp"
-#include "window/Window.hpp"
 // Debug
 #include <debug/Logger.hpp>
 //
@@ -35,17 +34,15 @@ namespace odin::graphics
 class Graphics::Impl
 {
 public:
-    [[nodiscard]] static std::unique_ptr<Impl> make_graphics(const odin::OdinInfo& info)
+    [[nodiscard]] static std::unique_ptr<Impl> make_graphics(const odin::OdinInfo& info, window::Window& window)
     {
         // The circular dependencies for initialization is nuts..
         // So keep this as a stand alone function for clarity and then move everything into place
 
-        // Make window
-        window::Window wnd{ info.applicationName, info.windowInfo };
         // Make instance
-        vk::Instance instance{ make_application_info(info.applicationName), wnd.required_extensions() };
+        vk::Instance instance{ make_application_info(info.applicationName), window.required_extensions() };
         // Make surface
-        vk::Surface surface{ wnd, instance.handle() };
+        vk::Surface surface{ window, instance.handle() };
         // Make physdev
         vk::PhysicalDevice physicalDevice{ instance, surface };
         // Make q fams
@@ -73,8 +70,7 @@ public:
                                std::move(device),
                                std::move(pAllocator) };
         // return Graphics as r value
-        return std::make_unique<Impl>(std::move(wnd),
-                                      std::move(context),
+        return std::make_unique<Impl>(std::move(context),
                                       std::move(frameHandler),
                                       std::move(presenter),
                                       std::move(renderer),
@@ -82,15 +78,13 @@ public:
                                       std::move(meshRegistry));
     }
 public:
-    Impl(window::Window window,
-         VulkanContext context,
+    Impl(VulkanContext context,
          FrameHandler frameHandler,
          Presenter presenter,
          Renderer renderer,
          TransferManager transferManager,
          MeshRegistry meshRegistry)
-        : m_Wnd{ std::move(window) }
-        , m_Context{ std::move(context) }
+        : m_Context{ std::move(context) }
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
         , m_Renderer{ std::move(renderer) }
@@ -107,8 +101,7 @@ public:
         }
     }
     Impl(Impl&& other) noexcept
-        : m_Wnd{ std::move(other.m_Wnd) }
-        , m_Context{ std::move(other.m_Context) }
+        : m_Context{ std::move(other.m_Context) }
         , m_FrameHandler{ std::move(other.m_FrameHandler) }
         , m_Presenter{ std::move(other.m_Presenter) }
         , m_Renderer{ std::move(other.m_Renderer) }
@@ -119,7 +112,6 @@ public:
     {
         if (this != std::addressof(other))
         {
-            m_Wnd = std::move(other.m_Wnd);
             m_Context = std::move(other.m_Context);
             m_FrameHandler = std::move(other.m_FrameHandler);
             m_Presenter = std::move(other.m_Presenter);
@@ -175,7 +167,6 @@ public:
         return ids;
     }
 private:
-    window::Window m_Wnd;
     VulkanContext m_Context;
     FrameHandler m_FrameHandler;
     Presenter m_Presenter;
@@ -186,8 +177,8 @@ private:
 //
 //
 //
-Graphics::Graphics(const OdinInfo& info)
-    : m_pImpl{ Impl::make_graphics(info) }
+Graphics::Graphics(const OdinInfo& info, window::Window& window)
+    : m_pImpl{ Impl::make_graphics(info, window) }
 {}
 Graphics::~Graphics() = default;
 Graphics::Graphics(Graphics&& other) noexcept = default;

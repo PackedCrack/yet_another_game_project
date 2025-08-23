@@ -1,5 +1,6 @@
 add_subdirectory("graphics")
 add_subdirectory("components")
+add_subdirectory("window")
 
 SET(SOURCES
         engine_defines.hpp

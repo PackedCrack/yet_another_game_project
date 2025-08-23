@@ -12,10 +12,13 @@
 namespace odin::graphics::vk
 {
 Surface::Surface(window::Window& wnd, InstanceRef instance)
-    : m_Surface{ wnd.make_surface(instance) }
+    : m_Surface{ VK_NULL_HANDLE }
     , m_Instance{ instance }
     , m_Capabilities{ std::nullopt }
-{}
+{
+    auto create_surface = wnd.make_create_surface();
+    m_Surface = static_cast<VkSurfaceKHR>(create_surface(m_Instance.handle));
+}
 Surface::~Surface()
 {
     if (m_Surface != VK_NULL_HANDLE)

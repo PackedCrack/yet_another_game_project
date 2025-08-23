@@ -3,14 +3,14 @@
 //
 #pragma once
 
-#include "graphics/window/DisplayResolution.hpp"
+#include "window/DisplayResolution.hpp"
 //
 //
 namespace odin
 {
 struct WindowInfo
 {
-    graphics::window::DisplayResolution resolution;
+    window::DisplayResolution resolution;
     bool borderless;
     bool fullscreen;
     bool mouseGrab;

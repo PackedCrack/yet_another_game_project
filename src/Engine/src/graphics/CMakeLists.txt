@@ -1,4 +1,3 @@
-add_subdirectory("window")
 add_subdirectory("vk")
 
 SET(SOURCES
