@@ -5,48 +5,49 @@
 #pragma once
 
 #include "tinygltf/tiny_gltf.h"
+#include "common_types.hpp"
 //
 //
 namespace asl
 {
-enum class AlphaMode
-{
-    opaque,
-    mask,
-    blend
-};
-struct Alpha
-{
-    double alphaCutoff;
-    AlphaMode mode;
-};
-enum class MinFilter
-{
-    nearest = TINYGLTF_TEXTURE_FILTER_NEAREST,
-    linear = TINYGLTF_TEXTURE_FILTER_LINEAR,
-    nearestMipMapNearest = TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST,
-    linearMipMapNearest = TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST,
-    nearestMipMapLinear = TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR,
-    linearMipMapLinear = TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR
-};
-enum class MagFilter
-{
-    nearest = TINYGLTF_TEXTURE_FILTER_NEAREST,
-    linear = TINYGLTF_TEXTURE_FILTER_LINEAR
-};
-enum class Wrapping
-{
-    repeat = TINYGLTF_TEXTURE_WRAP_REPEAT,
-    clampToEdge = TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE,
-    mirroredRepeat = TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT
-};
-struct Sampler
-{
-    Wrapping wrapS;    // U coordinate
-    Wrapping wrapT;    // V coordinate
-    std::optional<MinFilter> minfilter;
-    std::optional<MagFilter> magfilter;
-};
+//enum class AlphaMode
+//{
+//    opaque,
+//    mask,
+//    blend
+//};
+//struct Alpha
+//{
+//    double alphaCutoff;
+//    AlphaMode mode;
+//};
+//enum class MinFilter
+//{
+//    nearest = TINYGLTF_TEXTURE_FILTER_NEAREST,
+//    linear = TINYGLTF_TEXTURE_FILTER_LINEAR,
+//    nearestMipMapNearest = TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST,
+//    linearMipMapNearest = TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST,
+//    nearestMipMapLinear = TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR,
+//    linearMipMapLinear = TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR
+//};
+//enum class MagFilter
+//{
+//    nearest = TINYGLTF_TEXTURE_FILTER_NEAREST,
+//    linear = TINYGLTF_TEXTURE_FILTER_LINEAR
+//};
+//enum class Wrapping
+//{
+//    repeat = TINYGLTF_TEXTURE_WRAP_REPEAT,
+//    clampToEdge = TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE,
+//    mirroredRepeat = TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT
+//};
+//struct Sampler
+//{
+//    Wrapping wrapS;    // U coordinate
+//    Wrapping wrapT;    // V coordinate
+//    std::optional<MinFilter> minfilter;
+//    std::optional<MagFilter> magfilter;
+//};
 template<typename derived_t>
 struct Texture
 {
@@ -83,6 +84,14 @@ public:
     //cppcheck-suppress uninitMemberVar
     Material() = default;
     Material(const tinygltf::Model& model, const tinygltf::Material& material);
+public:
+    [[nodiscard]] MaterialView view_materials() const;
+private:
+    [[nodiscard]] BaseView view_base() const;
+    [[nodiscard]] MetallicRoughnessView view_metal_rough() const;
+    [[nodiscard]] NormalView view_normal() const;
+    [[nodiscard]] OcclusionView view_occlusion() const;
+    [[nodiscard]] EmissiveView view_emissive() const;
 private:
     Alpha m_AlphaSettings;
     std::optional<Base> m_Base;

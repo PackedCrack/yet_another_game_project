@@ -4,7 +4,17 @@
 #include "Mesh.hpp"
 
 #include "asl_defines.hpp"
-#include "../common/common.h"
+#include "../common/common.hpp"
+//
+//
+// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
+static_assert(std::to_underlying(asl::PrimitiveMode::POINTS) == TINYGLTF_MODE_POINTS);
+static_assert(std::to_underlying(asl::PrimitiveMode::LINE) == TINYGLTF_MODE_LINE);
+static_assert(std::to_underlying(asl::PrimitiveMode::LINE_LOOP) == TINYGLTF_MODE_LINE_LOOP);
+static_assert(std::to_underlying(asl::PrimitiveMode::LINE_STRIP) == TINYGLTF_MODE_LINE_STRIP);
+static_assert(std::to_underlying(asl::PrimitiveMode::TRIANGLES) == TINYGLTF_MODE_TRIANGLES);
+static_assert(std::to_underlying(asl::PrimitiveMode::TRIANGLE_STRIP) == TINYGLTF_MODE_TRIANGLE_STRIP);
+static_assert(std::to_underlying(asl::PrimitiveMode::TRIANGLE_FAN) == TINYGLTF_MODE_TRIANGLE_FAN);
 //
 //
 namespace
@@ -268,18 +278,19 @@ template<typename cache_t>
     normalize(*normals);
     return std::optional<std::vector<glm::vec3>>{ std::in_place, std::move(normals.value()) };
 }
-[[nodiscard]] std::vector<glm::vec4> extract_vertex_positions(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
+[[nodiscard]] std::vector<glm::vec3> extract_vertex_positions(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
 {
     using vertex_positions = std::vector<glm::vec3>;
     std::optional<vertex_positions> p = get_attribute<glm::vec3>(model, primitive, "POSITION").value();
-    std::vector<glm::vec3> positions = std::move(p.value());
+    // cppcheck-suppress returnStdMoveLocal
+    return std::move(p.value());    // Optional value has to be returned with move or it becomes a copy...
 
-    std::vector<glm::vec4> paddedPositions{};
+    /*std::vector<glm::vec4> paddedPositions{};
     paddedPositions.resize(positions.size());
     auto action = [](const glm::vec3& v) { return glm::vec4{ v.x, v.y, v.z, 1.0f }; };
     std::transform(std::execution::par, std::begin(positions), std::end(positions), std::begin(paddedPositions), action);
 
-    return paddedPositions;
+    return paddedPositions;*/
 }
 [[nodiscard]] asl::Renderable&
 store_attributes(const tinygltf::Model& model, const tinygltf::Primitive& primitive, asl::Renderable& renderable)
@@ -404,5 +415,51 @@ std::optional<Mesh> make_mesh(const tinygltf::Model& model, const tinygltf::Node
     }
 
     return mesh;
+}
+//
+//
+//
+MeshView Mesh::view() const
+{
+    MeshView meshView{};
+
+    for (auto&& renderable : renderables)
+    {
+        RenderableView rv{};
+        rv.topology = renderable.topology;
+
+        const std::vector<glm::vec3>& v = renderable.vertexPosition;
+        rv.vertexPosition = std::span<const glm::vec3>{ v.data(), v.size() };
+
+        const std::vector<std::uint16_t>& i = renderable.indices;
+        rv.indices = std::span<const std::uint16_t>{ i.data(), i.size() };
+
+        if (renderable.normal.has_value())
+        {
+            const std::vector<glm::vec3>& n = renderable.normal.value();
+            rv.normal = std::span<const glm::vec3>{ n.data(), n.size() };
+        }
+        if (renderable.tangent.has_value())
+        {
+            const std::vector<glm::vec4>& t = renderable.tangent.value();
+            rv.tangent = std::span<const glm::vec4>{ t.data(), t.size() };
+        }
+        if (renderable.textureCoordinates.contains("TEXCOORD_0"))
+        {
+            const std::vector<glm::vec2>& uv = renderable.textureCoordinates.at("TEXCOORD_0");
+            rv.texcoord_0 = std::span<const glm::vec2>{ uv.data(), uv.size() };
+        }
+        if (renderable.textureCoordinates.contains("TEXCOORD_1"))
+        {
+            const std::vector<glm::vec2>& uv = renderable.textureCoordinates.at("TEXCOORD_1");
+            rv.texcoord_1 = std::span<const glm::vec2>{ uv.data(), uv.size() };
+        }
+
+        rv.materialView = renderable.material.view_materials();
+
+        meshView.renderables.push_back(std::move(rv));
+    }
+
+    return meshView;
 }
 }    // namespace asl

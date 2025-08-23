@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Logger.hpp"
+
 #define NO_FLAGS 0
 
 #ifdef __clang__

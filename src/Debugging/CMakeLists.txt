@@ -54,3 +54,9 @@ else()
 endif()
 
 add_dependencies(${DEBUGGING_PROJECT} ${DEBUGGING_PROJECT}_cppcheck_dependency)
+
+set_target_properties(${DEBUGGING_PROJECT}
+                      ${DEBUGGING_PROJECT}_cppcheck_dependency    
+                      PROPERTIES 
+                      FOLDER 
+                      "Debug")

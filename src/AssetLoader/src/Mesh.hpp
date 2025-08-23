@@ -4,28 +4,34 @@
 
 #pragma once
 
-#include "glm_headers.hpp"
+#include "common_types.hpp"
 #include "Material.hpp"
+// glm
+#include <glm_headers.hpp>
 // std
 #include <optional>
 #include <string>
 #include <vector>
 #include <unordered_map>
+//
+//
 namespace asl
 {
-// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#meshes-overview
-enum class PrimitiveMode
-{
-    POINTS = TINYGLTF_MODE_POINTS,
-    LINE = TINYGLTF_MODE_LINE,
-    LINE_LOOP = TINYGLTF_MODE_LINE_LOOP,
-    LINE_STRIP = TINYGLTF_MODE_LINE_STRIP,
-    TRIANGLES = TINYGLTF_MODE_TRIANGLES,
-    TRIANGLE_STRIP = TINYGLTF_MODE_TRIANGLE_STRIP,
-    TRIANGLE_FAN = TINYGLTF_MODE_TRIANGLE_FAN,
-    // if something goes wrong
-    UNKNOWN
-};
+//enum class PrimitiveMode
+//{
+//    POINTS = TINYGLTF_MODE_POINTS,
+//    LINE = TINYGLTF_MODE_LINE,
+//    LINE_LOOP = TINYGLTF_MODE_LINE_LOOP,
+//    LINE_STRIP = TINYGLTF_MODE_LINE_STRIP,
+//    TRIANGLES = TINYGLTF_MODE_TRIANGLES,
+//    TRIANGLE_STRIP = TINYGLTF_MODE_TRIANGLE_STRIP,
+//    TRIANGLE_FAN = TINYGLTF_MODE_TRIANGLE_FAN,
+//    // if something goes wrong
+//    UNKNOWN
+//};
+//
+//
+//
 struct Renderable
 {
     using color_cache = std::unordered_map<std::string, std::vector<glm::vec4>>;
@@ -33,7 +39,7 @@ struct Renderable
     using joints_cache = std::unordered_map<std::string, std::vector<glm::vec4>>;
     using weights_cache = std::unordered_map<std::string, std::vector<glm::vec4>>;
 
-    std::vector<glm::vec4> vertexPosition;
+    std::vector<glm::vec3> vertexPosition;
     std::vector<std::uint16_t> indices;
     std::optional<std::vector<glm::vec3>> normal;
     std::optional<std::vector<glm::vec4>> tangent;
@@ -53,6 +59,7 @@ struct Renderable
 };
 struct Mesh
 {
+    [[nodiscard]] MeshView view() const;
     std::vector<Renderable> renderables;
 };
 [[nodiscard]] std::optional<Mesh> make_mesh(const tinygltf::Model& model, const tinygltf::Node& node);
