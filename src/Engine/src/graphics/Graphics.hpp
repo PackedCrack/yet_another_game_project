@@ -4,6 +4,10 @@
 #pragma once
 
 #include "../OdinInfo.hpp"
+#include "../ECS.hpp"
+#include "../components/Model.hpp"
+// AssetLoader
+#include <assetloader/Model.hpp>
 //
 //
 namespace odin::graphics
@@ -18,6 +22,9 @@ public:
     Graphics& operator=(Graphics&& other) noexcept;
 public:
     void draw();
+    void register_model(const asl::Model& sceneGraph);
+    void assign_submesh_ids(ECS& ecs, const components::Model& model, std::vector<Entity>& subMeshes) const;
+    [[nodiscard]] bool is_registered(const components::Model& model) const;
 private:
     std::unique_ptr<Impl> m_pImpl;
 };

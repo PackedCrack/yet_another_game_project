@@ -19,6 +19,10 @@ enable_cppcheck(${GAME_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_clang_format(${GAME_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_enum_switch_error(${GAME_TARGET})
 
+include_glm(${GAME_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/external")
+
+target_include_directories(${GAME_TARGET} PRIVATE "external")
+target_include_directories(${GAME_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_compile_definitions(${GAME_TARGET} PRIVATE LOG_DIRECTORY="/logs/game")
 
 add_dependencies(${GAME_TARGET} ${ASSET_LOADER_PROJECT})
@@ -33,6 +37,8 @@ target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/.
 add_dependencies(${GAME_TARGET} ${ENGINE_TARGET})
 target_link_libraries(${GAME_TARGET} PRIVATE ${ENGINE_TARGET})
 target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Engine/include")
+
+target_include_directories(${GAME_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/entt/single_include")
 
 # TODO: Find a better way to link to vulkan.
 find_package(Vulkan REQUIRED)

@@ -3,17 +3,18 @@
 //
 #include "Graphics.hpp"
 
-#include "debug/Logger.hpp"
-#include "vk/vulkan_defines.hpp"
-#include "window/Window.hpp"
 #include "FrameHandler.hpp"
+#include "MeshRegistry.hpp"
 #include "Presenter.hpp"
-#include "VulkanContext.hpp"
 #include "Renderer.hpp"
 #include "TransferManager.hpp"
-#include "MeshRegistry.hpp"
-
+#include "VulkanContext.hpp"
+#include "../components/Mesh.hpp"
+#include "vk/vulkan_defines.hpp"
 #include "vk/resource/VertexBuffer.hpp"
+#include "window/Window.hpp"
+// Debug
+#include <debug/Logger.hpp>
 //
 //
 namespace
@@ -131,49 +132,7 @@ public:
 public:
     void draw()
     {
-        /*
-        * std::vector<InstanceInfo> batches{};
-        * registry.for_each<Mesh, TRS>{
-        *   InstanceInfo i{};
-        *   i.meshID = GeometryTracker.mesh_id(mesh.UUID)
-        *   i.pos = TRS.translation
-        *   i.orientation = TRS.orientation
-        *   i.scale = TRS.scale
-        * 
-        *   batches.push_back(i)
-        * }
-        * Do instance counting here
-        */
-        ////
-        ////
-        using StagingBuffer = vk::resource::StagingBuffer;
-        using VertexBuffer = vk::resource::VertexBuffer;
-        using Vertex = vk::resource::Vertex;
-
-        std::vector<Vertex> verticies(1024 * 1024);
-        std::size_t numVerticies = verticies.size();
-        VertexBuffer vertBuffer = m_Context.allocator()->create_vertex_buffer(numVerticies);
-
-        BufferTransfer params{};
-        params.ownerQ = m_Context.queue_families().graphics();
-        params.dstBuffer = vertBuffer.handle();
-        params.dstOffset = 0;
-        params.size = verticies.size() * sizeof(Vertex);
-        params.pSrcBuffer = std::make_unique<StagingBuffer>(m_Context.allocator()->create_staging_buffer(verticies.size(), sizeof(Vertex)));
-
-        m_TransferManager.enqueue_buffer_transfer(std::move(params));
-        ////
-        ////
-
-
-        // build batches and prepare
-        // Camera pos
-        // Direction light
-        // TRS for entities
-
-
         FrameContext frame = m_FrameHandler.start_frame();
-
 
         vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
         m_TransferManager.submit_transfer(transferBuffer);
@@ -195,20 +154,27 @@ public:
             }
         }
     }
-    [[nodiscard]] MeshID mesh_id(const std::string& filepath /* Should be UUID*/)
+    void assign_submesh_ids(ECS& ecs, const components::Model& model, std::vector<Entity>& subMeshes) const
     {
-        if (!m_MeshRegistry.contains(filepath))
+        const std::vector<MeshEntry>& meshEntries = m_MeshRegistry.entries(model);
+        ODIN_ASSERT(subMeshes.size() == meshEntries.size());
+
+        std::size_t index{};
+        auto assign_mesh_id = [&meshEntries, &index]([[maybe_unused]] Entity e, components::Mesh& mesh)
         {
-            // Take AssetRegistry as parameter
-            // asl::Model = assetRegistry.load(filepath);
-            asl::Model lanternManyGroups{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
-
-            vk::QueueView graphicsQ = m_Context.queue_families().graphics();
-            m_MeshRegistry.load_model(m_TransferManager, graphicsQ, m_Context.allocator(), lanternManyGroups);
-        }
-
-        return m_MeshRegistry.get_mesh(filepath);
+            const MeshEntry& entry = meshEntries[index++];
+            mesh.id = entry.id;
+        };
+        ecs.for_each<components::Mesh>(subMeshes, assign_mesh_id);
     }
+    void register_model(const asl::Model& sceneGraph)
+    {
+        vk::QueueView graphicsQ = m_Context.queue_families().graphics();
+        const RenderResources& resources = m_Renderer.render_resources();
+        std::shared_ptr<vk::Allocator> pAllocator = m_Context.allocator();
+        m_MeshRegistry.register_model(m_TransferManager, resources, graphicsQ, pAllocator, sceneGraph);
+    }
+    bool is_registered(const components::Model& model) const { return m_MeshRegistry.contains(model); }
 private:
     window::Window m_Wnd;
     VulkanContext m_Context;
@@ -230,5 +196,17 @@ Graphics& Graphics::operator=(Graphics&& other) noexcept = default;
 void Graphics::draw()
 {
     m_pImpl->draw();
+}
+void Graphics::register_model(const asl::Model& sceneGraph)
+{
+    m_pImpl->register_model(sceneGraph);
+}
+void Graphics::assign_submesh_ids(ECS& ecs, const components::Model& model, std::vector<Entity>& subMeshes) const
+{
+    m_pImpl->assign_submesh_ids(ecs, model, subMeshes);
+}
+bool Graphics::is_registered(const components::Model& model) const
+{
+    return m_pImpl->is_registered(model);
 }
 }    // namespace odin::graphics

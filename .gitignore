@@ -38,6 +38,8 @@
 /src/AssetLoader/include
 /src/Engine/external
 /src/Engine/include
+/src/Game/external
+/src/Game/include
 
 # cppcheck build folder
 /build-cppcheck
