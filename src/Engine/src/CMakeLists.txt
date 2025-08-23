@@ -1,4 +1,5 @@
 add_subdirectory("graphics")
+add_subdirectory("components")
 
 SET(SOURCES
         engine_defines.hpp
@@ -7,12 +8,18 @@ SET(SOURCES
         Odin.cpp
 	ArenaAllocator.hpp
 	BumpAllocator.hpp
+	ECS.hpp
+	ECS.cpp
+	Entity.hpp
+	Entity.cpp
         ICamera.hpp
 )
 
 set(EXPORT_HEADERS
         Odin.hpp
 	OdinInfo.hpp
+	ECS.hpp
+	Entity.hpp
 	ICamera.hpp
 )
 

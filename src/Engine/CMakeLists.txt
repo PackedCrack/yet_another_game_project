@@ -40,6 +40,7 @@ target_link_libraries(${ENGINE_TARGET} PRIVATE SDL3::SDL3)
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/sdl/include")
 
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/vma/include")
+target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/entt/single_include")
 
 find_package(Vulkan REQUIRED)
 target_include_directories(${ENGINE_TARGET} PRIVATE "$ENV{VULKAN_SDK}/include/")

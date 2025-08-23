@@ -3,7 +3,9 @@
 //
 #pragma once
 
+// Debug
 #include <debug/Logger.hpp>
+#include <debug/debug_defines.hpp>
 // std
 #include <cstdint>
 #include <utility>

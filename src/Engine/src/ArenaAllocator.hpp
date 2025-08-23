@@ -110,13 +110,12 @@ public:
         std::uint64_t elementOffset = m_SubAllocator.element_offset(block.start);
         return ArenaAllocation{ block.start, block.size, elementOffset, make_deleter() };
     }
-    template<typename... ctor_arg_t>
-    [[nodiscard]] ArenaAllocation insert(ctor_arg_t&&... args)
+    [[nodiscard]] ArenaAllocation insert()
     {
         std::uint64_t requiredSize = sizeof(element_t);
         if (std::optional<FreeBlock> block = find_free_block(requiredSize); block.has_value())
         {
-            return make_allocation(block);
+            return make_allocation(*block);
         }
 
         return make_allocation(1, requiredSize);
