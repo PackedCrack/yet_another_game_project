@@ -6,6 +6,22 @@
 #include "common.hpp"
 //
 //
+// Check MinFilter
+static_assert(std::to_underlying(asl::MinFilter::nearest) == TINYGLTF_TEXTURE_FILTER_NEAREST);
+static_assert(std::to_underlying(asl::MinFilter::linear) == TINYGLTF_TEXTURE_FILTER_LINEAR);
+static_assert(std::to_underlying(asl::MinFilter::nearestMipMapNearest) == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST);
+static_assert(std::to_underlying(asl::MinFilter::linearMipMapNearest) == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST);
+static_assert(std::to_underlying(asl::MinFilter::nearestMipMapLinear) == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR);
+static_assert(std::to_underlying(asl::MinFilter::linearMipMapLinear) == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR);
+// Check MagFilter
+static_assert(std::to_underlying(asl::MagFilter::nearest) == TINYGLTF_TEXTURE_FILTER_NEAREST);
+static_assert(std::to_underlying(asl::MagFilter::linear) == TINYGLTF_TEXTURE_FILTER_LINEAR);
+// Check Wrapping
+static_assert(std::to_underlying(asl::Wrapping::repeat) == TINYGLTF_TEXTURE_WRAP_REPEAT);
+static_assert(std::to_underlying(asl::Wrapping::clampToEdge) == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE);
+static_assert(std::to_underlying(asl::Wrapping::mirroredRepeat) == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT);
+//
+//
 namespace
 {
 constexpr std::int32_t NONE = -1;
@@ -264,5 +280,90 @@ Material::Material(const tinygltf::Model& model, const tinygltf::Material& mater
 {
     // TODO:
     // Material extensions goes here: material.extensions
+}
+MaterialView Material::view_materials() const
+{
+    MaterialView view{};
+    if (m_Base)
+    {
+        view.base = view_base();
+    }
+    if (m_MetalRough)
+    {
+        view.metalRough = view_metal_rough();
+    }
+    if (m_Normal)
+    {
+        view.normal = view_normal();
+    }
+    if (m_Occlusion)
+    {
+        view.occlusion = view_occlusion();
+    }
+    if (m_Emissive)
+    {
+        view.emissive = view_emissive();
+    }
+
+    view.alphaSettings = m_AlphaSettings;
+    view.doubleSided = m_DoubleSided;
+
+    return view;
+}
+BaseView Material::view_base() const
+{
+    BaseView view{};
+    view.factor = m_Base->factor;
+    view.imageWidth = m_Base->imageWidth;
+    view.imageHeight = m_Base->imageHeight;
+    view.imageBuffer = std::span<const std::uint8_t>{ m_Base->imageBuffer.data(), m_Base->imageBuffer.size() };
+    view.sampler = m_Base->sampler;
+
+    return view;
+}
+MetallicRoughnessView Material::view_metal_rough() const
+{
+    MetallicRoughnessView view{};
+    view.metallic = m_MetalRough->metallic;
+    view.roughness = m_MetalRough->roughness;
+    view.imageWidth = m_MetalRough->imageWidth;
+    view.imageHeight = m_MetalRough->imageHeight;
+    view.imageBuffer = std::span<const std::uint8_t>{ m_MetalRough->imageBuffer.data(), m_MetalRough->imageBuffer.size() };
+    view.sampler = m_MetalRough->sampler;
+
+    return view;
+}
+NormalView Material::view_normal() const
+{
+    NormalView view{};
+    view.scale = m_Normal->scale;
+    view.imageWidth = m_Normal->imageWidth;
+    view.imageHeight = m_Normal->imageHeight;
+    view.imageBuffer = std::span<const std::uint8_t>{ m_Normal->imageBuffer.data(), m_Normal->imageBuffer.size() };
+    view.sampler = m_Normal->sampler;
+
+    return view;
+}
+OcclusionView Material::view_occlusion() const
+{
+    OcclusionView view{};
+    view.strength = m_Occlusion->strength;
+    view.imageWidth = m_Occlusion->imageWidth;
+    view.imageHeight = m_Occlusion->imageHeight;
+    view.imageBuffer = std::span<const std::uint8_t>{ m_Occlusion->imageBuffer.data(), m_Occlusion->imageBuffer.size() };
+    view.sampler = m_Occlusion->sampler;
+
+    return view;
+}
+EmissiveView Material::view_emissive() const
+{
+    EmissiveView view{};
+    view.factor = m_Emissive->factor;
+    view.imageWidth = m_Emissive->imageWidth;
+    view.imageHeight = m_Emissive->imageHeight;
+    view.imageBuffer = std::span<const std::uint8_t>{ m_Emissive->imageBuffer.data(), m_Emissive->imageBuffer.size() };
+    view.sampler = m_Emissive->sampler;
+
+    return view;
 }
 }    // namespace asl

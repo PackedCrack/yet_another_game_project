@@ -5,5 +5,5 @@
 #pragma once
 
 
-#include "debug/debug_defines.h"
-#include "debug/Logger.h"
+#include <debug/debug_defines.hpp>
+#include <debug/Logger.hpp>

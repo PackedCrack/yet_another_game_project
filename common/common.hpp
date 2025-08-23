@@ -147,4 +147,10 @@ requires std::contiguous_iterator<typename container_t::iterator>
     ODIN_ASSERT(auto boundsCheck = std::begin(buffer) + offset; boundsCheck <= std::end(buffer));
     return std::span<element_t>{ buffer.data() + offset, length };
 }
+template<typename buffer_t, typename element_t = std::remove_cvref_t<buffer_t>::value_type>
+requires std::ranges::contiguous_range<std::remove_cvref_t<buffer_t>>
+[[nodiscard]] std::span<element_t> to_span(buffer_t&& buffer)
+{
+    return { buffer.data(), buffer.size() };
+}
 }    // namespace common
