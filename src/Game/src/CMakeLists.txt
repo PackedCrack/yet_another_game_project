@@ -2,4 +2,4 @@ SET(SOURCES
     main.cpp
 )
 
-target_sources(${GAME_PROJECT} PRIVATE ${SOURCES})
+target_sources(${GAME_TARGET} PRIVATE ${SOURCES})

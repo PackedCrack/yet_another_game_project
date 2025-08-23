@@ -1,8 +1,10 @@
 #include "gltf_loader.hpp"
 
 #include "asl_defines.hpp"
-#include "common.h"
+#include "common.hpp"
 #include "Model.hpp"
+// glm
+#include <glm_headers.hpp>
 //
 //
 namespace
@@ -16,11 +18,14 @@ constexpr std::int64_t NONE = -1;
 {
     return !node.matrix.empty();
 }
-[[nodiscard]] asl::TRS make_translation_rotaion_scale(const tinygltf::Node& node)
+[[nodiscard]] asl::TRS make_translation_rotation_scale(const tinygltf::Node& node)
 {
-    asl::TRS trs{ .rotation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f),
-                  .translation = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-                  .scale = glm::vec4(1.0f) };
+    static constexpr std::size_t x = 0;
+    static constexpr std::size_t y = 1;
+    static constexpr std::size_t z = 2;
+    static constexpr std::size_t w = 3;
+
+    asl::TRS trs{ .orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f), .translation = glm::vec3(0.0f, 0.0f, 0.0f), .scale = 1.0f };
     if (has_local_matrix(node))
     {
         [[maybe_unused]] glm::vec3 skew{};
@@ -31,23 +36,22 @@ constexpr std::int64_t NONE = -1;
         ODIN_ASSERT(false);
         // PROBABLY A BUG SINCE WE'RE NOT CASTING FROM DOUBLE TO FLOAT
         glm::mat4 localMatrix = glm::make_mat4x4(node.matrix.data());
-        glm::decompose(localMatrix, scale, trs.rotation, translation, skew, projection);
-        trs.scale = glm::vec4(scale, 1.0f);
+        glm::decompose(localMatrix, scale, trs.orientation, translation, skew, projection);
+
         trs.translation = glm::vec4(translation, 1.0f);
+
+        ODIN_ASSERT(scale[x] == scale[y]);
+        ODIN_ASSERT(scale[y] == scale[z]);
+        trs.scale = scale[x];
     }
     else
     {
-        static constexpr std::size_t x = 0;
-        static constexpr std::size_t y = 1;
-        static constexpr std::size_t z = 2;
-        static constexpr std::size_t w = 3;
         if (!node.translation.empty())
         {
             ODIN_ASSERT(node.translation.size() == 3);
-            trs.translation = glm::vec4{ static_cast<float>(node.translation[x]),
+            trs.translation = glm::vec3{ static_cast<float>(node.translation[x]),
                                          static_cast<float>(node.translation[y]),
-                                         static_cast<float>(node.translation[z]),
-                                         1.0f };
+                                         static_cast<float>(node.translation[z]) };
         }
         if (!node.rotation.empty())
         {
@@ -56,13 +60,14 @@ constexpr std::int64_t NONE = -1;
                                static_cast<float>(node.rotation[y]),
                                static_cast<float>(node.rotation[z]),
                                static_cast<float>(node.rotation[w]) };
-            trs.rotation = glm::make_quat(std::addressof(asFloat[x]));
+            trs.orientation = glm::make_quat(std::addressof(asFloat[x]));
         }
         if (!node.scale.empty())
         {
             ODIN_ASSERT(node.scale.size() == 3);
-            trs.scale =
-                glm::vec4{ static_cast<float>(node.scale[x]), static_cast<float>(node.scale[y]), static_cast<float>(node.scale[z]), 1.0f };
+            ODIN_ASSERT(node.scale[x] == node.scale[y]);
+            ODIN_ASSERT(node.scale[y] == node.scale[z]);
+            trs.scale = static_cast<float>(node.scale[x]);
         }
     }
 
@@ -73,8 +78,15 @@ constexpr std::int64_t NONE = -1;
     // TODO: extensions support goes here
     // root.extensions
 
-    asl::TRS trs = make_translation_rotaion_scale(node);
+    asl::TRS trs = make_translation_rotation_scale(node);
     asl::ModelNode modelNode{ trs, asl::make_mesh(model, node) };
+
+    for (auto&& index : node.children)
+    {
+        const tinygltf::Node& child = model.nodes[index];
+        [[maybe_unused]] asl::ModelNode& m = modelNode.emplace_neighbour(make_model_node(model, child));
+    }
+
     // TODO: weights goes here
     // mesh = extract_weights(root.weights, mesh);
 
@@ -87,7 +99,12 @@ constexpr std::int64_t NONE = -1;
 
     return modelNode;
 }
-[[nodiscard]] const tinygltf::Node& get_root_node(const tinygltf::Model& model)
+[[nodiscard]] asl::ModelNode make_dummy_node()
+{
+    asl::TRS trs{ .orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f), .translation = glm::vec3(0.0f, 0.0f, 0.0f), .scale = 1.0f };
+    return asl::ModelNode{ trs, std::nullopt };
+}
+[[nodiscard]] common::CGraph<asl::ModelNode> make_scene_graph(const tinygltf::Model& model)
 {
     if (model.scenes.size() != 1)
     {
@@ -103,14 +120,28 @@ constexpr std::int64_t NONE = -1;
     // TODO: extensions support goes here
     // scene.extensions
 
+    //asl::ModelNode root{};
     // indices for the root nodes of the scene
     const std::vector<int32_t>& indices = scene.nodes;
     if (indices.size() != 1)
     {
-        LOG_FATAL("GLTF file contains multiple root nodes. The file likely contains multiple models. Investigate");
+        asl::ModelNode root = make_dummy_node();
+        for (auto&& index : indices)
+        {
+            auto i = static_cast<std::size_t>(index);
+            const tinygltf::Node& tinynode = model.nodes[i];
+            [[maybe_unused]] asl::ModelNode& m = root.emplace_neighbour(make_model_node(model, tinynode));
+        }
+        return common::CGraph{ std::move(root) };
+    }
+    else
+    {
+        const tinygltf::Node& tinynode = model.nodes[static_cast<std::size_t>(indices.front())];
+        //root = make_model_node(model, tinynode);
+        return common::CGraph{ make_model_node(model, tinynode) };
     }
 
-    return model.nodes[static_cast<std::size_t>(indices.front())];
+    //return common::CGraph{ std::move(root) };
 }
 [[nodiscard]] common::CGraph<asl::ModelNode> load_glb(const std::filesystem::path& filename)
 {
@@ -120,6 +151,7 @@ constexpr std::int64_t NONE = -1;
     tinygltf::Model model{};
     if (!loader.LoadBinaryFromFile(&model, &err, &warn, filename.string()))
     {
+        // TODO: LOAD ERROR MODEL HERE?
         LOG_FATAL("LOADING::GLB::FILE::ERROR: \"{}\"", err.c_str());
     }
     if (!warn.empty())
@@ -127,18 +159,14 @@ constexpr std::int64_t NONE = -1;
         LOG_WARN("LOADING::GLB::FILE::WARNING: \"{}\"", warn.c_str());
     }
 
-    const tinygltf::Node& root = get_root_node(model);
-    common::CGraph graph{ make_model_node(model, root) };
-    const asl::ModelNode& modelGraphRoot = graph.root();
-
-    return graph;
+    return make_scene_graph(model);
 }
 }    // namespace
 namespace asl
 {
 common::CGraph<ModelNode> load_model(const std::filesystem::path& filename)
 {
-    LOG_DEBUG("Loading GLFT file: {}", filename.string().c_str());
+    LOG_DEBUG("Loading GLTF file: {}", filename.string().c_str());
 
     ODIN_ASSERT(filename.has_extension());
     std::string extension = filename.extension().string();

@@ -1,92 +1,66 @@
 //
-// Created by qwerty on 22/07/2024.
+// Created by qwerty on 24/07/2025.
 //
 
 #pragma once
 
-#include "CGraph.hpp"
-#include "Renderable.hpp"
+#include "common_types.hpp"
+#include "Material.hpp"
+// glm
+#include <glm_headers.hpp>
+// std
+#include <optional>
+#include <string>
+#include <vector>
+#include <unordered_map>
 //
 //
 namespace asl
 {
-struct TRS
+//enum class PrimitiveMode
+//{
+//    POINTS = TINYGLTF_MODE_POINTS,
+//    LINE = TINYGLTF_MODE_LINE,
+//    LINE_LOOP = TINYGLTF_MODE_LINE_LOOP,
+//    LINE_STRIP = TINYGLTF_MODE_LINE_STRIP,
+//    TRIANGLES = TINYGLTF_MODE_TRIANGLES,
+//    TRIANGLE_STRIP = TINYGLTF_MODE_TRIANGLE_STRIP,
+//    TRIANGLE_FAN = TINYGLTF_MODE_TRIANGLE_FAN,
+//    // if something goes wrong
+//    UNKNOWN
+//};
+//
+//
+//
+struct Renderable
 {
-    glm::quat rotation;
-    glm::vec4 translation;
-    glm::vec4 scale;
+    using color_cache = std::unordered_map<std::string, std::vector<glm::vec4>>;
+    using uv_cache = std::unordered_map<std::string, std::vector<glm::vec2>>;
+    using joints_cache = std::unordered_map<std::string, std::vector<glm::vec4>>;
+    using weights_cache = std::unordered_map<std::string, std::vector<glm::vec4>>;
+
+    std::vector<glm::vec3> vertexPosition;
+    std::vector<std::uint16_t> indices;
+    std::optional<std::vector<glm::vec3>> normal;
+    std::optional<std::vector<glm::vec4>> tangent;
+
+    PrimitiveMode topology;
+
+    // <key, value> = <TEXCOORD_n, data>
+    uv_cache textureCoordinates;
+    // <key, value> = <COLOR_n, data>
+    color_cache colors;
+    // <key, value> = <JOINTS_n, data>
+    joints_cache joints;
+    // <key, value> = <WEIGHTS_n, data>
+    weights_cache weights;
+
+    Material material;
 };
-static std::size_t TEMPORARY = 0;
-class ModelNode : public common::GraphVertex<ModelNode>
+struct Mesh
 {
-    std::size_t id{ TEMPORARY++ };
-    TRS m_Transform;
-    std::optional<Mesh> m_Geometry;
-public:
-    ModelNode() = default;
-    ModelNode(const TRS& transform, std::optional<Mesh> mesh);
-    friend bool operator==(const ModelNode& lhs, const ModelNode& rhs);
-    friend bool operator!=(const ModelNode& lhs, const ModelNode& rhs);
+    [[nodiscard]] MeshView view() const;
+    std::vector<Renderable> renderables;
 };
-// struct Primitive    // Mesh 2.0
-// {
-//     glm::vec3 translation;
-//     glm::quat rotation;
-//     glm::vec3 scale;
-//
-//     std::vector<glm::vec3> position;    // Vertex positions
-//     std::vector<uint16_t> indices;
-//     std::optional<std::vector<glm::vec3>> normal;
-//     std::optional<std::vector<glm::vec4>> tanget;
-//     std::optional<std::vector<glm::vec2>> uv;
-//     std::optional<std::vector<glm::vec4>> color;
-//     std::optional<std::vector<glm::vec4>> joints;
-//     std::optional<std::vector<glm::vec4>> weights;
-//
-//     // TODO:
-//     // GPU Topology mode goes here.
-//
-//     // <key, value> = <COLOR_n, data>
-//     std::unordered_map<std::string, std::vector<glm::vec4>> ColorCache;
-//     // <key, value> = <TEXCOORD_n, data>
-//     std::unordered_map<std::string, std::vector<glm::vec2>> UVCache;
-//     // <key, value> = <JOINTS_n, data>
-//     std::unordered_map<std::string, std::vector<glm::vec4>> jointCache;
-//     // <key, value> = <WEIGHTS_n, data>
-//     std::unordered_map<std::string, std::vector<glm::vec4>> weightsCache;
-//
-//     Material material;
-// };
-// struct Mesh : public common::GraphVertex<Mesh>
-// {
-//     Mesh();
-//     std::size_t counter;    // replace this with UUID
-//     std::size_t id;
-//
-//
-//     glm::vec3 translation;
-//     glm::quat rotation;
-//     glm::vec3 scale;
-//
-//
-//     std::vector<glm::vec3> position;    // Vertex positions
-//     std::vector<uint16_t> indices;
-//     std::optional<std::vector<glm::vec3>> normal;
-//     std::optional<std::vector<glm::vec4>> tanget;
-//     std::optional<std::vector<glm::vec2>> uv;
-//     std::optional<std::vector<glm::vec4>> color;
-//     std::optional<std::vector<glm::vec4>> joints;
-//     std::optional<std::vector<glm::vec4>> weights;
-//
-//
-//     std::optional<double> metallic;
-//     std::optional<double> roughness;
-//     std::optional<TextureData> baseTexture;
-//     std::optional<TextureData> metallicRoughnessTexture;
-//     std::optional<TextureData> normalTexture;
-//     std::optional<TextureData> occlusionTexture;
-//     std::optional<TextureData> emissiveTexture;
-//     friend bool operator==(const Mesh& lhs, const Mesh& rhs);
-//     friend bool operator!=(const Mesh& lhs, const Mesh& rhs);
-// };
+[[nodiscard]] std::optional<Mesh> make_mesh(const tinygltf::Model& model, const tinygltf::Node& node);
 }    // namespace asl

@@ -5,9 +5,8 @@
 
 // external
 #include "tinygltf/tiny_gltf.h"
-#include "glm_headers.hpp"
 // internal
-#include "Mesh.hpp"
+#include "ModelNode.hpp"
 //
 //
 namespace asl

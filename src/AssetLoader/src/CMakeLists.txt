@@ -4,18 +4,20 @@ SET(SOURCES
         Model.hpp
         Model.cpp
         Mesh.hpp
-        Renderable.cpp
-        Renderable.hpp
         Mesh.cpp
+        ModelNode.hpp
+        ModelNode.cpp
         Material.cpp
         Material.hpp
         gltf_loader.hpp
         gltf_loader.cpp
         asl_defines.hpp
+	common_types.hpp
 )
 
 set(EXPORT_HEADERS
         Model.hpp
+	common_types.hpp
 )
 
 target_sources(${ASSET_LOADER_PROJECT} PRIVATE ${SOURCES})

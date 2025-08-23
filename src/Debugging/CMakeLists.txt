@@ -12,6 +12,9 @@ get_target_property(DEBUGGING_PROJECT_SOURCES ${DEBUGGING_PROJECT} SOURCES)
 source_group(TREE "${PROJECT_SOURCE_DIR}/.." FILES ${DEBUGGING_PROJECT_SOURCES})
 
 target_compile_definitions(${DEBUGGING_PROJECT} PRIVATE SELF_COMPILIATION)
+if (MSVC)
+    target_compile_options(${DEBUGGING_PROJECT} PRIVATE "/utf-8")
+endif ()
 
 use_pch(${DEBUGGING_PROJECT})
 apply_compiler_warnings(${DEBUGGING_PROJECT})
@@ -20,6 +23,7 @@ enforce_cxx_standard(${DEBUGGING_PROJECT})
 
 #enable_cppcheck(${DEBUGGING_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_clang_format(${DEBUGGING_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/src")
+enable_enum_switch_error(${DEBUGGING_PROJECT})
 
 target_include_directories(${DEBUGGING_PROJECT} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_include_directories(${DEBUGGING_PROJECT} PRIVATE "external")
@@ -50,3 +54,9 @@ else()
 endif()
 
 add_dependencies(${DEBUGGING_PROJECT} ${DEBUGGING_PROJECT}_cppcheck_dependency)
+
+set_target_properties(${DEBUGGING_PROJECT}
+                      ${DEBUGGING_PROJECT}_cppcheck_dependency    
+                      PROPERTIES 
+                      FOLDER 
+                      "Debug")
