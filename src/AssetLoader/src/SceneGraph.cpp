@@ -1,15 +1,15 @@
 //
 // Created by qwerty on 23/07/2024.
 //
-#include "Model.hpp"
-#include "ModelNode.hpp"
+#include "SceneGraph.hpp"
+#include "SceneGraphNode.hpp"
 #include "gltf_loader.hpp"
 #include "asl_defines.hpp"
 //
 //
 namespace asl
 {
-class Model::Impl
+class SceneGraph::Impl
 {
 public:
     explicit Impl(std::filesystem::path&& filename)
@@ -21,27 +21,23 @@ public:
     {
         m_Model.dfs(std::forward<invocable_t>(invocable));
     }
-    std::string filename() const { return m_Filename.string(); }
+    const std::filesystem::path& filename() const { return m_Filename; }
 private:
     std::filesystem::path m_Filename;
-    common::CGraph<ModelNode> m_Model;
+    common::CGraph<SceneGraphNode> m_Model;
 };
 ///////////////////
 // Exposed Pimpl //
-Model::Model(std::filesystem::path filename)
+SceneGraph::SceneGraph(std::filesystem::path filename)
     : m_pImpl{ std::make_unique<Impl>(std::move(filename)) }
 {}
-Model::~Model() = default;
-Model::Model(Model&&) noexcept = default;
-Model& Model::operator=(Model&&) noexcept = default;
-//std::vector<RenderableView> Model::view_renderables() const
-//{
-//    return m_pImpl->view_renderables();
-//}
-void Model::dfs(std::function<void(const NodeView*, const NodeView*)> visitor) const
+SceneGraph::~SceneGraph() = default;
+SceneGraph::SceneGraph(SceneGraph&&) noexcept = default;
+SceneGraph& SceneGraph::operator=(SceneGraph&&) noexcept = default;
+void SceneGraph::dfs(std::function<void(const NodeView*, const NodeView*)> visitor) const
 {
-    std::unordered_map<const ModelNode*, NodeView> viewCache{};
-    auto implVisitor = [&viewCache, v = std::move(visitor)](const ModelNode* pParent, const ModelNode* pChild)
+    std::unordered_map<const SceneGraphNode*, NodeView> viewCache{};
+    auto implVisitor = [&viewCache, v = std::move(visitor)](const SceneGraphNode* pParent, const SceneGraphNode* pChild)
     {
         const NodeView* pParentView = nullptr;
         if (pParent != nullptr)
@@ -62,7 +58,7 @@ void Model::dfs(std::function<void(const NodeView*, const NodeView*)> visitor) c
     };
     m_pImpl->dfs(std::move(implVisitor));
 }
-std::string Model::filename() const
+const std::filesystem::path& SceneGraph::filename() const
 {
     return m_pImpl->filename();
 }

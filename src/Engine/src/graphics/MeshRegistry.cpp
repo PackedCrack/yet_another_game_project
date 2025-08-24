@@ -130,11 +130,13 @@ MeshRegistry::MeshRegistry(const RenderResources& renderResources)
     , m_pMeshTableArena{ make_mesh_table_arena(renderResources) }
     , m_Meshes{}
 {}
-void MeshRegistry::touch(const std::string& filepath)
+void MeshRegistry::touch(const asl::ModelHandle& handle)
 {
-    ODIN_ASSERT(m_Meshes.contains(filepath));
+    std::shared_ptr<const asl::SceneGraph> pGraph = handle.acquire();
+    std::string filename = pGraph->filename().string();
+    ODIN_ASSERT(m_Meshes.contains(filename));
 
-    std::vector<MeshEntry>& meshEntries = m_Meshes.at(filepath);
+    std::vector<MeshEntry>& meshEntries = m_Meshes.at(filename);
     for (auto&& mesh : meshEntries)
     {
         mesh.lastUsed++;
@@ -144,9 +146,11 @@ void MeshRegistry::register_model(TransferManager& transferManager,
                                   const RenderResources& resources,
                                   vk::QueueView graphicsQ,
                                   const std::shared_ptr<vk::Allocator>& pAllocator,
-                                  const asl::Model& model)
+                                  const asl::ModelHandle& handle)
 {
-    auto [kvPair, emplaced] = m_Meshes.try_emplace(model.filename());
+    std::shared_ptr<const asl::SceneGraph> pGraph = handle.acquire();
+
+    auto [kvPair, emplaced] = m_Meshes.try_emplace(pGraph->filename().string());
     ODIN_ASSERT(emplaced);
 
     std::vector<MeshEntry>& newEntries = kvPair->second;
@@ -186,19 +190,19 @@ void MeshRegistry::register_model(TransferManager& transferManager,
             newEntries.push_back(make_dummy_entry());
         }
     };
-    model.dfs(std::move(visitor));
+    pGraph->dfs(std::move(visitor));
 }
-const std::vector<MeshEntry>& MeshRegistry::entries(const components::Model& model) const
+const std::vector<MeshEntry>& MeshRegistry::entries(const asl::ModelHandle& handle) const
 {
+    std::shared_ptr<const asl::SceneGraph> pGraph = handle.acquire();
     // TODO: UUID in the future
-    const std::filesystem::path& filename = model.filename;
-    return m_Meshes.at(filename.string());
+    return m_Meshes.at(pGraph->filename().string());
 }
-bool MeshRegistry::contains(const components::Model& model) const
+bool MeshRegistry::contains(const asl::ModelHandle& handle) const
 {
+    std::shared_ptr<const asl::SceneGraph> pGraph = handle.acquire();
     // TODO: UUID in the future
-    const std::filesystem::path& filename = model.filename;
-    return m_Meshes.contains(filename.string());
+    return m_Meshes.contains(pGraph->filename().string());
 }
 std::optional<EntryAllocation> MeshRegistry::make_entry_allocation(std::span<vertex_t> vertices, std::span<const index_t> indices)
 {

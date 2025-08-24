@@ -8,10 +8,10 @@
 #include <cstdint>
 //
 //
-namespace odin::components
+namespace odin::component
 {
 struct Mesh
 {
     graphics::MeshID id;
 };
-}    // namespace odin::components
+}    // namespace odin::component

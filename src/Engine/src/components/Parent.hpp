@@ -6,10 +6,10 @@
 #include "../ECS.hpp"
 //
 //
-namespace odin::components
+namespace odin::component
 {
 struct Parent
 {
     std::optional<Entity> parent;
 };
-}    // namespace odin::components
+}    // namespace odin::component

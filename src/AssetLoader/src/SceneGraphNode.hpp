@@ -13,13 +13,12 @@
 namespace asl
 {
 static std::size_t TEMPORARY = 0;
-class ModelNode : public common::GraphVertex<ModelNode>
+class SceneGraphNode : public common::GraphVertex<SceneGraphNode>
 {
 public:
-    //ModelNode() = default;
-    ModelNode(const TRS& transform, std::optional<Mesh> mesh);
-    friend bool operator==(const ModelNode& lhs, const ModelNode& rhs);
-    friend bool operator!=(const ModelNode& lhs, const ModelNode& rhs);
+    SceneGraphNode(const TRS& transform, std::optional<Mesh> mesh);
+    friend bool operator==(const SceneGraphNode& lhs, const SceneGraphNode& rhs);
+    friend bool operator!=(const SceneGraphNode& lhs, const SceneGraphNode& rhs);
 public:
     [[nodiscard]] const std::optional<Mesh>& geometry() const;
     [[nodiscard]] NodeView view() const;

@@ -4,6 +4,7 @@ SET(SOURCES
 	Mesh.hpp
 	Parent.hpp
 	Model.hpp
+	Model.cpp
 )
 
 set(EXPORT_HEADERS

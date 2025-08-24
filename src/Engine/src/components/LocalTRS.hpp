@@ -7,7 +7,7 @@
 #include <glm_headers.hpp>
 //
 //
-namespace odin::components
+namespace odin::component
 {
 struct LocalTRS
 {
@@ -15,4 +15,4 @@ struct LocalTRS
     glm::vec3 translation;
     float scale;
 };
-}    // namespace odin::components
+}    // namespace odin::component

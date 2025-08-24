@@ -9,18 +9,14 @@
 #include "components/Model.hpp"
 #include "components/Parent.hpp"
 #include "components/WorldTRS.hpp"
+#include "graphics/Graphics.hpp"
 #include "window/Window.hpp"
 // Debug
 #include <debug/Logger.hpp>
 #include <debug/debug_defines.hpp>
 // AssetLoader
-#include <assetloader/Model.hpp>
-//
-//
-namespace
-{
-using namespace odin;
-}    // namespace
+#include <assetloader/AssetRegistry.hpp>
+#include <assetloader/SceneGraph.hpp>
 //
 //
 namespace odin
@@ -36,6 +32,7 @@ class Odin::Impl
 public:
     Impl(OdinInfo info)
         : m_State{ State::end }
+        , m_Assets{}
         , m_Wnd{ info.applicationName, info.windowInfo }
         , m_Gfx{ info, m_Wnd }
     {}
@@ -47,22 +44,25 @@ public:
         m_State = State::begin;
 
         ECS& ecs = m_ECS->get();
-        auto register_if_needed = [this, &ecs](Entity e, const components::Model& model)
+        auto register_if_needed = [this, &ecs](Entity e, component::Model& model)
         {
-            // Use AssetRegistry when it implemented
-            // asl::Model sceneGraph = assetRegistry.load(model);
-            asl::Model sceneGraph{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
-            if (!m_Gfx.is_registered(model))
+            if (!model.handle)
             {
-                m_Gfx.register_model(sceneGraph);
+                model.handle = m_Assets.model_handle(model.filepath);
+            }
 
-                std::vector<Entity> submeshes = make_submesh_entities(sceneGraph);
+            const asl::ModelHandle& handle = model.handle;
+            if (!m_Gfx.is_registered(handle))
+            {
+                m_Gfx.register_model(handle);
 
-                std::vector<graphics::MeshID> ids = m_Gfx.mesh_ids(model);
+                std::vector<Entity> submeshes = make_submesh_entities(handle);
+
+                std::vector<graphics::MeshID> ids = m_Gfx.mesh_ids(handle);
                 assign_submesh_ids(submeshes, ids);
             }
         };
-        ecs.for_each<components::Model>(register_if_needed);
+        ecs.for_each<component::Model>(register_if_needed);
     }
     void render()
     {
@@ -83,7 +83,7 @@ public:
         return pECS;
     }
 private:
-    std::vector<Entity> make_submesh_entities(asl::Model& sceneGraph)
+    std::vector<Entity> make_submesh_entities(const asl::ModelHandle& handle)
     {
         ECS& ecs = m_ECS.value();
 
@@ -97,11 +97,9 @@ private:
                 Entity& child = kvPair->second;
 
                 const asl::TRS& local = pChild->local;
-                child.emplace<components::LocalTRS>(local.orientation, local.translation, local.scale);
-                child.emplace<components::Mesh>();
-                child.emplace<components::WorldTRS>();
-
-
+                child.emplace<component::LocalTRS>(local.orientation, local.translation, local.scale);
+                child.emplace<component::Mesh>();
+                child.emplace<component::WorldTRS>();
                 submeshes.push_back(child);
 
                 if (pParent != nullptr)
@@ -109,31 +107,35 @@ private:
                     ODIN_ASSERT(entityTracker.contains(pParent));
 
                     Entity& parent = entityTracker.at(pParent);
-                    child.emplace<components::Parent>(std::make_optional(parent));
+                    child.emplace<component::Parent>(std::make_optional(parent));
                 }
                 else
                 {
-                    child.emplace<components::Parent>(std::nullopt);
+                    child.emplace<component::Parent>(std::nullopt);
                 }
             }
         };
-        sceneGraph.dfs(visitor);
+
+        std::shared_ptr<const asl::SceneGraph> pGraph = handle.acquire();
+        pGraph->dfs(visitor);
+
         return submeshes;
     }
     void assign_submesh_ids(const std::vector<Entity>& submeshes, const std::vector<graphics::MeshID>& ids)
     {
         std::size_t index{};
-        auto assign_mesh_id = [&ids, &index]([[maybe_unused]] Entity e, components::Mesh& mesh)
+        auto assign_mesh_id = [&ids, &index]([[maybe_unused]] Entity e, component::Mesh& mesh)
         {
             graphics::MeshID id = ids[index++];
             mesh.id = id;
         };
         ECS& ecs = m_ECS.value();
-        ecs.for_each<components::Mesh>(submeshes, assign_mesh_id);
+        ecs.for_each<component::Mesh>(submeshes, assign_mesh_id);
     }
 private:
     State m_State;
     // AssetRegistry
+    asl::AssetRegistry m_Assets;
     window::Window m_Wnd;
     graphics::Graphics m_Gfx;
     std::optional<std::reference_wrapper<ECS>> m_ECS;

@@ -4,11 +4,10 @@
 #pragma once
 
 #include "../OdinInfo.hpp"
-#include "../components/Model.hpp"
 #include "../window/Window.hpp"
 #include "MeshID.hpp"
 // AssetLoader
-#include <assetloader/Model.hpp>
+#include <assetloader/ModelHandle.hpp>
 //
 //
 namespace odin::graphics
@@ -23,9 +22,9 @@ public:
     Graphics& operator=(Graphics&& other) noexcept;
 public:
     void draw();
-    void register_model(const asl::Model& sceneGraph);
-    [[nodiscard]] bool is_registered(const components::Model& model) const;
-    [[nodiscard]] std::vector<MeshID> mesh_ids(const components::Model& model) const;
+    void register_model(const asl::ModelHandle& handle);
+    [[nodiscard]] bool is_registered(const asl::ModelHandle& handle) const;
+    [[nodiscard]] std::vector<MeshID> mesh_ids(const asl::ModelHandle& handle) const;
 private:
     std::unique_ptr<Impl> m_pImpl;
 };
