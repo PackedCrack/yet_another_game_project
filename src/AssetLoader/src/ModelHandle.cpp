@@ -9,12 +9,10 @@
 namespace asl
 {
 ModelHandle::ModelHandle(std::shared_ptr<ModelSlot> pSlot)
-    : m_pSlot{ std::move(pSlot) }
-{
-    ODIN_ASSERT(m_pSlot != nullptr);
-}
+    : m_pSlot{ pSlot == nullptr ? nullptr : std::move(pSlot) }
+{}
 std::shared_ptr<const SceneGraph> ModelHandle::acquire() const
 {
-    return m_pSlot->pGraph.load();
+    return std::atomic_load(std::addressof(m_pSlot->pGraph));
 }
 }    // namespace asl

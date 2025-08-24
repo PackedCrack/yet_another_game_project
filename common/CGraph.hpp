@@ -40,6 +40,34 @@ public:
     {}
 public:
     [[nodiscard]] const vertex_t& root() const { return m_Root; }
+    template<typename invocable_t>
+    requires std::invocable<invocable_t, const vertex_t*, const vertex_t*>
+    void dfs(invocable_t visit) const
+    {
+        struct StackFrame
+        {
+            const vertex_t* pParent;
+            const vertex_t* pChild;
+        };
+
+        std::stack<StackFrame> stack{};
+        stack.push(StackFrame{ nullptr, std::addressof(m_Root) });
+
+        while (!stack.empty())
+        {
+            const StackFrame frame = stack.top();
+            stack.pop();
+            
+            const vertex_t* pParent = frame.pParent;
+            const vertex_t* pNode = frame.pChild;
+            visit(pParent, pNode);
+
+            for (auto&& neighbour : pNode->neighbours)
+            {
+                stack.push(StackFrame{ pNode, std::addressof(neighbour) });
+            }
+        }
+    }
 private:
     vertex_t m_Root;
 };

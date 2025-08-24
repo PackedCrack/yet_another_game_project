@@ -21,7 +21,7 @@ public:
     {
         m_Model.dfs(std::forward<invocable_t>(invocable));
     }
-    std::string filename() const { return m_Filename.string(); }
+    const std::filesystem::path& filename() const { return m_Filename; }
 private:
     std::filesystem::path m_Filename;
     common::CGraph<SceneGraphNode> m_Model;
@@ -58,7 +58,7 @@ void SceneGraph::dfs(std::function<void(const NodeView*, const NodeView*)> visit
     };
     m_pImpl->dfs(std::move(implVisitor));
 }
-std::string SceneGraph::filename() const
+const std::filesystem::path& SceneGraph::filename() const
 {
     return m_pImpl->filename();
 }

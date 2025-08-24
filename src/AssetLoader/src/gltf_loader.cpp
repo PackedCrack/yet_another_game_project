@@ -20,9 +20,12 @@ constexpr std::int64_t NONE = -1;
 }
 [[nodiscard]] asl::TRS make_translation_rotation_scale(const tinygltf::Node& node)
 {
-    asl::TRS trs{ .rotation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f),
-                  .translation = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-                  .scale = glm::vec4(1.0f) };
+    static constexpr std::size_t x = 0;
+    static constexpr std::size_t y = 1;
+    static constexpr std::size_t z = 2;
+    static constexpr std::size_t w = 3;
+
+    asl::TRS trs{ .orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f), .translation = glm::vec3(0.0f, 0.0f, 0.0f), .scale = 1.0f };
     if (has_local_matrix(node))
     {
         [[maybe_unused]] glm::vec3 skew{};
@@ -33,23 +36,22 @@ constexpr std::int64_t NONE = -1;
         ODIN_ASSERT(false);
         // PROBABLY A BUG SINCE WE'RE NOT CASTING FROM DOUBLE TO FLOAT
         glm::mat4 localMatrix = glm::make_mat4x4(node.matrix.data());
-        glm::decompose(localMatrix, scale, trs.rotation, translation, skew, projection);
-        trs.scale = glm::vec4(scale, 1.0f);
+        glm::decompose(localMatrix, scale, trs.orientation, translation, skew, projection);
+
         trs.translation = glm::vec4(translation, 1.0f);
+
+        ODIN_ASSERT(scale[x] == scale[y]);
+        ODIN_ASSERT(scale[y] == scale[z]);
+        trs.scale = scale[x];
     }
     else
     {
-        static constexpr std::size_t x = 0;
-        static constexpr std::size_t y = 1;
-        static constexpr std::size_t z = 2;
-        static constexpr std::size_t w = 3;
         if (!node.translation.empty())
         {
             ODIN_ASSERT(node.translation.size() == 3);
-            trs.translation = glm::vec4{ static_cast<float>(node.translation[x]),
+            trs.translation = glm::vec3{ static_cast<float>(node.translation[x]),
                                          static_cast<float>(node.translation[y]),
-                                         static_cast<float>(node.translation[z]),
-                                         1.0f };
+                                         static_cast<float>(node.translation[z]) };
         }
         if (!node.rotation.empty())
         {
@@ -58,13 +60,14 @@ constexpr std::int64_t NONE = -1;
                                static_cast<float>(node.rotation[y]),
                                static_cast<float>(node.rotation[z]),
                                static_cast<float>(node.rotation[w]) };
-            trs.rotation = glm::make_quat(std::addressof(asFloat[x]));
+            trs.orientation = glm::make_quat(std::addressof(asFloat[x]));
         }
         if (!node.scale.empty())
         {
             ODIN_ASSERT(node.scale.size() == 3);
-            trs.scale =
-                glm::vec4{ static_cast<float>(node.scale[x]), static_cast<float>(node.scale[y]), static_cast<float>(node.scale[z]), 1.0f };
+            ODIN_ASSERT(node.scale[x] == node.scale[y]);
+            ODIN_ASSERT(node.scale[y] == node.scale[z]);
+            trs.scale = static_cast<float>(node.scale[x]);
         }
     }
 
@@ -117,7 +120,7 @@ constexpr std::int64_t NONE = -1;
     // TODO: extensions support goes here
     // scene.extensions
 
-    asl::ModelNode root{};
+    //asl::ModelNode root{};
     // indices for the root nodes of the scene
     const std::vector<int32_t>& indices = scene.nodes;
     if (indices.size() != 1)
@@ -129,14 +132,16 @@ constexpr std::int64_t NONE = -1;
             const tinygltf::Node& tinynode = model.nodes[i];
             [[maybe_unused]] asl::SceneGraphNode& m = root.emplace_neighbour(make_model_node(model, tinynode));
         }
+        return common::CGraph{ std::move(root) };
     }
     else
     {
         const tinygltf::Node& tinynode = model.nodes[static_cast<std::size_t>(indices.front())];
-        root = make_model_node(model, tinynode);
+        //root = make_model_node(model, tinynode);
+        return common::CGraph{ make_model_node(model, tinynode) };
     }
 
-    return common::CGraph{ std::move(root) };
+    //return common::CGraph{ std::move(root) };
 }
 [[nodiscard]] common::CGraph<asl::SceneGraphNode> load_glb(const std::filesystem::path& filename)
 {

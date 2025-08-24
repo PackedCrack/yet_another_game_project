@@ -16,6 +16,7 @@ SET(SOURCES
         ModelHandle.hpp
         ModelHandle.cpp
         asl_defines.hpp
+	common_types.hpp
 )
 
 set(EXPORT_HEADERS

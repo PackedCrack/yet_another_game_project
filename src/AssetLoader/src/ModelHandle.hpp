@@ -13,6 +13,7 @@ namespace asl
 {
 struct ModelSlot : public std::enable_shared_from_this<ModelSlot>
 {
+    std::mutex initMutex;
     std::atomic<std::shared_ptr<const SceneGraph>> pGraph;
 };
 class ModelHandle
