@@ -5,12 +5,10 @@
 
 #include "OdinInfo.hpp"
 #include "ECS.hpp"
-#include "graphics/Graphics.hpp"
 //
 //
 namespace odin
 {
-// May require a pimpl in the future
 class Odin
 {
     class Impl;

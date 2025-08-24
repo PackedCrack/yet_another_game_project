@@ -14,6 +14,8 @@
 #include "vk/resource/VertexBuffer.hpp"
 // Debug
 #include <debug/Logger.hpp>
+// ASsetLoader
+#include <assetloader/SceneGraph.hpp>
 //
 //
 namespace
@@ -143,20 +145,25 @@ public:
             }
         }
     }
-    void register_model(const asl::Model& sceneGraph)
+    void register_model(const asl::ModelHandle& handle)
     {
         vk::QueueView graphicsQ = m_Context.queue_families().graphics();
         const RenderResources& resources = m_Renderer.render_resources();
         std::shared_ptr<vk::Allocator> pAllocator = m_Context.allocator();
-        m_MeshRegistry.register_model(m_TransferManager, resources, graphicsQ, pAllocator, sceneGraph);
+        m_MeshRegistry.register_model(m_TransferManager, resources, graphicsQ, pAllocator, handle);
     }
-    bool is_registered(const components::Model& model) const { return m_MeshRegistry.contains(model); }
-    std::vector<MeshID> mesh_ids(const components::Model& model) const
+    // clang-format off
+    bool is_registered(const asl::ModelHandle& handle) const 
+    { 
+        return m_MeshRegistry.contains(handle); 
+    }
+    // clang-format on
+    std::vector<MeshID> mesh_ids(const asl::ModelHandle& handle) const
     {
         // This is done to make sure MeshEntry does not leak across pimpl boundary
         // And to make sure ECS is not required in Graphics
         // There is probably a better way of doing this than copying the IDS..
-        const std::vector<MeshEntry>& meshEntries = m_MeshRegistry.entries(model);
+        const std::vector<MeshEntry>& meshEntries = m_MeshRegistry.entries(handle);
         std::vector<MeshID> ids{};
 
         std::transform(std::begin(meshEntries),
@@ -187,16 +194,16 @@ void Graphics::draw()
 {
     m_pImpl->draw();
 }
-void Graphics::register_model(const asl::Model& sceneGraph)
+void Graphics::register_model(const asl::ModelHandle& handle)
 {
-    m_pImpl->register_model(sceneGraph);
+    m_pImpl->register_model(handle);
 }
-bool Graphics::is_registered(const components::Model& model) const
+bool Graphics::is_registered(const asl::ModelHandle& handle) const
 {
-    return m_pImpl->is_registered(model);
+    return m_pImpl->is_registered(handle);
 }
-std::vector<MeshID> Graphics::mesh_ids(const components::Model& model) const
+std::vector<MeshID> Graphics::mesh_ids(const asl::ModelHandle& handle) const
 {
-    return m_pImpl->mesh_ids(model);
+    return m_pImpl->mesh_ids(handle);
 }
 }    // namespace odin::graphics

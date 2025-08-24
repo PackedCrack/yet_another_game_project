@@ -2,7 +2,7 @@
 // Created by qwerty on 22/07/2024.
 //
 // AssetLoader
-#include <assetloader/Model.hpp>
+#include <assetloader/ModelHandle.hpp>
 // Enginge
 #include <engine/Odin.hpp>
 #include <engine/components/Model.hpp>
@@ -26,7 +26,7 @@ int main()
         std::unique_ptr<odin::ECS> ecs = engine.make_ecs();
         odin::Entity e = ecs->make_entity();
         std::filesystem::path filepath{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
-        e.emplace<odin::components::Model>(filepath);
+        e.emplace<odin::component::Model>(filepath);
 
         while (true)
         {

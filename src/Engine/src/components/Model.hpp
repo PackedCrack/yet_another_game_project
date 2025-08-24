@@ -7,13 +7,17 @@
 // std
 #include <filesystem>
 #include <vector>
+// assetloader
+#include <assetloader/ModelHandle.hpp>
 //
 //
-namespace odin::components
+namespace odin::component
 {
 struct Model
 {
-    std::filesystem::path filename;
+    Model(std::filesystem::path path);
+    std::filesystem::path filepath;
+    asl::ModelHandle handle;
     std::vector<Entity> submeshes;
 };
-}    // namespace odin::components
+}    // namespace odin::component

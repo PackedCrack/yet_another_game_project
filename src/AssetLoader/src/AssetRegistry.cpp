@@ -8,38 +8,48 @@
 //
 namespace asl
 {
-void AssetRegistry::reload(const std::string& filename)
+AssetRegistry::AssetRegistry()
+    : m_SceneGraphs{}
+    , m_pMutex{ std::make_unique<mutex_t>() }
+{}
+void AssetRegistry::reload(const std::filesystem::path& filepath)
 {
-    std::shared_ptr<ModelSlot> pSlot = slot(filename);
-    auto pNew = std::make_shared<SceneGraph>(filename);
-    pSlot->pGraph.store(std::move(pNew));
+    std::shared_ptr<ModelSlot> pSlot = slot(filepath);
+    auto pNew = std::make_shared<SceneGraph>(filepath);
+    std::atomic_store(std::addressof(pSlot->pGraph), std::move(pNew));
 }
-ModelHandle AssetRegistry::model_handle(const std::string& filename)
+ModelHandle AssetRegistry::model_handle(const std::filesystem::path& filepath)
 {
-    std::shared_ptr<ModelSlot> pSlot = slot(filename);
+    std::shared_ptr<ModelSlot> pSlot = slot(filepath);
 
-    std::shared_ptr<const SceneGraph> pGraph = pSlot->pGraph.load();
+    std::shared_ptr<const SceneGraph> pGraph = std::atomic_load(std::addressof(pSlot->pGraph));
     if (pGraph == nullptr)
     {
-        auto pModel = std::make_shared<SceneGraph>(filename);
-        pSlot->pGraph.store(pModel);
+        std::lock_guard lock{ pSlot->initMutex };
+
+        pGraph = std::atomic_load(std::addressof(pSlot->pGraph));
+        if (pGraph == nullptr)
+        {
+            auto pModel = std::make_shared<const SceneGraph>(filepath);
+            std::atomic_store(std::addressof(pSlot->pGraph), std::move(pModel));
+        }
     }
 
     return ModelHandle{ std::move(pSlot) };
 }
-std::shared_ptr<ModelSlot> AssetRegistry::slot(const std::string& filename)
+std::shared_ptr<ModelSlot> AssetRegistry::slot(const std::filesystem::path& filepath)
 {
-    std::shared_ptr<ModelSlot> pSlot = nullptr;
-    if (!m_SceneGraphs.contains(filename))
+    std::string fp = filepath.string();
+
+    std::lock_guard<mutex_t> lock(*m_pMutex);
+    auto [kvPair, emplaced] = m_SceneGraphs.try_emplace(fp, std::weak_ptr<ModelSlot>{});
+    if (std::shared_ptr<ModelSlot> pSlot = kvPair->second.lock(); pSlot != nullptr)
     {
-        pSlot = std::make_shared<ModelSlot>();
-        m_SceneGraphs.emplace(filename, pSlot->weak_from_this());
+        return pSlot;
     }
-    else
-    {
-        std::weak_ptr<ModelSlot> wpSlot = m_SceneGraphs.at(filename);
-        pSlot = wpSlot.lock();
-    }
+
+    auto pSlot = std::make_shared<ModelSlot>();
+    kvPair->second = pSlot->weak_from_this();
 
     return pSlot;
 }

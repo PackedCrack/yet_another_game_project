@@ -5,6 +5,8 @@ include(${PROJECT_SOURCE_DIR}/cmake/pch.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/ProjectSettings.cmake)
 
 SET(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/assetloader")
+file(REMOVE_RECURSE "${INCLUDE_DIR}")
+file(MAKE_DIRECTORY "${INCLUDE_DIR}")
 
 add_library(${ASSET_LOADER_PROJECT} STATIC)
 add_subdirectory("src")

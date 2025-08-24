@@ -3,7 +3,6 @@
 //
 #pragma once
 
-#include "../components/Model.hpp"
 #include "../ArenaAllocator.hpp"
 #include "MeshID.hpp"
 #include "gpu_types.hpp"
@@ -12,7 +11,7 @@
 #include "vk/Allocator.hpp"
 #include "vk/QueueFamilies.hpp"
 // AssetLoader
-#include <assetloader/Model.hpp>
+#include <assetloader/ModelHandle.hpp>
 //
 //
 namespace odin::graphics
@@ -40,14 +39,14 @@ public:
 
     MeshRegistry(const RenderResources& renderResources);
 public:
-    void touch(const std::string& filepath);
+    void touch(const asl::ModelHandle& handle);
     void register_model(TransferManager& transferManager,
                         const RenderResources& renderResources,
                         vk::QueueView graphicsQ,
                         const std::shared_ptr<vk::Allocator>& pAllocator,
-                        const asl::Model& model);
-    [[nodiscard]] const std::vector<MeshEntry>& entries(const components::Model& model) const;
-    [[nodiscard]] bool contains(const components::Model& model) const;
+                        const asl::ModelHandle& handle);
+    [[nodiscard]] const std::vector<MeshEntry>& entries(const asl::ModelHandle& handle) const;
+    [[nodiscard]] bool contains(const asl::ModelHandle& handle) const;
 private:
     [[nodiscard]] std::optional<EntryAllocation> make_entry_allocation(std::span<vertex_t> vertices, std::span<const index_t> indices);
     [[nodiscard]] MeshEntry make_entry(std::span<vertex_t> vertices, std::span<const index_t> indices);
