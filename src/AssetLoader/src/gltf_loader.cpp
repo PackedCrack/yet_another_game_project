@@ -2,7 +2,7 @@
 
 #include "asl_defines.hpp"
 #include "common.hpp"
-#include "Model.hpp"
+#include "SceneGraph.hpp"
 // glm
 #include <glm_headers.hpp>
 //
@@ -73,18 +73,18 @@ constexpr std::int64_t NONE = -1;
 
     return trs;
 }
-[[nodiscard]] asl::ModelNode make_model_node(const tinygltf::Model& model, const tinygltf::Node& node)
+[[nodiscard]] asl::SceneGraphNode make_model_node(const tinygltf::Model& model, const tinygltf::Node& node)
 {
     // TODO: extensions support goes here
     // root.extensions
 
     asl::TRS trs = make_translation_rotation_scale(node);
-    asl::ModelNode modelNode{ trs, asl::make_mesh(model, node) };
+    asl::SceneGraphNode modelNode{ trs, asl::make_mesh(model, node) };
 
     for (auto&& index : node.children)
     {
         const tinygltf::Node& child = model.nodes[index];
-        [[maybe_unused]] asl::ModelNode& m = modelNode.emplace_neighbour(make_model_node(model, child));
+        [[maybe_unused]] asl::SceneGraphNode& m = modelNode.emplace_neighbour(make_model_node(model, child));
     }
 
     // TODO: weights goes here
@@ -99,12 +99,12 @@ constexpr std::int64_t NONE = -1;
 
     return modelNode;
 }
-[[nodiscard]] asl::ModelNode make_dummy_node()
+[[nodiscard]] asl::SceneGraphNode make_dummy_node()
 {
     asl::TRS trs{ .orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f), .translation = glm::vec3(0.0f, 0.0f, 0.0f), .scale = 1.0f };
-    return asl::ModelNode{ trs, std::nullopt };
+    return asl::SceneGraphNode{ trs, std::nullopt };
 }
-[[nodiscard]] common::CGraph<asl::ModelNode> make_scene_graph(const tinygltf::Model& model)
+[[nodiscard]] common::CGraph<asl::SceneGraphNode> make_scene_graph(const tinygltf::Model& model)
 {
     if (model.scenes.size() != 1)
     {
@@ -125,12 +125,12 @@ constexpr std::int64_t NONE = -1;
     const std::vector<int32_t>& indices = scene.nodes;
     if (indices.size() != 1)
     {
-        asl::ModelNode root = make_dummy_node();
+        asl::SceneGraphNode root = make_dummy_node();
         for (auto&& index : indices)
         {
             auto i = static_cast<std::size_t>(index);
             const tinygltf::Node& tinynode = model.nodes[i];
-            [[maybe_unused]] asl::ModelNode& m = root.emplace_neighbour(make_model_node(model, tinynode));
+            [[maybe_unused]] asl::SceneGraphNode& m = root.emplace_neighbour(make_model_node(model, tinynode));
         }
         return common::CGraph{ std::move(root) };
     }
@@ -143,7 +143,7 @@ constexpr std::int64_t NONE = -1;
 
     //return common::CGraph{ std::move(root) };
 }
-[[nodiscard]] common::CGraph<asl::ModelNode> load_glb(const std::filesystem::path& filename)
+[[nodiscard]] common::CGraph<asl::SceneGraphNode> load_glb(const std::filesystem::path& filename)
 {
     tinygltf::TinyGLTF loader{};
     std::string warn{};
@@ -164,7 +164,7 @@ constexpr std::int64_t NONE = -1;
 }    // namespace
 namespace asl
 {
-common::CGraph<ModelNode> load_model(const std::filesystem::path& filename)
+common::CGraph<SceneGraphNode> load_model(const std::filesystem::path& filename)
 {
     LOG_DEBUG("Loading GLTF file: {}", filename.string().c_str());
 
