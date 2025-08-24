@@ -1,21 +1,28 @@
 SET(SOURCES
     tinygltf_impl.cpp
         tinygltf_impl.hpp
-        Model.hpp
-        Model.cpp
+        SceneGraph.hpp
+        SceneGraph.cpp
         Mesh.hpp
         Mesh.cpp
-        ModelNode.hpp
-        ModelNode.cpp
+        SceneGraphNode.hpp
+        SceneGraphNode.cpp
         Material.cpp
         Material.hpp
         gltf_loader.hpp
         gltf_loader.cpp
+        AssetRegistry.hpp
+        AssetRegistry.cpp
+        ModelHandle.hpp
+        ModelHandle.cpp
         asl_defines.hpp
 )
 
 set(EXPORT_HEADERS
-        Model.hpp
+	common_types.hpp
+        AssetRegistry.hpp
+        ModelHandle.hpp
+	SceneGraph.hpp
 )
 
 target_sources(${ASSET_LOADER_PROJECT} PRIVATE ${SOURCES})
