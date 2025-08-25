@@ -14,6 +14,8 @@ SET(SOURCES
 	VertexBuffer.cpp
 	IndexBuffer.hpp
 	IndexBuffer.cpp
+	ShaderModule.hpp
+	ShaderModule.cpp
 )
 
 
