@@ -56,51 +56,51 @@ static_assert(std::to_underlying(Scancode::return_) == SDL_SCANCODE_RETURN);
 static_assert(std::to_underlying(Scancode::escape) == SDL_SCANCODE_ESCAPE);
 static_assert(std::to_underlying(Scancode::backspace) == SDL_SCANCODE_BACKSPACE);
 static_assert(std::to_underlying(Scancode::tab) == SDL_SCANCODE_TAB);
-static_assert(std::to_underlying(Scancode::space) == SDL_SCANCODE_SPACE);  
+static_assert(std::to_underlying(Scancode::space) == SDL_SCANCODE_SPACE);
 
-static_assert(std::to_underlying(Scancode::minus) == SDL_SCANCODE_MINUS);  
-static_assert(std::to_underlying(Scancode::equals) == SDL_SCANCODE_EQUALS);  
-static_assert(std::to_underlying(Scancode::leftBracket) == SDL_SCANCODE_LEFTBRACKET);  
-static_assert(std::to_underlying(Scancode::rightBracket) == SDL_SCANCODE_RIGHTBRACKET);  
-static_assert(std::to_underlying(Scancode::backslash) == SDL_SCANCODE_BACKSLASH);  
-static_assert(std::to_underlying(Scancode::semicolon) == SDL_SCANCODE_SEMICOLON);  
-static_assert(std::to_underlying(Scancode::apostrophe) == SDL_SCANCODE_APOSTROPHE);  
-static_assert(std::to_underlying(Scancode::grave) == SDL_SCANCODE_GRAVE);  
-static_assert(std::to_underlying(Scancode::comma) == SDL_SCANCODE_COMMA);  
-static_assert(std::to_underlying(Scancode::period) == SDL_SCANCODE_PERIOD);  
-static_assert(std::to_underlying(Scancode::slash) == SDL_SCANCODE_SLASH);  
+static_assert(std::to_underlying(Scancode::minus) == SDL_SCANCODE_MINUS);
+static_assert(std::to_underlying(Scancode::equals) == SDL_SCANCODE_EQUALS);
+static_assert(std::to_underlying(Scancode::leftBracket) == SDL_SCANCODE_LEFTBRACKET);
+static_assert(std::to_underlying(Scancode::rightBracket) == SDL_SCANCODE_RIGHTBRACKET);
+static_assert(std::to_underlying(Scancode::backslash) == SDL_SCANCODE_BACKSLASH);
+static_assert(std::to_underlying(Scancode::semicolon) == SDL_SCANCODE_SEMICOLON);
+static_assert(std::to_underlying(Scancode::apostrophe) == SDL_SCANCODE_APOSTROPHE);
+static_assert(std::to_underlying(Scancode::grave) == SDL_SCANCODE_GRAVE);
+static_assert(std::to_underlying(Scancode::comma) == SDL_SCANCODE_COMMA);
+static_assert(std::to_underlying(Scancode::period) == SDL_SCANCODE_PERIOD);
+static_assert(std::to_underlying(Scancode::slash) == SDL_SCANCODE_SLASH);
 
-static_assert(std::to_underlying(Scancode::capslock) == SDL_SCANCODE_CAPSLOCK);  
+static_assert(std::to_underlying(Scancode::capslock) == SDL_SCANCODE_CAPSLOCK);
 
-static_assert(std::to_underlying(Scancode::f1) == SDL_SCANCODE_F1);  
-static_assert(std::to_underlying(Scancode::f2) == SDL_SCANCODE_F2);  
-static_assert(std::to_underlying(Scancode::f3) == SDL_SCANCODE_F3);  
-static_assert(std::to_underlying(Scancode::f4) == SDL_SCANCODE_F4);  
-static_assert(std::to_underlying(Scancode::f5) == SDL_SCANCODE_F5);  
-static_assert(std::to_underlying(Scancode::f6) == SDL_SCANCODE_F6);  
-static_assert(std::to_underlying(Scancode::f7) == SDL_SCANCODE_F7);  
-static_assert(std::to_underlying(Scancode::f8) == SDL_SCANCODE_F8);  
-static_assert(std::to_underlying(Scancode::f9) == SDL_SCANCODE_F9);  
-static_assert(std::to_underlying(Scancode::f10) == SDL_SCANCODE_F10);  
-static_assert(std::to_underlying(Scancode::f11) == SDL_SCANCODE_F11);  
-static_assert(std::to_underlying(Scancode::f12) == SDL_SCANCODE_F12);  
+static_assert(std::to_underlying(Scancode::f1) == SDL_SCANCODE_F1);
+static_assert(std::to_underlying(Scancode::f2) == SDL_SCANCODE_F2);
+static_assert(std::to_underlying(Scancode::f3) == SDL_SCANCODE_F3);
+static_assert(std::to_underlying(Scancode::f4) == SDL_SCANCODE_F4);
+static_assert(std::to_underlying(Scancode::f5) == SDL_SCANCODE_F5);
+static_assert(std::to_underlying(Scancode::f6) == SDL_SCANCODE_F6);
+static_assert(std::to_underlying(Scancode::f7) == SDL_SCANCODE_F7);
+static_assert(std::to_underlying(Scancode::f8) == SDL_SCANCODE_F8);
+static_assert(std::to_underlying(Scancode::f9) == SDL_SCANCODE_F9);
+static_assert(std::to_underlying(Scancode::f10) == SDL_SCANCODE_F10);
+static_assert(std::to_underlying(Scancode::f11) == SDL_SCANCODE_F11);
+static_assert(std::to_underlying(Scancode::f12) == SDL_SCANCODE_F12);
 
-static_assert(std::to_underlying(Scancode::home) == SDL_SCANCODE_HOME);  
-static_assert(std::to_underlying(Scancode::pageDown) == SDL_SCANCODE_PAGEDOWN);  
-static_assert(std::to_underlying(Scancode::delete_) == SDL_SCANCODE_DELETE);  
-static_assert(std::to_underlying(Scancode::end) == SDL_SCANCODE_END);  
-static_assert(std::to_underlying(Scancode::pageDown) == SDL_SCANCODE_PAGEDOWN);  
-static_assert(std::to_underlying(Scancode::right) == SDL_SCANCODE_RIGHT);  
-static_assert(std::to_underlying(Scancode::left) == SDL_SCANCODE_LEFT);  
-static_assert(std::to_underlying(Scancode::down) == SDL_SCANCODE_DOWN);  
-static_assert(std::to_underlying(Scancode::up) == SDL_SCANCODE_UP);  
+static_assert(std::to_underlying(Scancode::home) == SDL_SCANCODE_HOME);
+static_assert(std::to_underlying(Scancode::pageDown) == SDL_SCANCODE_PAGEDOWN);
+static_assert(std::to_underlying(Scancode::delete_) == SDL_SCANCODE_DELETE);
+static_assert(std::to_underlying(Scancode::end) == SDL_SCANCODE_END);
+static_assert(std::to_underlying(Scancode::pageDown) == SDL_SCANCODE_PAGEDOWN);
+static_assert(std::to_underlying(Scancode::right) == SDL_SCANCODE_RIGHT);
+static_assert(std::to_underlying(Scancode::left) == SDL_SCANCODE_LEFT);
+static_assert(std::to_underlying(Scancode::down) == SDL_SCANCODE_DOWN);
+static_assert(std::to_underlying(Scancode::up) == SDL_SCANCODE_UP);
 
 static_assert(std::to_underlying(Scancode::numLockClear) == SDL_SCANCODE_NUMLOCKCLEAR);
 
-static_assert(std::to_underlying(Scancode::keypadDivide) == SDL_SCANCODE_KP_DIVIDE);  
-static_assert(std::to_underlying(Scancode::keypadMultiply) == SDL_SCANCODE_KP_MULTIPLY);  
-static_assert(std::to_underlying(Scancode::keypadMinus) == SDL_SCANCODE_KP_MINUS);  
-static_assert(std::to_underlying(Scancode::keypadPlus) == SDL_SCANCODE_KP_PLUS);  
+static_assert(std::to_underlying(Scancode::keypadDivide) == SDL_SCANCODE_KP_DIVIDE);
+static_assert(std::to_underlying(Scancode::keypadMultiply) == SDL_SCANCODE_KP_MULTIPLY);
+static_assert(std::to_underlying(Scancode::keypadMinus) == SDL_SCANCODE_KP_MINUS);
+static_assert(std::to_underlying(Scancode::keypadPlus) == SDL_SCANCODE_KP_PLUS);
 static_assert(std::to_underlying(Scancode::keypadEnter) == SDL_SCANCODE_KP_ENTER);
 static_assert(std::to_underlying(Scancode::keypadOne) == SDL_SCANCODE_KP_1);
 static_assert(std::to_underlying(Scancode::keypadTwo) == SDL_SCANCODE_KP_2);
@@ -113,15 +113,15 @@ static_assert(std::to_underlying(Scancode::keypadEight) == SDL_SCANCODE_KP_8);
 static_assert(std::to_underlying(Scancode::keypadNine) == SDL_SCANCODE_KP_9);
 static_assert(std::to_underlying(Scancode::keypadZero) == SDL_SCANCODE_KP_0);
 
-static_assert(std::to_underlying(Scancode::leftCtrl) == SDL_SCANCODE_LCTRL);  
-static_assert(std::to_underlying(Scancode::leftShift) == SDL_SCANCODE_LSHIFT);  
-static_assert(std::to_underlying(Scancode::leftAlt) == SDL_SCANCODE_LALT);  
-static_assert(std::to_underlying(Scancode::leftGui) == SDL_SCANCODE_LGUI);  
+static_assert(std::to_underlying(Scancode::leftCtrl) == SDL_SCANCODE_LCTRL);
+static_assert(std::to_underlying(Scancode::leftShift) == SDL_SCANCODE_LSHIFT);
+static_assert(std::to_underlying(Scancode::leftAlt) == SDL_SCANCODE_LALT);
+static_assert(std::to_underlying(Scancode::leftGui) == SDL_SCANCODE_LGUI);
 static_assert(std::to_underlying(Scancode::rightCtrl) == SDL_SCANCODE_RCTRL);
 static_assert(std::to_underlying(Scancode::rightShift) == SDL_SCANCODE_RSHIFT);
 static_assert(std::to_underlying(Scancode::rightAlt) == SDL_SCANCODE_RALT);
 static_assert(std::to_underlying(Scancode::rightGui) == SDL_SCANCODE_RGUI);
-}   // Scancode validation
+}    // namespace
 // Keymodifer validation
 namespace
 {
@@ -139,7 +139,7 @@ static_assert(std::to_underlying(KeyModifier::ctrl) == SDL_KMOD_CTRL);
 static_assert(std::to_underlying(KeyModifier::shift) == SDL_KMOD_SHIFT);
 static_assert(std::to_underlying(KeyModifier::alt) == SDL_KMOD_ALT);
 static_assert(std::to_underlying(KeyModifier::gui) == SDL_KMOD_GUI);
-}   // Keymodifer validation
+}    // namespace
 // Mouse button validation
 namespace
 {
@@ -148,13 +148,16 @@ static_assert(std::to_underlying(MouseButton::right) == SDL_BUTTON_RIGHT);
 static_assert(std::to_underlying(MouseButton::middle) == SDL_BUTTON_MIDDLE);
 static_assert(std::to_underlying(MouseButton::extra1) == SDL_BUTTON_X1);
 static_assert(std::to_underlying(MouseButton::extra2) == SDL_BUTTON_X2);
-}   // Mouse button validation
+}    // namespace
 //
 //
 //
 //
 namespace
 {
+using namespace odin::window;
+//
+//
 [[nodiscard]] SDL_WindowFlags make_window_flags(const odin::WindowInfo& info)
 {
     SDL_WindowFlags flags{};
@@ -198,16 +201,13 @@ namespace
     event.y = motion.y;
     event.deltaX = motion.xrel;
     event.deltaY = motion.yrel;
-    event.leftPressed = buttonFlags & SDL_BUTTON_LEFT ? true : false;
-    event.rightPressed = buttonFlags & SDL_BUTTON_RIGHT ? true : false;
-    event.middlePressed = buttonFlags & SDL_BUTTON_MIDDLE ? true : false;
-    event.extra1Pressed = buttonFlags & SDL_BUTTON_X1 ? true : false;
-    event.extra2Pressed = buttonFlags & SDL_BUTTON_X2 ? true : false;
+    event.leftPressed = (buttonFlags & SDL_BUTTON_LEFT) ? true : false;
+    event.rightPressed = (buttonFlags & SDL_BUTTON_RIGHT) ? true : false;
+    event.middlePressed = (buttonFlags & SDL_BUTTON_MIDDLE) ? true : false;
+    event.extra1Pressed = (buttonFlags & SDL_BUTTON_X1) ? true : false;
+    event.extra2Pressed = (buttonFlags & SDL_BUTTON_X2) ? true : false;
 
-    return InputEvent{
-        .type = EventType::mouseMotion,
-        .event = event
-    };
+    return InputEvent{ .type = EventType::mouseMotion, .event = event };
 }
 [[nodiscard]] InputEvent make_mouse_click_event(const SDL_MouseButtonEvent& button)
 {
@@ -218,10 +218,7 @@ namespace
     event.pressed = button.down;
     event.numClicks = button.clicks;
 
-    return InputEvent{
-        .type = EventType::mouseClick,
-        .event = event
-    };
+    return InputEvent{ .type = EventType::mouseClick, .event = event };
 }
 [[nodiscard]] InputEvent make_keyboard_event(const SDL_KeyboardEvent& key)
 {
@@ -231,10 +228,14 @@ namespace
     event.pressed = key.down;
     event.repeated = key.repeat;
 
-    return InputEvent{
-        .type = EventType::keyboard,
-        .event = event
-    };
+    return InputEvent{ .type = EventType::keyboard, .event = event };
+}
+[[nodiscard]] InputEvent make_quit_event(const SDL_QuitEvent& quit)
+{
+    QuitEvent event{};
+    event.quit = true;
+
+    return InputEvent{ .type = EventType::quit, .event = event };
 }
 }    // namespace
 namespace odin::window
@@ -326,11 +327,24 @@ public:
                 m_Events.emplace_back(make_mouse_click_event(event.button));
                 break;
             }
+            case SDL_EVENT_MOUSE_BUTTON_UP:
+            {
+                m_Events.emplace_back(make_mouse_click_event(event.button));
+                break;
+            }
             case SDL_EVENT_KEY_DOWN:
             {
                 m_Events.emplace_back(make_keyboard_event(event.key));
                 break;
             }
+            case SDL_EVENT_KEY_UP:
+            {
+                m_Events.emplace_back(make_keyboard_event(event.key));
+                break;
+            }
+            case SDL_EVENT_QUIT:
+                m_Events.emplace_back(make_quit_event(event.quit));
+                break;
             }
         }
 

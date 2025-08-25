@@ -9,6 +9,19 @@
 //
 namespace odin::window
 {
+enum class EventType
+{
+    keyboard,
+    mouseMotion,
+    mouseClick,
+    quit
+};
+using Event = std::variant<KeyboardEvent, MouseClickEvent, MouseMotionEvent, QuitEvent>;
+struct InputEvent
+{
+    EventType type;
+    Event event;
+};
 class Window
 {
     class Impl;

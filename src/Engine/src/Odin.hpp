@@ -22,6 +22,7 @@ public:
     void render();
     void end_frame();
     [[nodiscard]] std::unique_ptr<ECS> make_ecs();
+    [[nodiscard]] bool running() const;
 private:
     std::unique_ptr<Impl> m_pImpl;
 };

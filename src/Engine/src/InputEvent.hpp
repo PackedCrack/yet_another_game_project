@@ -1,12 +1,10 @@
 #pragma once
-
 //
 //
 namespace odin
 {
 enum class Scancode
 {
-
     unknown = 0,
 
     /**
@@ -14,7 +12,6 @@ enum class Scancode
      *
      *  These values are from usage page 0x07 (USB keyboard page).
      */
-     /* @{ */
 
     A = 4,
     B = 5,
@@ -54,7 +51,7 @@ enum class Scancode
     nine = 38,
     zero = 39,
 
-    return_ = 40,   // return is a reserved keyword
+    return_ = 40,    // return is a reserved keyword
     escape = 41,
     backspace = 42,
     tab = 43,
@@ -64,20 +61,8 @@ enum class Scancode
     equals = 46,
     leftBracket = 47,
     rightBracket = 48,
-    backslash = 49, /**< Located at the lower left of the return
-                                  *   key on ISO keyboards and at the right end
-                                  *   of the QWERTY row on ANSI keyboards.
-                                  *   Produces REVERSE SOLIDUS (backslash) and
-                                  *   VERTICAL LINE in a US layout, REVERSE
-                                  *   SOLIDUS and VERTICAL LINE in a UK Mac
-                                  *   layout, NUMBER SIGN and TILDE in a UK
-                                  *   Windows layout, DOLLAR SIGN and POUND SIGN
-                                  *   in a Swiss German layout, NUMBER SIGN and
-                                  *   APOSTROPHE in a German layout, GRAVE
-                                  *   ACCENT and POUND SIGN in a French Mac
-                                  *   layout, and ASTERISK and MICRO SIGN in a
-                                  *   French Windows layout.
-                                  */
+    backslash = 49,
+
     semicolon = 51,
     apostrophe = 52,
     grave = 53,
@@ -103,11 +88,10 @@ enum class Scancode
     printScreen = 70,
     scrollLock = 71,
     pause = 72,
-    insert = 73, /**< insert on PC, help on some Mac keyboards (but
-                                   does send code 73, not 117) */
+    insert = 73,    //*< insert on PC, help on some Mac keyboards (but does send code 73, not 117)
     home = 74,
     pageUp = 75,
-    delete_ = 76,   // delete is a reserved keyword
+    delete_ = 76,    // delete is a reserved keyword
     end = 77,
     pageDown = 78,
     right = 79,
@@ -150,15 +134,15 @@ enum class KeyModifier
     rightShift = 0x2,
     leftCtrl = 0x40,
     rightCtrl = 0x80,
-    leftAlt = 0x100,
-    rightAlt = 0x200,
-    leftGui = 0x400,
-    rightGui = 0x800,
-    altGr = 0x4000,
+    leftAlt = 0x1'00,
+    rightAlt = 0x2'00,
+    leftGui = 0x4'00,
+    rightGui = 0x8'00,
+    altGr = 0x40'00,
     ctrl = 0x40 | 0x80,
     shift = 0x1 | 0x2,
-    alt = 0x100 | 0x200,
-    gui = 0x400 | 0x800
+    alt = 0x1'00 | 0x2'00,
+    gui = 0x4'00 | 0x8'00
 };
 enum class MouseButton
 {
@@ -195,16 +179,8 @@ struct MouseMotionEvent
     bool extra1Pressed;
     bool extra2Pressed;
 };
-enum class EventType
+struct QuitEvent
 {
-    keyboard,
-    mouseMotion,
-    mouseClick
+    bool quit;
 };
-using Event = std::variant<KeyboardEvent, MouseClickEvent, MouseMotionEvent>;
-struct InputEvent
-{
-    EventType type;
-    Event event;
-};
-}	// namespace odin
+}    // namespace odin

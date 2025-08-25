@@ -38,6 +38,16 @@ public:
             std::invoke(std::forward<invocable_t>(action), entity, view.template get<component_t>(e)...);
         }
     }
+    template<typename state_t>
+    void emplace_global_state()
+    {
+        m_Registry.ctx().emplace<state_t>();
+    }
+    template<typename state_t>
+    state_t& global_state()
+    {
+        return m_Registry.ctx().get<state_t>();
+    }
     [[nodiscard]] Entity make_entity();
 private:
     underlying_registry_t m_Registry;
