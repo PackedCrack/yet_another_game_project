@@ -4,10 +4,24 @@
 #pragma once
 
 #include "../OdinInfo.hpp"
+#include "../InputEvent.hpp"
 //
 //
 namespace odin::window
 {
+enum class EventType
+{
+    keyboard,
+    mouseMotion,
+    mouseClick,
+    quit
+};
+using Event = std::variant<KeyboardEvent, MouseClickEvent, MouseMotionEvent, QuitEvent>;
+struct InputEvent
+{
+    EventType type;
+    Event event;
+};
 class Window
 {
     class Impl;
@@ -24,6 +38,7 @@ public:
     void toggle_mouse_grab();
     [[nodiscard]] std::vector<std::string_view> required_extensions() const;
     [[nodiscard]] std::function<void*(void*)> make_create_surface();
+    [[nodiscard]] std::span<const InputEvent> poll_input();
 private:
     std::unique_ptr<Window::Impl> m_pImpl;
 };

@@ -1,6 +1,8 @@
-add_subdirectory("graphics")
 add_subdirectory("components")
+add_subdirectory("graphics")
+add_subdirectory("state")
 add_subdirectory("window")
+
 
 SET(SOURCES
         engine_defines.hpp
@@ -14,6 +16,7 @@ SET(SOURCES
 	Entity.hpp
 	Entity.cpp
         ICamera.hpp
+	InputEvent.hpp
 )
 
 set(EXPORT_HEADERS
@@ -22,6 +25,7 @@ set(EXPORT_HEADERS
 	ECS.hpp
 	Entity.hpp
 	ICamera.hpp
+	InputEvent.hpp
 )
 
 target_sources(${ENGINE_TARGET} PRIVATE ${SOURCES})

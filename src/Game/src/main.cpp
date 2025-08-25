@@ -6,6 +6,7 @@
 // Enginge
 #include <engine/Odin.hpp>
 #include <engine/components/Model.hpp>
+#include <engine/state/Input.hpp>
 #include <engine/window/DisplayResolution.hpp>
 // Debug
 #include <debug/Logger.hpp>
@@ -28,7 +29,8 @@ int main()
         std::filesystem::path filepath{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
         e.emplace<odin::component::Model>(filepath);
 
-        while (true)
+
+        while (engine.running())
         {
             engine.begin_frame();
             engine.render();

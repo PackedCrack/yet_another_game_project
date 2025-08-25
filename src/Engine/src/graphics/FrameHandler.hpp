@@ -35,6 +35,7 @@ public:
     FrameHandler& operator=(FrameHandler&& other) = default;
 public:
     [[nodiscard]] FrameContext start_frame();
+    [[nodiscard]] std::uint32_t in_flight_count() const;
 private:
     [[nodiscard]] FrameIndex frame_index() const;
 private:

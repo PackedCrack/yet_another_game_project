@@ -53,7 +53,7 @@ void wait_for_frame_in_flight(vk::DeviceRef device, vk::synchronization::FenceRe
 namespace odin::graphics
 {
 FrameHandler::FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, const vk::QueueView& compute, const vk::QueueView& transfer)
-    : m_NumInFlight{ 2 }
+    : m_NumInFlight{ 3 }
     , m_Frame{ 0 }
     , m_Device{ device }
     , m_GraphicsPools{ make_command_pools(m_NumInFlight, device, graphics) }
@@ -81,6 +81,10 @@ FrameContext FrameHandler::start_frame()
                          .graphicsBuffer = m_GraphicsBuffers[index],
                          .computeBuffer = m_ComputeBuffers[index],
                          .transferBuffer = m_TransferBuffers[index] };
+}
+std::uint32_t FrameHandler::in_flight_count() const
+{
+    return m_NumInFlight;
 }
 FrameIndex FrameHandler::frame_index() const
 {
