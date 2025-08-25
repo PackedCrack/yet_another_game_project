@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 17/08/2025.
+//
 #include "Renderer.hpp"
 
 #include "gpu_types.hpp"
@@ -26,10 +29,11 @@ VkSemaphoreSubmitInfo submit_info_semaphore(VkSemaphore semaphore, std::uint64_t
                                   .stageMask = flags,
                                   .deviceIndex = 0 };
 }
+// clang-format off
 template<typename... stage_mask_t>
 requires(std::same_as<VkPipelineStageFlags2, std::remove_cvref_t<stage_mask_t>> && ...)
-[[nodiscard]] VkSemaphoreSubmitInfo
-submit_info_timeline_semaphore(TimelineSemaphoreRef semaphore, std::uint64_t value, stage_mask_t&&... masks)
+[[nodiscard]] 
+VkSemaphoreSubmitInfo submit_info_timeline_semaphore(TimelineSemaphoreRef semaphore, std::uint64_t value, stage_mask_t&&... masks)
 {
     static_assert((sizeof(masks) + ...) > 0);
 
@@ -38,12 +42,13 @@ submit_info_timeline_semaphore(TimelineSemaphoreRef semaphore, std::uint64_t val
 }
 template<typename... stage_mask_t>
 requires(std::same_as<VkPipelineStageFlags2, std::remove_cvref_t<stage_mask_t>> && ...)
-[[nodiscard]] VkSemaphoreSubmitInfo
-submit_info_binary_semaphore(SemaphoreRef semaphore, VkPipelineStageFlags2 mask, stage_mask_t&&... masks)
+[[nodiscard]] 
+VkSemaphoreSubmitInfo submit_info_binary_semaphore(SemaphoreRef semaphore, VkPipelineStageFlags2 mask, stage_mask_t&&... masks)
 {
     VkPipelineStageFlags2 flags = (mask | ... | masks);
     return submit_info_semaphore(semaphore.handle, 0, flags);
 }
+// clang-format on
 VkCommandBufferSubmitInfo submit_info_cmd_buffer(CommandBufferRef cmdBuffer)
 {
     return VkCommandBufferSubmitInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
@@ -117,6 +122,8 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     transferManager.record_buffer_acquisition(graphicsQ, gfxCmdBuffer.handle());
 
     // Bind Global buffers
+    bind_global_resources(gfxCmdBuffer);
+
 
     // Bind descriptors
 
@@ -189,5 +196,36 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
 const RenderResources& Renderer::render_resources() const
 {
     return m_RenderResources;
+}
+void Renderer::bind_global_resources(const vk::CommandBuffer& cmdBuffer) const
+{
+    vk::CommandBufferRef cb = cmdBuffer.handle();
+    bind_vertex_buffer(cb);
+    bind_index_buffer(cb);
+}
+void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb) const
+{
+    using namespace vk::resource;
+
+    const VertexBuffer& vb = m_RenderResources.vertexBuffer;
+    BufferRef vbRef = vb.handle();
+    VkDeviceSize offset = 0;
+    VkDeviceSize size = vb.byte_capacity();
+    VkDeviceSize stride = sizeof(Vertex);
+    vkCmdBindVertexBuffers2(cb.handle,
+                            0,
+                            1,
+                            std::addressof(vbRef.handle),
+                            std::addressof(offset),
+                            std::addressof(size),
+                            std::addressof(stride));
+}
+void Renderer::bind_index_buffer(vk::CommandBufferRef cb) const
+{
+    using namespace vk::resource;
+
+    const IndexBuffer& ib = m_RenderResources.indexBuffer;
+    BufferRef ibRef = ib.handle();
+    vkCmdBindIndexBuffer2(cb.handle, ibRef.handle, 0, VK_WHOLE_SIZE, VK_INDEX_TYPE_UINT16);
 }
 }    // namespace odin::graphics

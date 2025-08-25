@@ -1,3 +1,6 @@
+//
+// Created by qwerty on 17/08/2025.
+//
 #pragma once
 
 #include "ColorAttachment.hpp"
@@ -27,6 +30,10 @@ public:
                       const FrameContext& frameContext,
                       const TransferManager& transferManager);
     [[nodiscard]] const RenderResources& render_resources() const;
+private:
+    void bind_global_resources(const vk::CommandBuffer& cmdBuffer) const;
+    void bind_vertex_buffer(vk::CommandBufferRef cb) const;
+    void bind_index_buffer(vk::CommandBufferRef cb) const;
 private:
     RenderResources m_RenderResources;
 };
