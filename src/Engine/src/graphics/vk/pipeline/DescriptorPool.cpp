@@ -8,32 +8,31 @@
 //
 namespace odin::graphics::vk::pipeline
 {
-DescriptorPool::DescriptorPool(DeviceRef device)
+DescriptorPool::DescriptorPool(DeviceRef device, bool updatedAfterBind)
     : m_DescriptorPool{ VK_NULL_HANDLE }
     , m_Device{ device }
 {
-    static constexpr std::array<VkDescriptorPoolSize, 11u> poolSizes = {
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000),
-        VkDescriptorPoolSize(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000)
+    // Setting these sizes fairly uniform for now.. Can tweak them in the future based on needs
+    static constexpr std::array<VkDescriptorPoolSize, 11u> poolSizes{
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100}
     };
-    static constexpr VkDescriptorPoolCreateInfo info = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .flags =
-            VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT |
-            VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,    // TODO:: allows freeing individual descriptor sets. Don't know if it has performance impact.
-        .maxSets = 1024u,
-        .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
-        .pPoolSizes = poolSizes.data()
-    };
+    VkDescriptorPoolCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    info.flags = updatedAfterBind ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT : VK_NO_FLAGS;
+    info.maxSets = 1024u;
+    info.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    info.pPoolSizes = poolSizes.data();
+
 
     VK_CHECK(vkCreateDescriptorPool(m_Device.handle, std::addressof(info), nullptr, std::addressof(m_DescriptorPool)),
              "Failed to create Descriptor Pool.");

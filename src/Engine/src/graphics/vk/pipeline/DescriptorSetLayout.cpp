@@ -9,11 +9,12 @@
 //
 namespace odin::graphics::vk::pipeline
 {
-DescriptorSetLayout::DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& createInfo)
+DescriptorSetLayout::DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& info, bool updateAfterBind)
     : m_DescriptorSetLayout{ VK_NULL_HANDLE }
     , m_Device{ device }
+    , m_UpdateAfterBind{ updateAfterBind }
 {
-    VK_CHECK(vkCreateDescriptorSetLayout(m_Device.handle, std::addressof(createInfo), nullptr, std::addressof(m_DescriptorSetLayout)),
+    VK_CHECK(vkCreateDescriptorSetLayout(m_Device.handle, std::addressof(info), nullptr, std::addressof(m_DescriptorSetLayout)),
              "Failed to create Descriptor Set Layout.");
 }
 DescriptorSetLayout::~DescriptorSetLayout()
@@ -26,6 +27,7 @@ DescriptorSetLayout::~DescriptorSetLayout()
 DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other) noexcept
     : m_DescriptorSetLayout{ VK_NULL_HANDLE }
     , m_Device{ other.m_Device }
+    , m_UpdateAfterBind{ other.m_UpdateAfterBind }
 {
     std::swap(m_DescriptorSetLayout, other.m_DescriptorSetLayout);
 }
@@ -35,6 +37,7 @@ DescriptorSetLayout& DescriptorSetLayout::operator=(DescriptorSetLayout&& other)
     {
         std::swap(m_DescriptorSetLayout, other.m_DescriptorSetLayout);
         m_Device = other.m_Device;
+        m_UpdateAfterBind = other.m_UpdateAfterBind;
     }
 
     return *this;
@@ -43,5 +46,9 @@ DescriptorSetLayoutRef DescriptorSetLayout::handle() const
 {
     ODIN_ASSERT(m_DescriptorSetLayout != VK_NULL_HANDLE);
     return DescriptorSetLayoutRef{ .handle = m_DescriptorSetLayout };
+}
+bool DescriptorSetLayout::requires_update_after_bind() const
+{
+    return m_UpdateAfterBind;
 }
 }    // namespace odin::graphics::vk::pipeline

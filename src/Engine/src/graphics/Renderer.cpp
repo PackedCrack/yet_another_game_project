@@ -211,7 +211,7 @@ void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb) const
     BufferRef vbRef = vb.handle();
     VkDeviceSize offset = 0;
     VkDeviceSize size = vb.byte_capacity();
-    VkDeviceSize stride = sizeof(Vertex);
+    VkDeviceSize stride = sizeof(VertexBuffer::vertex_t);
     vkCmdBindVertexBuffers2(cb.handle,
                             0,
                             1,
