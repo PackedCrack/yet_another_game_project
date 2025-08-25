@@ -8,11 +8,12 @@
 //
 namespace odin::graphics
 {
-Presenter::Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface)
-    : m_Device{ device.handle() }
+Presenter::Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface, std::uint32_t framesInFlight)
+    : m_FramesInFlight{ framesInFlight }
+    , m_Device{ device.handle() }
     , m_PhysDevice{ physDevice.handle() }
     , m_Surface{ std::move(surface) }
-    , m_Swapchain{ device, physDevice, m_Surface }
+    , m_Swapchain{ device, physDevice, m_Surface, m_FramesInFlight }
     , m_ColorAttachment{ std::nullopt }
 {}
 std::optional<ColorAttachment> Presenter::acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable)
@@ -63,7 +64,7 @@ bool Presenter::present(const vk::QueueView& present, vk::synchronization::Semap
 }
 void Presenter::rebuild(VkSwapchainKHR oldSwapchain)
 {
-    m_Swapchain = vk::Swapchain{ m_Device, m_PhysDevice, m_Surface, oldSwapchain };
+    m_Swapchain = vk::Swapchain{ m_Device, m_PhysDevice, m_Surface, oldSwapchain, m_FramesInFlight };
     m_ColorAttachment = std::nullopt;
 }
 std::optional<ColorAttachment> Presenter::rebuild_and_acquire(vk::synchronization::SemaphoreRef imageAvailable)

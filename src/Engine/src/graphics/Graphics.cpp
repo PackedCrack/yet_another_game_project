@@ -57,7 +57,7 @@ public:
         FrameHandler frameHandler{ device.handle(), queueFamilies.graphics(), queueFamilies.compute(), queueFamilies.transfer() };
         // Make FrameResources
         // Make Presenter
-        Presenter presenter{ device, physicalDevice, std::move(surface) };
+        Presenter presenter{ device, physicalDevice, std::move(surface), frameHandler.in_flight_count() };
         // Make Renderer
         Renderer renderer{ pAllocator };
         // Make TransferManager

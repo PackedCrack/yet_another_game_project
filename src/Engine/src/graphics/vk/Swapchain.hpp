@@ -42,8 +42,12 @@ public:
         timeout
     };
 public:
-    Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface);
-    Swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain);
+    Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface, std::uint32_t framesInFlight);
+    Swapchain(DeviceRef device,
+              PhysicalDeviceRef physicalDevice,
+              Surface& surface,
+              VkSwapchainKHR oldSwapchain,
+              std::uint32_t framesInFlight);
     ~Swapchain();
     Swapchain(const Swapchain& other) = delete;
     Swapchain(Swapchain&& other) noexcept;
@@ -56,9 +60,14 @@ public:
     [[nodiscard]] const std::vector<resource::ImageView>& image_views() const;
     [[nodiscard]] const VkExtent2D& extent() const;
 private:
-    [[nodiscard]] SwapchainDetails make_details(PhysicalDeviceRef physicalDevice, Surface& surface) const;
-    [[nodiscard]] VkSwapchainKHR
-    create_swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain);
+    [[nodiscard]] SwapchainDetails make_details(PhysicalDeviceRef physicalDevice, Surface& surface, std::uint32_t framesInFlight) const;
+    // clang-format off
+    [[nodiscard]] VkSwapchainKHR create_swapchain(
+        DeviceRef device, 
+        PhysicalDeviceRef physicalDevice, 
+        Surface& surface, 
+        VkSwapchainKHR oldSwapchain);
+    // clang-format on
     [[nodiscard]] std::vector<VkImage> swapchain_images(DeviceRef device);
     void emplace_image_views();
 private:

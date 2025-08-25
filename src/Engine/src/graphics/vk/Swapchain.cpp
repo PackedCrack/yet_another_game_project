@@ -35,9 +35,9 @@ using namespace odin::graphics::vk;
     ODIN_ASSERT(mode_exists(modes, VK_PRESENT_MODE_FIFO_KHR));
     return VK_PRESENT_MODE_FIFO_KHR;
 }
-[[nodiscard]] std::uint32_t image_count(PhysicalDeviceRef physicalDevice, Surface& surface)
+[[nodiscard]] std::uint32_t image_count(PhysicalDeviceRef physicalDevice, Surface& surface, std::uint32_t framesInFlight)
 {
-    std::uint32_t desired = 3;
+    std::uint32_t desired = framesInFlight;
     std::uint32_t max = surface.max_image_count(physicalDevice);
     // https://registry.khronos.org/vulkan/specs/latest/man/html/VkSurfaceCapabilitiesKHR.html
     //  A value of 0 means that there is no limit on the number of images,
@@ -60,8 +60,8 @@ using namespace odin::graphics::vk;
 }    // namespace
 namespace odin::graphics::vk
 {
-Swapchain::Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface)
-    : m_Details{ make_details(physicalDevice.handle(), surface) }
+Swapchain::Swapchain(const Device& device, const PhysicalDevice& physicalDevice, Surface& surface, std::uint32_t framesInFlight)
+    : m_Details{ make_details(physicalDevice.handle(), surface, framesInFlight) }
     , m_Device{ device.handle() }
     , m_Swapchain{ create_swapchain(device.handle(), physicalDevice.handle(), surface, VK_NULL_HANDLE) }
     , m_Images{ swapchain_images(device.handle()) }
@@ -69,8 +69,12 @@ Swapchain::Swapchain(const Device& device, const PhysicalDevice& physicalDevice,
 {
     emplace_image_views();
 }
-Swapchain::Swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
-    : m_Details{ make_details(physicalDevice, surface) }
+Swapchain::Swapchain(DeviceRef device,
+                     PhysicalDeviceRef physicalDevice,
+                     Surface& surface,
+                     VkSwapchainKHR oldSwapchain,
+                     std::uint32_t framesInFlight)
+    : m_Details{ make_details(physicalDevice, surface, framesInFlight) }
     , m_Device{ device }
     , m_Swapchain{ create_swapchain(device, physicalDevice, surface, oldSwapchain) }
     , m_Images{ swapchain_images(device) }
@@ -157,17 +161,20 @@ const VkExtent2D& Swapchain::extent() const
 {
     return m_Details.extent;
 }
-[[nodiscard]] Swapchain::SwapchainDetails Swapchain::make_details(PhysicalDeviceRef physicalDevice, Surface& surface) const
+Swapchain::SwapchainDetails Swapchain::make_details(PhysicalDeviceRef physicalDevice, Surface& surface, std::uint32_t framesInFlight) const
 {
     return SwapchainDetails{ .extent = surface.current_extent(physicalDevice),
                              .format = select_surface_format(physicalDevice, surface),
                              .presentMode = select_present_mode(physicalDevice, surface),
-                             .imageCount = image_count(physicalDevice, surface) };
+                             .imageCount = image_count(physicalDevice, surface, framesInFlight) };
 }
-VkSwapchainKHR
-Swapchain::create_swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, Surface& surface, VkSwapchainKHR oldSwapchain)
+// clang-format off
+VkSwapchainKHR Swapchain::create_swapchain(
+    DeviceRef device, 
+    PhysicalDeviceRef physicalDevice, 
+    Surface& surface, 
+    VkSwapchainKHR oldSwapchain)
 {
-    // SHOULD BE VK_SHARING_MODE_CONCURRENT IF GRAPHICS AND PRESENT QUEUES ARE DIFFERENT
     SurfaceRef s = surface.handle();
     VkSwapchainCreateInfoKHR info = swapchain_create_info(s.handle,
                                                           m_Details.imageCount,
@@ -182,6 +189,7 @@ Swapchain::create_swapchain(DeviceRef device, PhysicalDeviceRef physicalDevice, 
 
     return m_Swapchain;
 }
+// clang-format on
 std::vector<VkImage> Swapchain::swapchain_images(DeviceRef device)
 {
     std::vector<VkImage> images(m_Details.imageCount);
