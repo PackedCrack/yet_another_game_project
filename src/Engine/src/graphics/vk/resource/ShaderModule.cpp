@@ -22,7 +22,7 @@ namespace
 
     return info;
 }
-}   // namespace 
+}    // namespace
 namespace odin::graphics::vk::resource
 {
 ShaderModule::ShaderModule(DeviceRef device, std::filesystem::path filepath)
@@ -30,7 +30,7 @@ ShaderModule::ShaderModule(DeviceRef device, std::filesystem::path filepath)
     , m_Device{ device }
     , m_Filepath{ std::move(filepath) }
 {
-    std::fstream file{ filepath, std::ios::binary | std::ios::in };
+    std::fstream file{ m_Filepath, std::ios::binary | std::ios::in };
     if (!file.is_open())
     {
         LOG_FATAL("Failed to open shader: {}", filepath.string().c_str());
@@ -45,12 +45,13 @@ ShaderModule::ShaderModule(DeviceRef device, std::filesystem::path filepath)
     {
         LOG_WARN("The size of Shader {} is not divisible by 4.");
     }
-    
+
     std::vector<std::uint32_t> fileContent(size);
     file.read(reinterpret_cast<char*>(fileContent.data()), size);
 
     VkShaderModuleCreateInfo info = make_create_info(common::to_span(fileContent));
-    VK_CHECK(vkCreateShaderModule(m_Device.handle, std::addressof(info), nullptr, std::addressof(m_Module)), "Failed to create Shader Module.");
+    VK_CHECK(vkCreateShaderModule(m_Device.handle, std::addressof(info), nullptr, std::addressof(m_Module)),
+             "Failed to create Shader Module.");
 }
 ShaderModule::~ShaderModule()
 {
@@ -81,4 +82,4 @@ ShaderModuleRef ShaderModule::handle() const
     ODIN_ASSERT(m_Module != VK_NULL_HANDLE);
     return ShaderModuleRef{ .handle = m_Module };
 }
-}	// namespace odin::graphics::vk::resource
+}    // namespace odin::graphics::vk::resource

@@ -58,11 +58,11 @@ DescriptorSetLayoutBuilder& DescriptorSetLayoutBuilder::add_binding(std::uint32_
     return *this;
 }
 DescriptorSetLayoutBuilder& DescriptorSetLayoutBuilder::add_runtime_descriptor_array(std::uint32_t bindingID,
-                                                                             VkDescriptorType type,
-                                                                             std::uint32_t descriptorCount,
-                                                                             VkShaderStageFlags stages,
-                                                                             bool partiallyBound,
-                                                                             bool updateAfterBind)
+                                                                                     VkDescriptorType type,
+                                                                                     std::uint32_t descriptorCount,
+                                                                                     VkShaderStageFlags stages,
+                                                                                     bool partiallyBound,
+                                                                                     bool updateAfterBind)
 {
     VkDescriptorBindingFlags flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
     if (partiallyBound)

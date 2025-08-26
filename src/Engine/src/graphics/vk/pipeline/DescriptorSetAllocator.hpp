@@ -14,11 +14,11 @@ namespace odin::graphics::vk::pipeline
 class DescriptorSetAllocator
 {
 public:
-	DescriptorSetAllocator(DeviceRef device);
-	[[nodiscard]] VkDescriptorSet alloc(const DescriptorSetLayout& setLayout);
+    DescriptorSetAllocator(DeviceRef device);
+    [[nodiscard]] VkDescriptorSet alloc(const DescriptorSetLayout& setLayout);
 private:
-	DescriptorPool m_Pool;
-	DescriptorPool m_PoolWithUAB;
-	DeviceRef m_Device;
+    DescriptorPool m_Pool;
+    DescriptorPool m_PoolWithUAB;
+    DeviceRef m_Device;
 };
-}	// namespace odin::graphics::vk::pipeline
+}    // namespace odin::graphics::vk::pipeline

@@ -14,17 +14,17 @@ DescriptorPool::DescriptorPool(DeviceRef device, bool updatedAfterBind)
 {
     // Setting these sizes fairly uniform for now.. Can tweak them in the future based on needs
     static constexpr std::array<VkDescriptorPoolSize, 11u> poolSizes{
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100}
+        VkDescriptorPoolSize{         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+        VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+        VkDescriptorPoolSize{   VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+        VkDescriptorPoolSize{         VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+        VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+        VkDescriptorPoolSize{   VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+        VkDescriptorPoolSize{                VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+        VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+        VkDescriptorPoolSize{          VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+        VkDescriptorPoolSize{          VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+        VkDescriptorPoolSize{       VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,  100 }
     };
     VkDescriptorPoolCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

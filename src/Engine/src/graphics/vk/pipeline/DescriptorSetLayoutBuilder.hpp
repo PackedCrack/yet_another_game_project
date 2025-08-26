@@ -24,11 +24,11 @@ public:
                                                           VkShaderStageFlags stages,
                                                           VkDescriptorBindingFlags bindFlags = VK_NO_FLAGS);
     [[nodiscard]] DescriptorSetLayoutBuilder& add_runtime_descriptor_array(std::uint32_t bindingID,
-                                                                   VkDescriptorType type,
-                                                                   std::uint32_t descriptorCount,
-                                                                   VkShaderStageFlags stages,
-                                                                   bool partiallyBound = true,
-                                                                   bool updateAfterBind = true);
+                                                                           VkDescriptorType type,
+                                                                           std::uint32_t descriptorCount,
+                                                                           VkShaderStageFlags stages,
+                                                                           bool partiallyBound = true,
+                                                                           bool updateAfterBind = true);
     [[nodiscard]] DescriptorSetLayout build(DeviceRef device);
 private:
     void get_packed_bindings(std::vector<VkDescriptorSetLayoutBinding>* outBinding, std::vector<VkDescriptorBindingFlags>* outFlags) const;
