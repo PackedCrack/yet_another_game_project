@@ -27,11 +27,12 @@ struct Vertex
 class VertexBuffer : public Buffer<VertexBuffer>
 {
 public:
+    [[nodiscard]] static VertexDescription get_vertex_description();
+public:
     using vertex_t = Vertex;
     VertexBuffer(AllocatedBuffer buffer, std::function<void(AllocatedBuffer)> deleter);
 public:
     void bind(CommandBufferRef cmdBuffer) const;
-    [[nodiscard]] VertexDescription get_vertex_description();
     [[nodiscard]] std::size_t capacity() const;
 };
 }    // namespace odin::graphics::vk::resource

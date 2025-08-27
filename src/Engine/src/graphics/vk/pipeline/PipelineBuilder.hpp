@@ -6,8 +6,9 @@
 #include "GraphicsPipeline.hpp"
 #include "ComputePipeline.hpp"
 #include "PipelineLayout.hpp"
-#include "../resource/ShaderModule.hpp"
 #include "../Device.hpp"
+#include "../resource/ShaderModule.hpp"
+#include "../../registry/resource/ShaderHandle.hpp"
 // vulkan
 #include <vulkan/vulkan.h>
 //
@@ -19,12 +20,13 @@ class PipelineBuilder
 public:
     PipelineBuilder(DeviceRef device);
 public:
-    PipelineBuilder& shader_module(resource::ShaderModuleRef shader, VkShaderStageFlagBits stage);
+    PipelineBuilder& shader_module(const registry::resource::ShaderHandle& shader, VkShaderStageFlagBits stage);
     PipelineBuilder& vertex_input_state(std::span<VkVertexInputBindingDescription> vertexBindings,
                                         std::span<VkVertexInputAttributeDescription> vertexAttributes);
     PipelineBuilder& rasterization_state(VkPolygonMode polygonMode, bool depthBias = false);
-    PipelineBuilder& multisampling_state();
-    PipelineBuilder& dynamic_rendering(std::span<const VkFormat> colorFormats, std::optional<VkFormat> depthFormat, std::optional<VkFormat> stencilFormat);
+    PipelineBuilder& multisampling_state(VkSampleCountFlagBits sampleCount);
+    PipelineBuilder&
+    dynamic_rendering(std::span<const VkFormat> colorFormats, std::optional<VkFormat> depthFormat, std::optional<VkFormat> stencilFormat);
     GraphicsPipeline build_graphics_pipeline(PipelineLayoutRef layout);
 private:
     void add_dynamic_states();

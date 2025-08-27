@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "DescriptorSetLayout.hpp"
 #include "../Device.hpp"
 // vulkan
 #include <vulkan/vulkan.h>
@@ -18,7 +19,7 @@ class PipelineLayout
 {
 public:
     PipelineLayout(DeviceRef device,
-                   const std::vector<VkDescriptorSetLayout>& descriptorLayouts,
+                   std::span<const DescriptorSetLayoutRef> descriptorLayouts,
                    std::optional<std::reference_wrapper<std::vector<VkPushConstantRange>>> pushContantRanges = std::nullopt);
     ~PipelineLayout();
     PipelineLayout(const PipelineLayout& other) = delete;

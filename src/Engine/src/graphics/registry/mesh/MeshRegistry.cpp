@@ -9,10 +9,10 @@
 //
 namespace
 {
-using Vertex = odin::graphics::MeshRegistry::vertex_t;
-using Index = odin::graphics::MeshRegistry::index_t;
-using EntryAllocation = odin::graphics::EntryAllocation;
-using MeshEntry = odin::graphics::MeshEntry;
+using Vertex = odin::graphics::registry::mesh::MeshRegistry::vertex_t;
+using Index = odin::graphics::registry::mesh::MeshRegistry::index_t;
+using EntryAllocation = odin::graphics::registry::mesh::EntryAllocation;
+using MeshEntry = odin::graphics::registry::mesh::MeshEntry;
 using MeshInfo = odin::graphics::MeshInfo;
 using MeshTableArena = odin::ArenaAllocator<MeshInfo>;
 using VertexArena = odin::ArenaAllocator<Vertex>;
@@ -122,7 +122,7 @@ void upload_to_gpu(TransferManager& transferManager,
     return MeshEntry{ .id = MeshEntry::DUMMY_ID, .lastUsed = 0, .allocation = std::nullopt };
 }
 }    // namespace
-namespace odin::graphics
+namespace odin::graphics::registry::mesh
 {
 MeshRegistry::MeshRegistry(const RenderResources& renderResources)
     : m_pVertexArena{ make_vertex_arena(renderResources) }    //, m_IndexArena{ make_index_arena(renderResources) }
@@ -222,4 +222,4 @@ MeshEntry MeshRegistry::make_entry(std::span<vertex_t> vertices, std::span<const
 
     return entry;
 }
-}    // namespace odin::graphics
+}    // namespace odin::graphics::registry::mesh

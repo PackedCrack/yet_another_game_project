@@ -143,8 +143,6 @@ template<typename element_t, typename container_t>
 requires std::contiguous_iterator<typename container_t::iterator>
 [[nodiscard]] std::span<element_t> make_view(container_t& buffer, std::size_t length, int64_t offset = 0u)
 {
-    // cppcheck-suppress unknownMacro
-    ODIN_ASSERT(auto boundsCheck = std::begin(buffer) + offset; boundsCheck <= std::end(buffer));
     return std::span<element_t>{ buffer.data() + offset, length };
 }
 template<typename buffer_t, typename element_t = std::remove_cvref_t<buffer_t>::value_type>

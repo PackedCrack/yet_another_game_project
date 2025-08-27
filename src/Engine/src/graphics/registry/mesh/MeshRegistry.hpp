@@ -3,18 +3,18 @@
 //
 #pragma once
 
-#include "../ArenaAllocator.hpp"
 #include "MeshID.hpp"
-#include "gpu_types.hpp"
-#include "Renderer.hpp"
-#include "TransferManager.hpp"
-#include "vk/Allocator.hpp"
-#include "vk/QueueFamilies.hpp"
+#include "../../gpu_types.hpp"
+#include "../../Renderer.hpp"
+#include "../../TransferManager.hpp"
+#include "../../vk/Allocator.hpp"
+#include "../../vk/QueueFamilies.hpp"
+#include "../../../ArenaAllocator.hpp"
 // AssetLoader
 #include <assetloader/ModelHandle.hpp>
 //
 //
-namespace odin::graphics
+namespace odin::graphics::registry::mesh
 {
 struct EntryAllocation
 {
@@ -56,4 +56,4 @@ private:
     std::unique_ptr<ArenaAllocator<MeshInfo>> m_pMeshTableArena;
     Registry m_Meshes;
 };
-}    // namespace odin::graphics
+}    // namespace odin::graphics::registry::mesh

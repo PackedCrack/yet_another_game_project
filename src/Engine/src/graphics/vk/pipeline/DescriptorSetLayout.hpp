@@ -15,7 +15,7 @@ struct DescriptorSetLayoutRef
 class DescriptorSetLayout
 {
 public:
-    DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& info, bool updateAfterBind);
+    DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& info);
     ~DescriptorSetLayout();
     DescriptorSetLayout(const DescriptorSetLayout& other) = delete;
     DescriptorSetLayout(DescriptorSetLayout&& other) noexcept;

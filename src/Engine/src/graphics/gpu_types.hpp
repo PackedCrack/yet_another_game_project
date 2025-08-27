@@ -25,6 +25,12 @@ namespace odin::graphics
 #define DRAW_FLAG_HAS_TANGENT 1 << 1
 #define DRAW_FLAG_HAS_TEXCOORD_0 1 << 2
 #define DRAW_FLAG_HAS_TEXCOORD_1 1 << 3
+
+#define GLOBAL_SET_ID 0
+#define GLOBAL_SET_BIND_ID_CAMERA_DATA 0
+#define GLOBAL_SET_BIND_ID_INSTANCE_INFO 1
+//
+//
 struct InstanceInfo
 {
     vec3 translation;

@@ -23,9 +23,11 @@ public:
     ShaderModule& operator=(ShaderModule&& other) noexcept;
 public:
     [[nodiscard]] ShaderModuleRef handle() const;
+    [[nodiscard]] std::uint64_t hash() const;
 private:
     VkShaderModule m_Module;
     DeviceRef m_Device;
     std::filesystem::path m_Filepath;
+    std::uint64_t m_Hash;
 };
 }    // namespace odin::graphics::vk::resource

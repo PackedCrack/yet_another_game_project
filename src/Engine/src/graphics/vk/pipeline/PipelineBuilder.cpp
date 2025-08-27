@@ -12,31 +12,28 @@ namespace
 using namespace odin::graphics::vk;
 using namespace odin::graphics::vk::pipeline;
 
-constexpr std::array<VkDynamicState, 15> enabledDynamicStates{ 
-    VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
-    VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
-    VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
-    VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
-    VK_DYNAMIC_STATE_CULL_MODE,
-    VK_DYNAMIC_STATE_FRONT_FACE,
-    VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,
-    VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE,
-    VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,
-    VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE, 
-    VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
-    VK_DYNAMIC_STATE_STENCIL_OP,
-    VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
-    VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
-    VK_DYNAMIC_STATE_BLEND_CONSTANTS
-};
+constexpr std::array<VkDynamicState, 15> enabledDynamicStates{ VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
+                                                               VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
+                                                               VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
+                                                               VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
+                                                               VK_DYNAMIC_STATE_CULL_MODE,
+                                                               VK_DYNAMIC_STATE_FRONT_FACE,
+                                                               VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,
+                                                               VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE,
+                                                               VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,
+                                                               VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
+                                                               VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
+                                                               VK_DYNAMIC_STATE_STENCIL_OP,
+                                                               VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
+                                                               VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
+                                                               VK_DYNAMIC_STATE_BLEND_CONSTANTS };
 
 constexpr std::uint16_t SHADER_MODULES_BIT = 1 << 0;
 constexpr std::uint16_t VERTEX_INPUT_BIT = 1 << 1;
 constexpr std::uint16_t RASTERIZATION_BIT = 1 << 2;
 constexpr std::uint16_t MULTISAMPLING_BIT = 1 << 3;
 constexpr std::uint16_t DYNAMIC_RENDERING_BIT = 1 << 4;
-constexpr std::uint16_t GRAPHICS_DATA_FULLFILLED = SHADER_MODULES_BIT | RASTERIZATION_BIT |
-                                                    MULTISAMPLING_BIT | DYNAMIC_RENDERING_BIT;
+constexpr std::uint16_t GRAPHICS_DATA_FULLFILLED = SHADER_MODULES_BIT | RASTERIZATION_BIT | MULTISAMPLING_BIT | DYNAMIC_RENDERING_BIT;
 //
 //
 [[nodiscard]] VkPipelineShaderStageCreateInfo make_shader_stage_create_info(resource::ShaderModuleRef shader, VkShaderStageFlagBits stage)
@@ -118,13 +115,13 @@ constexpr std::uint16_t GRAPHICS_DATA_FULLFILLED = SHADER_MODULES_BIT | RASTERIZ
 
     return info;
 }
-[[nodiscard]] VkPipelineMultisampleStateCreateInfo make_multisampling_create_info()
+[[nodiscard]] VkPipelineMultisampleStateCreateInfo make_multisampling_create_info(VkSampleCountFlagBits sampleCount)
 {
     VkPipelineMultisampleStateCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = VK_NO_FLAGS;
-    info.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    info.rasterizationSamples = sampleCount;
     info.sampleShadingEnable = VK_FALSE;
     info.minSampleShading = 1.0f;
     info.pSampleMask = nullptr;
@@ -160,17 +157,18 @@ constexpr std::uint16_t GRAPHICS_DATA_FULLFILLED = SHADER_MODULES_BIT | RASTERIZ
 
     return info;
 }
-[[nodiscard]] VkPipelineRenderingCreateInfo make_rendering_info(std::span<const VkFormat> colorFormats, std::optional<VkFormat> depthFormat, std::optional<VkFormat> stencilFormat)
+[[nodiscard]] VkPipelineRenderingCreateInfo
+make_rendering_info(std::span<const VkFormat> colorFormats, std::optional<VkFormat> depthFormat, std::optional<VkFormat> stencilFormat)
 {
     VkPipelineRenderingCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
     info.pNext = nullptr;
-    info.viewMask = 0; // No multiview support
+    info.viewMask = 0;    // No multiview support
     info.colorAttachmentCount = static_cast<std::uint32_t>(colorFormats.size());
     info.pColorAttachmentFormats = colorFormats.empty() ? nullptr : colorFormats.data();
     info.depthAttachmentFormat = depthFormat.value_or(VK_FORMAT_UNDEFINED);
     info.stencilAttachmentFormat = stencilFormat.value_or(VK_FORMAT_UNDEFINED);
-    
+
     return info;
 }
 }    // namespace
@@ -195,10 +193,11 @@ PipelineBuilder::PipelineBuilder(DeviceRef device)
 {
     add_dynamic_states();
 }
-PipelineBuilder& PipelineBuilder::shader_module(resource::ShaderModuleRef shader, VkShaderStageFlagBits stage)
+PipelineBuilder& PipelineBuilder::shader_module(const registry::resource::ShaderHandle& shader, VkShaderStageFlagBits stage)
 {
-    m_ShaderModules.emplace_back(shader);
-    m_ShaderStages.emplace_back(make_shader_stage_create_info(shader, stage));
+    resource::ShaderModuleRef shaderRef = shader.acquire()->handle();
+    m_ShaderModules.emplace_back(shaderRef);
+    m_ShaderStages.emplace_back(make_shader_stage_create_info(shaderRef, stage));
     m_GraphicsMask |= SHADER_MODULES_BIT;
 
     return *this;
@@ -218,14 +217,16 @@ PipelineBuilder& PipelineBuilder::rasterization_state(VkPolygonMode polygonMode,
 
     return *this;
 }
-PipelineBuilder& PipelineBuilder::multisampling_state()
+PipelineBuilder& PipelineBuilder::multisampling_state(VkSampleCountFlagBits sampleCount)
 {
-    m_MultisamplingState = make_multisampling_create_info();
+    m_MultisamplingState = make_multisampling_create_info(sampleCount);
     m_GraphicsMask |= MULTISAMPLING_BIT;
 
     return *this;
 }
-PipelineBuilder& PipelineBuilder::dynamic_rendering(std::span<const VkFormat> colorFormats, std::optional<VkFormat> depthFormat, std::optional<VkFormat> stencilFormat)
+PipelineBuilder& PipelineBuilder::dynamic_rendering(std::span<const VkFormat> colorFormats,
+                                                    std::optional<VkFormat> depthFormat,
+                                                    std::optional<VkFormat> stencilFormat)
 {
     ODIN_ASSERT((m_GraphicsMask & DYNAMIC_RENDERING_BIT) == 0);
 
@@ -237,10 +238,9 @@ PipelineBuilder& PipelineBuilder::dynamic_rendering(std::span<const VkFormat> co
             m_ColorBlendAttachments.emplace_back(make_color_blend_attachment_state());
         }
         m_ColorBlendState = make_color_blend_create_info(common::to_span(m_ColorBlendAttachments));
-        
     }
     ODIN_ASSERT(m_RenderingInfo.colorAttachmentCount == m_ColorBlendState.attachmentCount);
-    
+
     m_GraphicsMask |= DYNAMIC_RENDERING_BIT;
 
     return *this;
@@ -261,7 +261,7 @@ GraphicsPipeline PipelineBuilder::build_graphics_pipeline(PipelineLayoutRef layo
     info.renderPass = VK_NULL_HANDLE;
     info.subpass = 0;
     info.basePipelineHandle = VK_NULL_HANDLE;
-    
+
     // If there are color attachments in this pipeline
     info.pColorBlendState = (m_RenderingInfo.colorAttachmentCount == 0) ? nullptr : std::addressof(m_ColorBlendState);
 
@@ -283,10 +283,9 @@ void PipelineBuilder::add_dynamic_states()
 }
 [[nodiscard]] bool PipelineBuilder::validate_graphics_pipeline_data() const
 {
-    auto it = std::find_if(std::begin(m_ShaderStages), std::end(m_ShaderStages), [] (const VkPipelineShaderStageCreateInfo& info)
-    {
-        return info.stage == VK_SHADER_STAGE_VERTEX_BIT;
-    });
+    auto it = std::find_if(std::begin(m_ShaderStages),
+                           std::end(m_ShaderStages),
+                           [](const VkPipelineShaderStageCreateInfo& info) { return info.stage == VK_SHADER_STAGE_VERTEX_BIT; });
     if (it != std::end(m_ShaderStages))
     {
         if ((m_GraphicsMask & VERTEX_INPUT_BIT) == 0)

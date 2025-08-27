@@ -7,12 +7,19 @@
 #include "../vulkan_info.hpp"
 //
 //
+namespace
+{
+[[nodiscard]] bool update_after_bind(const VkDescriptorSetLayoutCreateInfo& info)
+{
+    return info.flags & VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+}
+}
 namespace odin::graphics::vk::pipeline
 {
-DescriptorSetLayout::DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& info, bool updateAfterBind)
+DescriptorSetLayout::DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& info)
     : m_DescriptorSetLayout{ VK_NULL_HANDLE }
     , m_Device{ device }
-    , m_UpdateAfterBind{ updateAfterBind }
+    , m_UpdateAfterBind{ update_after_bind(info) }
 {
     VK_CHECK(vkCreateDescriptorSetLayout(m_Device.handle, std::addressof(info), nullptr, std::addressof(m_DescriptorSetLayout)),
              "Failed to create Descriptor Set Layout.");
