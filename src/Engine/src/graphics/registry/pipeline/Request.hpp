@@ -10,12 +10,6 @@
 //
 namespace odin::graphics::registry::pipeline
 {
-struct ShaderStages
-{
-    std::optional<resource::ShaderHandle> cs;
-    std::optional<resource::ShaderHandle> vs;
-    std::optional<resource::ShaderHandle> fs;
-};
 struct DescriptorRequest
 {
     std::uint32_t bindingID;
@@ -26,14 +20,18 @@ struct DescriptorRequest
 };
 struct Request
 {
-    ShaderStages stages;
-    std::vector<std::vector<DescriptorRequest>> DescLayoutRequirement;
+    std::optional<VkPolygonMode> polygonMode;
 
     std::optional<std::vector<VkFormat>> colorFormats;
     std::optional<VkFormat> depthFormat;
     std::optional<VkFormat> stencilFormat;
 
-    std::optional<VkPolygonMode> polygonMode;
     std::optional<VkSampleCountFlagBits> MsaaSamples;
+
+    std::vector<std::vector<DescriptorRequest>> DescLayoutRequirement;
+
+    std::optional<resource::ShaderHandle> vs;
+    std::optional<resource::ShaderHandle> fs;
+    std::optional<resource::ShaderHandle> cs;
 };
 }    // namespace odin::graphics::registry::pipeline

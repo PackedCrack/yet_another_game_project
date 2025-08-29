@@ -13,9 +13,9 @@ namespace odin::graphics::registry::pipeline
 {
 struct PipelineKey
 {
-    std::uint64_t vsHash;
-    std::uint64_t fsHash;
-    std::uint64_t csHash;
+    std::optional<resource::ShaderHandle> vs;
+    std::optional<resource::ShaderHandle> fs;
+    std::optional<resource::ShaderHandle> cs;
 
     std::uint64_t pipelineLayoutHash;
 
@@ -30,13 +30,13 @@ struct PipelineKey
 };
 struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
 {
-    constexpr std::uint64_t operator()(const PipelineKey& key) const noexcept
+    inline std::uint64_t operator()(const PipelineKey& key) const noexcept
     {
         std::uint64_t hash = 11400'71481'93231'98549;
 
-        hash ^= splitmix64(key.vsHash);
-        hash ^= splitmix64(key.fsHash);
-        hash ^= splitmix64(key.csHash);
+        // TODO:
+        // Use ShaderHandle ID in the hash
+
         hash ^= splitmix64(key.pipelineLayoutHash);
 
         if (key.colorFormats)
@@ -47,10 +47,10 @@ struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
             }
         }
 
-        hash ^= splitmix64(static_cast<std::uint64_t>(key.depthFormat.value_or(0)));
-        hash ^= splitmix64(static_cast<std::uint64_t>(key.stencilFormat.value_or(0)));
-        hash ^= splitmix64(static_cast<std::uint64_t>(key.polygon.value_or(0)));
-        hash ^= splitmix64(static_cast<std::uint64_t>(key.samples.value_or(0)));
+        hash ^= splitmix64(static_cast<std::uint64_t>(key.depthFormat.value_or(VK_FORMAT_UNDEFINED)));
+        hash ^= splitmix64(static_cast<std::uint64_t>(key.stencilFormat.value_or(VK_FORMAT_UNDEFINED)));
+        hash ^= splitmix64(static_cast<std::uint64_t>(key.polygon.value_or(VK_POLYGON_MODE_MAX_ENUM)));
+        hash ^= splitmix64(static_cast<std::uint64_t>(key.samples.value_or(VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM)));
 
         return hash;
     }

@@ -15,7 +15,7 @@ class DescriptorSetAllocator
 {
 public:
     DescriptorSetAllocator(DeviceRef device);
-    [[nodiscard]] VkDescriptorSet alloc(const DescriptorSetLayout& setLayout);
+    [[nodiscard]] VkDescriptorSet alloc(DescriptorSetLayoutRef layout, bool requiresUpdateAfterBind = false);
 private:
     DescriptorPool m_Pool;
     DescriptorPool m_PoolWithUAB;

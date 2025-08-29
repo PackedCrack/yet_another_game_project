@@ -10,7 +10,7 @@
 //
 namespace odin::graphics::registry::pipeline
 {
-struct GraphicsHandle : public Handle<GraphicsHandle, GraphicsSlot, vk::pipeline::GraphicsPipeline>
+struct GraphicsHandle : public Handle<GraphicsHandle, GraphicsSlot, GraphicsResource>
 {
     GraphicsHandle(std::shared_ptr<GraphicsSlot> pSlot);
 };

@@ -103,4 +103,8 @@ std::uint64_t ShaderModule::hash() const
     ODIN_ASSERT(m_Hash != 0);
     return m_Hash;
 }
+std::filesystem::path ShaderModule::filepath() const
+{
+    return m_Filepath;
+}
 }    // namespace odin::graphics::vk::resource

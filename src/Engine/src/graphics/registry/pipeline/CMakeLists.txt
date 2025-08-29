@@ -1,3 +1,5 @@
+add_subdirectory("descriptors")
+
 SET(SOURCES
 	PipelineRegistry.hpp
 	PipelineRegistry.cpp
@@ -8,7 +10,8 @@ SET(SOURCES
 	GraphicsHandle.cpp
 	GraphicsSlot.hpp
 	PipelineKey.hpp
-	DescriptorSetLayoutKey.hpp
+	PipelineLayoutRegistry.hpp
+	PipelineLayoutRegistry.cpp
 	PipelineLayoutKey.hpp
 )
 

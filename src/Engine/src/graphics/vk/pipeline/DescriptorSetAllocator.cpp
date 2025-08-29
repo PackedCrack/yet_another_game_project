@@ -31,11 +31,9 @@ DescriptorSetAllocator::DescriptorSetAllocator(DeviceRef device)
     , m_PoolWithUAB{ device, updateAfterBind }
     , m_Device{ device }
 {}
-VkDescriptorSet DescriptorSetAllocator::alloc(const DescriptorSetLayout& setLayout)
+VkDescriptorSet DescriptorSetAllocator::alloc(DescriptorSetLayoutRef layout, bool requiresUpdateAfterBind)
 {
-    DescriptorPoolRef pool = setLayout.requires_update_after_bind() ? m_PoolWithUAB.handle() : m_Pool.handle();
-    DescriptorSetLayoutRef layout = setLayout.handle();
-
+    DescriptorPoolRef pool = requiresUpdateAfterBind ? m_PoolWithUAB.handle() : m_Pool.handle();
     VkDescriptorSetAllocateInfo info = make_alloc_info(pool, layout);
 
     // TODO: This is for bindless Textures - which is a future project

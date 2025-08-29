@@ -24,6 +24,7 @@ public:
 public:
     [[nodiscard]] ShaderModuleRef handle() const;
     [[nodiscard]] std::uint64_t hash() const;
+    [[nodiscard]] std::filesystem::path filepath() const;
 private:
     VkShaderModule m_Module;
     DeviceRef m_Device;
