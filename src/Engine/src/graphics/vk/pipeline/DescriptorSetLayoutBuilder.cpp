@@ -84,13 +84,7 @@ DescriptorSetLayout DescriptorSetLayoutBuilder::build(DeviceRef device)
     VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo = make_flags_create_info(common::to_span(flags));
     VkDescriptorSetLayoutCreateInfo info = make_layout_create_info(common::to_span(bindings), flagsInfo);
 
-    bool updateAfterBind = requires_update_after_bind();
-    if (updateAfterBind)
-    {
-        info.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
-    }
-
-    return DescriptorSetLayout{ device, info, updateAfterBind };
+    return DescriptorSetLayout{ device, info };
 }
 void DescriptorSetLayoutBuilder::get_packed_bindings(std::vector<VkDescriptorSetLayoutBinding>* outBinding,
                                                      std::vector<VkDescriptorBindingFlags>* outFlags) const
@@ -100,12 +94,5 @@ void DescriptorSetLayoutBuilder::get_packed_bindings(std::vector<VkDescriptorSet
         outBinding->emplace_back(binding.binding);
         outFlags->emplace_back(binding.flags);
     }
-}
-bool DescriptorSetLayoutBuilder::requires_update_after_bind() const
-{
-    auto it = std::find_if(std::begin(m_Bindings),
-                           std::end(m_Bindings),
-                           [](const Binding& b) { return b.flags & VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT; });
-    return it != std::end(m_Bindings);
 }
 }    // namespace odin::graphics::vk::pipeline

@@ -4,9 +4,9 @@
 #include "ShaderHandle.hpp"
 //
 //
-namespace odin::graphics::registry::resource
+namespace odin::graphics::registry::resource::shader
 {
 ShaderHandle::ShaderHandle(std::shared_ptr<ShaderSlot> pSlot)
     : Handle<ShaderHandle, ShaderSlot, vk::resource::ShaderModule>(std::move(pSlot))
 {}
-}    // namespace odin::graphics::registry::resource
+}    // namespace odin::graphics::registry::resource::shader

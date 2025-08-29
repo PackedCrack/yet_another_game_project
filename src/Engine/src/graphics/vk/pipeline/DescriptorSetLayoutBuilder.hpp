@@ -32,7 +32,6 @@ public:
     [[nodiscard]] DescriptorSetLayout build(DeviceRef device);
 private:
     void get_packed_bindings(std::vector<VkDescriptorSetLayoutBinding>* outBinding, std::vector<VkDescriptorBindingFlags>* outFlags) const;
-    [[nodiscard]] bool requires_update_after_bind() const;
 private:
     std::set<Binding> m_Bindings;
 };

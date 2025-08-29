@@ -4,14 +4,14 @@
 #pragma once
 
 #include "ShaderSlot.hpp"
-#include "../Handle.hpp"
-#include "../../vk/resource/ShaderModule.hpp"
+#include "../../Handle.hpp"
+#include "../../../vk/resource/ShaderModule.hpp"
 //
 //
-namespace odin::graphics::registry::resource
+namespace odin::graphics::registry::resource::shader
 {
 struct ShaderHandle : public Handle<ShaderHandle, ShaderSlot, vk::resource::ShaderModule>
 {
     ShaderHandle(std::shared_ptr<ShaderSlot> pSlot);
 };
-}    // namespace odin::graphics::registry::resource
+}    // namespace odin::graphics::registry::resource::shader

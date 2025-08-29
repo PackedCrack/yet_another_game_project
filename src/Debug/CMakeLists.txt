@@ -59,5 +59,5 @@ add_dependencies(${DEBUG_TARGET} ${DEBUG_TARGET}_cppcheck_dependency)
 
 
 set_target_properties(${DEBUG_TARGET} PROPERTIES FOLDER "Engine")
-set_target_properties("${DEBUG_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Engine Build Dependencies")
-set_target_properties("${DEBUG_TARGET}_format_dependency" PROPERTIES FOLDER "Engine Build Dependencies")
+set_target_properties("${DEBUG_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Build Dependencies")
+set_target_properties("${DEBUG_TARGET}_format_dependency" PROPERTIES FOLDER "Build Dependencies")

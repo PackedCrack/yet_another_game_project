@@ -1,9 +1,8 @@
+add_subdirectory("shader")
+
 SET(SOURCES
 	ResourceRegistry.hpp
 	ResourceRegistry.cpp
-	ShaderHandle.hpp
-	ShaderHandle.cpp
-	ShaderSlot.hpp
 )
 
 

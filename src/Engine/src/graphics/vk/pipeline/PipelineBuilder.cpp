@@ -193,7 +193,7 @@ PipelineBuilder::PipelineBuilder(DeviceRef device)
 {
     add_dynamic_states();
 }
-PipelineBuilder& PipelineBuilder::shader_module(const registry::resource::ShaderHandle& shader, VkShaderStageFlagBits stage)
+PipelineBuilder& PipelineBuilder::shader_module(const registry::resource::shader::ShaderHandle& shader, VkShaderStageFlagBits stage)
 {
     resource::ShaderModuleRef shaderRef = shader.acquire()->handle();
     m_ShaderModules.emplace_back(shaderRef);

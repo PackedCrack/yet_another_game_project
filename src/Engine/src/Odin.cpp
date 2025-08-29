@@ -163,12 +163,12 @@ private:
 
         return submeshes;
     }
-    void assign_submesh_ids(const std::vector<Entity>& submeshes, const std::vector<graphics::MeshID>& ids)
+    void assign_submesh_ids(const std::vector<Entity>& submeshes, const std::vector<graphics::registry::mesh::MeshID>& ids)
     {
         std::size_t index{};
         auto assign_mesh_id = [&ids, &index]([[maybe_unused]] Entity e, component::Mesh& mesh)
         {
-            graphics::MeshID id = ids[index++];
+            graphics::registry::mesh::MeshID id = ids[index++];
             mesh.id = id;
         };
         ECS& ecs = m_ECS.value();
@@ -191,7 +191,7 @@ private:
 
                 std::vector<Entity> submeshes = make_submesh_entities(handle);
 
-                std::vector<graphics::MeshID> ids = m_Gfx.mesh_ids(handle);
+                std::vector<graphics::registry::mesh::MeshID> ids = m_Gfx.mesh_ids(handle);
                 assign_submesh_ids(submeshes, ids);
             }
         };

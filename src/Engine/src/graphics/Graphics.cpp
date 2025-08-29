@@ -4,7 +4,7 @@
 #include "Graphics.hpp"
 
 #include "FrameHandler.hpp"
-#include "MeshRegistry.hpp"
+#include "registry/mesh/MeshRegistry.hpp"
 #include "Presenter.hpp"
 #include "Renderer.hpp"
 #include "TransferManager.hpp"
@@ -63,7 +63,7 @@ public:
         // Make TransferManager
         TransferManager transferManager{ device.handle(), queueFamilies.transfer() };
         // Make MeshRegisrty
-        MeshRegistry meshRegistry{ renderer.render_resources() };
+        registry::mesh::MeshRegistry meshRegistry{ renderer.render_resources() };
 
         // Make Vulkan Context
         VulkanContext context{ std::move(instance),
@@ -85,7 +85,7 @@ public:
          Presenter presenter,
          Renderer renderer,
          TransferManager transferManager,
-         MeshRegistry meshRegistry)
+         registry::mesh::MeshRegistry meshRegistry)
         : m_Context{ std::move(context) }
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
@@ -158,18 +158,18 @@ public:
         return m_MeshRegistry.contains(handle); 
     }
     // clang-format on
-    std::vector<MeshID> mesh_ids(const asl::ModelHandle& handle) const
+    std::vector<registry::mesh::MeshID> mesh_ids(const asl::ModelHandle& handle) const
     {
         // This is done to make sure MeshEntry does not leak across pimpl boundary
         // And to make sure ECS is not required in Graphics
         // There is probably a better way of doing this than copying the IDS..
-        const std::vector<MeshEntry>& meshEntries = m_MeshRegistry.entries(handle);
-        std::vector<MeshID> ids{};
+        const std::vector<registry::mesh::MeshEntry>& meshEntries = m_MeshRegistry.entries(handle);
+        std::vector<registry::mesh::MeshID> ids{};
 
         std::transform(std::begin(meshEntries),
                        std::end(meshEntries),
                        std::back_inserter(ids),
-                       [](const MeshEntry& entry) { return entry.id; });
+                       [](const registry::mesh::MeshEntry& entry) { return entry.id; });
 
         return ids;
     }
@@ -179,7 +179,7 @@ private:
     Presenter m_Presenter;
     Renderer m_Renderer;
     TransferManager m_TransferManager;
-    MeshRegistry m_MeshRegistry;
+    registry::mesh::MeshRegistry m_MeshRegistry;
 };
 //
 //
@@ -202,7 +202,7 @@ bool Graphics::is_registered(const asl::ModelHandle& handle) const
 {
     return m_pImpl->is_registered(handle);
 }
-std::vector<MeshID> Graphics::mesh_ids(const asl::ModelHandle& handle) const
+std::vector<registry::mesh::MeshID> Graphics::mesh_ids(const asl::ModelHandle& handle) const
 {
     return m_pImpl->mesh_ids(handle);
 }

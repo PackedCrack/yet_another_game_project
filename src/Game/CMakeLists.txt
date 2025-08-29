@@ -31,7 +31,7 @@ target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/.
 
 add_dependencies(${GAME_TARGET} ${DEBUG_TARGET})
 target_link_libraries(${GAME_TARGET} PRIVATE ${DEBUG_TARGET})
-target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
+target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debug/include")
 
 add_dependencies(${GAME_TARGET} ${ENGINE_TARGET})
 target_link_libraries(${GAME_TARGET} PRIVATE ${ENGINE_TARGET})
@@ -45,5 +45,5 @@ target_link_libraries(${GAME_TARGET} PRIVATE "$ENV{VULKAN_SDK}/Lib/vulkan-1.lib"
 
 
 set_target_properties(${GAME_TARGET} PROPERTIES FOLDER "Game")
-set_target_properties("${GAME_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Game")
-set_target_properties("${GAME_TARGET}_format_dependency" PROPERTIES FOLDER "Game")
+set_target_properties("${GAME_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Build Dependencies")
+set_target_properties("${GAME_TARGET}_format_dependency" PROPERTIES FOLDER "Build Dependencies")

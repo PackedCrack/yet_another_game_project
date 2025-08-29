@@ -8,7 +8,7 @@
 #include "PipelineLayout.hpp"
 #include "../Device.hpp"
 #include "../resource/ShaderModule.hpp"
-#include "../../registry/resource/ShaderHandle.hpp"
+#include "../../registry/resource/shader/ShaderHandle.hpp"
 // vulkan
 #include <vulkan/vulkan.h>
 //
@@ -20,7 +20,7 @@ class PipelineBuilder
 public:
     PipelineBuilder(DeviceRef device);
 public:
-    PipelineBuilder& shader_module(const registry::resource::ShaderHandle& shader, VkShaderStageFlagBits stage);
+    PipelineBuilder& shader_module(const registry::resource::shader::ShaderHandle& shader, VkShaderStageFlagBits stage);
     PipelineBuilder& vertex_input_state(std::span<VkVertexInputBindingDescription> vertexBindings,
                                         std::span<VkVertexInputAttributeDescription> vertexAttributes);
     PipelineBuilder& rasterization_state(VkPolygonMode polygonMode, bool depthBias = false);

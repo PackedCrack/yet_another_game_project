@@ -19,7 +19,7 @@ using GraphicsPipeline = vk::pipeline::GraphicsPipeline;
 using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
 //
 //
-[[nodiscard]] std::uint64_t get_shader_hash(const std::optional<resource::ShaderHandle>& shader)
+[[nodiscard]] std::uint64_t get_shader_hash(const std::optional<resource::shader::ShaderHandle>& shader)
 {
     return shader.has_value() ? shader->acquire()->hash() : 0;
 }
@@ -33,12 +33,12 @@ using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
         vk::resource::VertexDescription desc = vk::resource::VertexBuffer::get_vertex_description();
         builder.vertex_input_state(common::to_span(desc.bindings), common::to_span(desc.attributes));
 
-        const resource::ShaderHandle& shader = request.vs.value();
+        const resource::shader::ShaderHandle& shader = request.vs.value();
         builder.shader_module(shader, VK_SHADER_STAGE_VERTEX_BIT);
     }
     if (request.fs.has_value())
     {
-        const resource::ShaderHandle& shader = request.fs.value();
+        const resource::shader::ShaderHandle& shader = request.fs.value();
         builder.shader_module(shader, VK_SHADER_STAGE_FRAGMENT_BIT);
     }
     ODIN_ASSERT(!request.cs.has_value());

@@ -42,9 +42,9 @@ file(COPY "${PROJECT_SOURCE_DIR}/external/tinygltf/tiny_gltf.h" DESTINATION "${C
 
 add_dependencies(${ASSET_LOADER_TARGET} ${DEBUG_TARGET})
 target_link_libraries(${ASSET_LOADER_TARGET} PRIVATE ${DEBUG_TARGET})
-target_include_directories(${ASSET_LOADER_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
+target_include_directories(${ASSET_LOADER_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debug/include")
 
 
 set_target_properties(${ASSET_LOADER_TARGET} PROPERTIES FOLDER "Engine")
-set_target_properties("${ASSET_LOADER_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Engine Build Dependencies")
-set_target_properties("${ASSET_LOADER_TARGET}_format_dependency" PROPERTIES FOLDER "Engine Build Dependencies")
+set_target_properties("${ASSET_LOADER_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Build Dependencies")
+set_target_properties("${ASSET_LOADER_TARGET}_format_dependency" PROPERTIES FOLDER "Build Dependencies")

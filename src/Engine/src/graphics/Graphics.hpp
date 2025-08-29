@@ -5,7 +5,7 @@
 
 #include "../OdinInfo.hpp"
 #include "../window/Window.hpp"
-#include "MeshID.hpp"
+#include "registry/mesh/MeshID.hpp"
 // AssetLoader
 #include <assetloader/ModelHandle.hpp>
 //
@@ -24,7 +24,7 @@ public:
     void draw();
     void register_model(const asl::ModelHandle& handle);
     [[nodiscard]] bool is_registered(const asl::ModelHandle& handle) const;
-    [[nodiscard]] std::vector<MeshID> mesh_ids(const asl::ModelHandle& handle) const;
+    [[nodiscard]] std::vector<registry::mesh::MeshID> mesh_ids(const asl::ModelHandle& handle) const;
 private:
     std::unique_ptr<Impl> m_pImpl;
 };

@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "../graphics/MeshID.hpp"
+#include "../graphics/registry/mesh/MeshID.hpp"
 // std
 #include <cstdint>
 //
@@ -12,6 +12,6 @@ namespace odin::component
 {
 struct Mesh
 {
-    graphics::MeshID id;
+    graphics::registry::mesh::MeshID id;
 };
 }    // namespace odin::component

@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "../resource/shader/ShaderHandle.hpp"
 // common
 #include <SplitMix64.hpp>
 // vulkan
@@ -13,9 +14,9 @@ namespace odin::graphics::registry::pipeline
 {
 struct PipelineKey
 {
-    std::optional<resource::ShaderHandle> vs;
-    std::optional<resource::ShaderHandle> fs;
-    std::optional<resource::ShaderHandle> cs;
+    std::optional<resource::shader::ShaderHandle> vs;
+    std::optional<resource::shader::ShaderHandle> fs;
+    std::optional<resource::shader::ShaderHandle> cs;
 
     std::uint64_t pipelineLayoutHash;
 

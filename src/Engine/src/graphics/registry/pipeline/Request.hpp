@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "../resource/ShaderHandle.hpp"
+#include "../resource/shader/ShaderHandle.hpp"
 // vulkan
 #include <vulkan/vulkan.h>
 //
@@ -30,8 +30,8 @@ struct Request
 
     std::vector<std::vector<DescriptorRequest>> DescLayoutRequirement;
 
-    std::optional<resource::ShaderHandle> vs;
-    std::optional<resource::ShaderHandle> fs;
-    std::optional<resource::ShaderHandle> cs;
+    std::optional<resource::shader::ShaderHandle> vs;
+    std::optional<resource::shader::ShaderHandle> fs;
+    std::optional<resource::shader::ShaderHandle> cs;
 };
 }    // namespace odin::graphics::registry::pipeline

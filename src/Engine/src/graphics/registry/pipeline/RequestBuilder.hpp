@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Request.hpp"
-#include "../resource/ShaderHandle.hpp"
+#include "../resource/shader/ShaderHandle.hpp"
 //
 //
 namespace odin::graphics::registry::pipeline
@@ -28,9 +28,9 @@ enum class DescriptorType
 class RequestBuilder
 {
 public:
-    RequestBuilder& add_vertex_shader(resource::ShaderHandle shader);
-    RequestBuilder& add_fragment_shader(resource::ShaderHandle shader);
-    RequestBuilder& add_compute_shader(resource::ShaderHandle shader);
+    RequestBuilder& add_vertex_shader(resource::shader::ShaderHandle shader);
+    RequestBuilder& add_fragment_shader(resource::shader::ShaderHandle shader);
+    RequestBuilder& add_compute_shader(resource::shader::ShaderHandle shader);
     RequestBuilder& add_color_format(VkFormat format);
     RequestBuilder& add_depth_format(VkFormat format);
     RequestBuilder& add_stencil_format(VkFormat format);

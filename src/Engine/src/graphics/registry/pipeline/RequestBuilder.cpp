@@ -23,19 +23,19 @@ using namespace odin::graphics::registry::pipeline;
 }    // namespace
 namespace odin::graphics::registry::pipeline
 {
-RequestBuilder& RequestBuilder::add_vertex_shader(resource::ShaderHandle shader)
+RequestBuilder& RequestBuilder::add_vertex_shader(resource::shader::ShaderHandle shader)
 {
-    m_Request.stages.vs = std::make_optional(std::move(shader));
+    m_Request.vs = std::make_optional(std::move(shader));
     return *this;
 }
-RequestBuilder& RequestBuilder::add_fragment_shader(resource::ShaderHandle shader)
+RequestBuilder& RequestBuilder::add_fragment_shader(resource::shader::ShaderHandle shader)
 {
-    m_Request.stages.fs = std::make_optional(std::move(shader));
+    m_Request.fs = std::make_optional(std::move(shader));
     return *this;
 }
-RequestBuilder& RequestBuilder::add_compute_shader(resource::ShaderHandle shader)
+RequestBuilder& RequestBuilder::add_compute_shader(resource::shader::ShaderHandle shader)
 {
-    m_Request.stages.cs = std::make_optional(std::move(shader));
+    m_Request.cs = std::make_optional(std::move(shader));
     return *this;
 }
 RequestBuilder& RequestBuilder::add_color_format(VkFormat format)
