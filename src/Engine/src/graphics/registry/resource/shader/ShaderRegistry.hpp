@@ -16,6 +16,8 @@ class ShaderRegistry
     using Mutex = std::unique_ptr<mutex_t>;
     using Registry = std::unordered_map<std::filesystem::path, std::weak_ptr<ShaderSlot>>;
 public:
+    [[nodiscard]] static std::unique_ptr<ShaderRegistry> make(vk::DeviceRef device);
+private:
     ShaderRegistry(vk::DeviceRef device);
 public:
     [[nodiscard]] ShaderHandle shader(std::string_view filename);

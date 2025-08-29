@@ -41,6 +41,10 @@ void store_shader(std::shared_ptr<ShaderSlot>& pSlot, std::shared_ptr<const vk::
 }    // namespace
 namespace odin::graphics::registry::resource::shader
 {
+std::unique_ptr<ShaderRegistry> ShaderRegistry::make(vk::DeviceRef device)
+{
+    return std::make_unique<ShaderRegistry>(ShaderRegistry{ device });
+}
 ShaderRegistry::ShaderRegistry(vk::DeviceRef device)
     : m_Device{ device }
     , m_Shaders{}
