@@ -10,5 +10,9 @@
 namespace odin::graphics::registry::resource::shader
 {
 struct ShaderSlot : public Slot<ShaderSlot, vk::resource::ShaderModule>
-{};
+{
+	std::filesystem::path sourceFile;
+	std::filesystem::file_time_type lastWrite;
+	std::uint64_t hash;
+};
 }    // namespace odin::graphics::registry::resource::shader

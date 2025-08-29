@@ -15,7 +15,7 @@ public:
     {}
     std::shared_ptr<const resource_t> acquire() const { return std::atomic_load(std::addressof(m_pSlot->pResource)); }
     operator bool() const { return m_pSlot != nullptr; }
-private:
+protected:
     std::shared_ptr<slot_t> m_pSlot;
 };
 }    // namespace odin::graphics::registry

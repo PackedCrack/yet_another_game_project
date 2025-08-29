@@ -17,7 +17,7 @@ namespace
     info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = VK_NO_FLAGS;
-    info.codeSize = fileContent.size();
+    info.codeSize = fileContent.size() * sizeof(std::uint32_t);
     info.pCode = fileContent.data();
 
     return info;
@@ -48,18 +48,18 @@ ShaderModule::ShaderModule(DeviceRef device, std::filesystem::path filepath)
         LOG_FATAL("Failed to open shader: {}", m_Filepath.string().c_str());
     }
 
-    std::uint64_t size = std::filesystem::file_size(m_Filepath);
-    if (size == 0)
+    std::uint64_t fileSize = std::filesystem::file_size(m_Filepath);
+    if (fileSize == 0)
     {
         LOG_FATAL("Opened Shader {} is empty.", m_Filepath.string().c_str());
     }
-    if (size % 4 != 0)
+    if (fileSize % 4 != 0)
     {
-        LOG_WARN("The size of Shader {} is not divisible by 4.");
+        LOG_WARN("The size of Shader {} is not divisible by 4.", fileSize);
     }
 
-    std::vector<std::uint32_t> fileContent(size / sizeof(std::uint32_t));
-    file.read(reinterpret_cast<char*>(fileContent.data()), size);
+    std::vector<std::uint32_t> fileContent(fileSize / sizeof(std::uint32_t));
+    file.read(reinterpret_cast<char*>(fileContent.data()), fileSize);
 
     VkShaderModuleCreateInfo info = make_create_info(common::to_span(fileContent));
     VK_CHECK(vkCreateShaderModule(m_Device.handle, std::addressof(info), nullptr, std::addressof(m_Module)),

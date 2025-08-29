@@ -35,8 +35,18 @@ struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
     {
         std::uint64_t hash = 11400'71481'93231'98549;
 
-        // TODO:
-        // Use ShaderHandle ID in the hash
+        if (key.vs)
+        {
+            hash ^= splitmix64(key.vs.value().id());
+        }
+        if (key.fs)
+        {
+            hash ^= splitmix64(key.fs.value().id());
+        }
+        if (key.cs)
+        {
+            hash ^= splitmix64(key.cs.value().id());
+        }
 
         hash ^= splitmix64(key.pipelineLayoutHash);
 

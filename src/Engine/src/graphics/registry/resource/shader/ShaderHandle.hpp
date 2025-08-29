@@ -10,8 +10,15 @@
 //
 namespace odin::graphics::registry::resource::shader
 {
-struct ShaderHandle : public Handle<ShaderHandle, ShaderSlot, vk::resource::ShaderModule>
+struct ShaderHandle
 {
-    ShaderHandle(std::shared_ptr<ShaderSlot> pSlot);
+public:
+    ShaderHandle(std::shared_ptr<ShaderSlot> pSlot, std::function<void()> hot_reload);
+    [[nodiscard]] std::shared_ptr<const vk::resource::ShaderModule> acquire() const;
+    [[nodiscard]] std::uintptr_t id() const;
+    inline operator bool() const { return m_pSlot != nullptr; }
+private:
+    std::shared_ptr<ShaderSlot> m_pSlot;
+    std::function<void()> PFN_hot_reload;
 };
 }    // namespace odin::graphics::registry::resource::shader

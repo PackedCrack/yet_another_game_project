@@ -16,14 +16,6 @@ using ShaderStages = registry::pipeline::ShaderStages;
 using ShaderHandle = registry::resource::ShaderHandle;
 //
 //
-[[nodiscard]] ShaderStages make_shader_stage_requirements(const ShaderHandle& vert, const ShaderHandle& frag)
-{
-    ShaderStages stages{};
-    stages.vsHash = std::make_optional(vert.acquire()->hash());
-    stages.fsHash = std::make_optional(frag.acquire()->hash());
-
-    return stages;
-}
 }    // namespace
 namespace odin::graphics
 {
@@ -33,9 +25,6 @@ ForwardPass::ForwardPass(registry::pipeline::PipelineRegistry& pipelineRegistry,
 {
     ShaderHandle vert = resourceRegistry.shader("forward_pass.vert");
     ShaderHandle frag = resourceRegistry.shader("forward_pass.frag");
-
-    ShaderStages stages = make_shader_stage_requirements(vert, frag);
-
 
     using DescriptorType = registry::pipeline::DescriptorType;
     using ShaderStage = registry::pipeline::ShaderStage;
