@@ -29,17 +29,21 @@ target_compile_definitions(${ENGINE_TARGET} PRIVATE VK_NO_FLAGS=0)
 
 include_glm(${ENGINE_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
-add_dependencies(${ENGINE_TARGET} ${DEBUGGING_PROJECT})
-target_link_libraries(${ENGINE_TARGET} PRIVATE ${DEBUGGING_PROJECT})
+add_dependencies(${ENGINE_TARGET} ${DEBUG_TARGET})
+target_link_libraries(${ENGINE_TARGET} PRIVATE ${DEBUG_TARGET})
 target_include_directories(${ENGINE_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
 
-add_dependencies(${ENGINE_TARGET} ${ASSET_LOADER_PROJECT})
-target_link_libraries(${ENGINE_TARGET} PRIVATE ${ASSET_LOADER_PROJECT})
+add_dependencies(${ENGINE_TARGET} ${ASSET_LOADER_TARGET})
+target_link_libraries(${ENGINE_TARGET} PRIVATE ${ASSET_LOADER_TARGET})
 target_include_directories(${ENGINE_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../AssetLoader/include")
 
 add_dependencies(${ENGINE_TARGET} SDL3::SDL3)
 target_link_libraries(${ENGINE_TARGET} PRIVATE SDL3::SDL3)
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/sdl/include")
+
+add_dependencies(${ENGINE_TARGET} shaderc_combined)
+target_link_libraries(${ENGINE_TARGET} PRIVATE shaderc_combined)
+target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/shaderc/libshaderc/include")
 
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/vma/include")
 target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/entt/single_include")
@@ -48,6 +52,6 @@ find_package(Vulkan REQUIRED)
 target_include_directories(${ENGINE_TARGET} PRIVATE "$ENV{VULKAN_SDK}/include/")
 
 
-# TODO: Doesn't work - fix it
 set_target_properties(${ENGINE_TARGET} PROPERTIES FOLDER "Engine")
-
+set_target_properties("${ENGINE_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Engine Build Dependencies")
+set_target_properties("${ENGINE_TARGET}_format_dependency" PROPERTIES FOLDER "Engine Build Dependencies")

@@ -26,5 +26,5 @@ set(EXPORT_HEADERS
 	SceneGraph.hpp
 )
 
-target_sources(${ASSET_LOADER_PROJECT} PRIVATE ${SOURCES})
+target_sources(${ASSET_LOADER_TARGET} PRIVATE ${SOURCES})
 copy_export_headers("${EXPORT_HEADERS}" ${INCLUDE_DIR})

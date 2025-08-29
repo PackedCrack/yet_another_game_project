@@ -25,12 +25,12 @@ target_include_directories(${GAME_TARGET} PRIVATE "external")
 target_include_directories(${GAME_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_compile_definitions(${GAME_TARGET} PRIVATE LOG_DIRECTORY="/logs/game")
 
-add_dependencies(${GAME_TARGET} ${ASSET_LOADER_PROJECT})
-target_link_libraries(${GAME_TARGET} PRIVATE ${ASSET_LOADER_PROJECT})
+add_dependencies(${GAME_TARGET} ${ASSET_LOADER_TARGET})
+target_link_libraries(${GAME_TARGET} PRIVATE ${ASSET_LOADER_TARGET})
 target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../AssetLoader/include")
 
-add_dependencies(${GAME_TARGET} ${DEBUGGING_PROJECT})
-target_link_libraries(${GAME_TARGET} PRIVATE ${DEBUGGING_PROJECT})
+add_dependencies(${GAME_TARGET} ${DEBUG_TARGET})
+target_link_libraries(${GAME_TARGET} PRIVATE ${DEBUG_TARGET})
 target_include_directories(${GAME_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
 
 add_dependencies(${GAME_TARGET} ${ENGINE_TARGET})
@@ -42,3 +42,8 @@ target_include_directories(${GAME_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/externa
 # TODO: Find a better way to link to vulkan.
 find_package(Vulkan REQUIRED)
 target_link_libraries(${GAME_TARGET} PRIVATE "$ENV{VULKAN_SDK}/Lib/vulkan-1.lib")
+
+
+set_target_properties(${GAME_TARGET} PROPERTIES FOLDER "Game")
+set_target_properties("${GAME_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Game")
+set_target_properties("${GAME_TARGET}_format_dependency" PROPERTIES FOLDER "Game")
