@@ -4,6 +4,7 @@
 #include "Odin.hpp"
 
 #include "Entity.hpp"
+#include "FilepathResolver.hpp"
 #include "components/LocalTRS.hpp"
 #include "components/Mesh.hpp"
 #include "components/Model.hpp"
@@ -87,7 +88,9 @@ public:
         , m_Gfx{ info, m_Wnd }
         , m_ECS{ std::nullopt }
         , m_Quit{ false }
-    {}
+    {
+        [[maybe_unused]] auto& resolver = FilepathResolver::get(info.argc, info.argv);
+    }
 public:
     void begin_frame()
     {
@@ -244,7 +247,7 @@ private:
 //
 //
 Odin::Odin(OdinInfo info)
-    : m_pImpl{ std::make_unique<Impl>(info) }
+    : m_pImpl{ std::make_unique<Impl>(std::move(info)) }
 {}
 Odin::~Odin() = default;
 Odin::Odin(Odin&& other) noexcept = default;

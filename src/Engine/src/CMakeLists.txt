@@ -9,6 +9,8 @@ SET(SOURCES
         OdinInfo.hpp
         Odin.hpp
         Odin.cpp
+	FilepathResolver.hpp
+	FilepathResolver.cpp
 	ArenaAllocator.hpp
 	BumpAllocator.hpp
 	ECS.hpp

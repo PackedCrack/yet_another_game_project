@@ -16,12 +16,12 @@
 #include "windows.h"
 //
 //
-int main()
+int main(int argc, char** argv)
 {
     try
     {
         odin::WindowInfo wndInfo{ .resolution = odin::window::HDPlus{}, .borderless = false, .fullscreen = false, .mouseGrab = false };
-        odin::OdinInfo info{ .applicationName = "Odin Application", .windowInfo = std::move(wndInfo) };
+        odin::OdinInfo info{ .argc = argc, .argv = argv, .applicationName = "Odin Application", .windowInfo = std::move(wndInfo) };
         odin::Odin engine{ info };
 
         std::unique_ptr<odin::ECS> ecs = engine.make_ecs();
