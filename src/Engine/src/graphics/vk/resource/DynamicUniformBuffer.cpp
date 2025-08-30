@@ -10,6 +10,5 @@ DynamicUniformBuffer::DynamicUniformBuffer(AllocatedBuffer buffer,
                                            std::function<void(AllocatedBuffer)> deleter,
                                            VkDeviceSize partitionSize,
                                            std::uint64_t numPartitions)
-    : Buffer<DynamicUniformBuffer>{ buffer, std::move(deleter) }
-    , DynamicBuffer<DynamicUniformBuffer>{ partitionSize, numPartitions } {};
+    : DynamicBuffer<DynamicUniformBuffer>{ buffer, std::move(deleter), partitionSize, numPartitions } {};
 }    // namespace odin::graphics::vk::resource

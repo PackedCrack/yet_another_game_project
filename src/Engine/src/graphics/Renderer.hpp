@@ -4,9 +4,14 @@
 #pragma once
 
 #include "ColorAttachment.hpp"
+#include "ForwardPass.hpp"
 #include "FrameHandler.hpp"
 #include "TransferManager.hpp"
+#include "registry/pipeline/PipelineRegistry.hpp"
+#include "registry/resource/ResourceRegistry.hpp"
 #include "vk/Allocator.hpp"
+#include "vk/Device.hpp"
+#include "vk/resource/DynamicUniformBuffer.hpp"
 #include "vk/resource/StorageBuffer.hpp"
 #include "vk/resource/IndexBuffer.hpp"
 #include "vk/resource/VertexBuffer.hpp"
@@ -23,7 +28,7 @@ struct RenderResources
 class Renderer
 {
 public:
-    Renderer(const std::shared_ptr<vk::Allocator>& pAllocator);
+    Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceRef device);
 public:
     void render_frame(const ColorAttachment& colorAttachment,
                       vk::QueueView graphicsQ,
@@ -35,6 +40,9 @@ private:
     void bind_vertex_buffer(vk::CommandBufferRef cb) const;
     void bind_index_buffer(vk::CommandBufferRef cb) const;
 private:
+    registry::resource::ResourceRegistry m_ResourceRegistry;
+    std::unique_ptr<registry::pipeline::PipelineRegistry> m_pPipelineRegistry;
     RenderResources m_RenderResources;
+    ForwardPass m_ForwardPass;
 };
 }    // namespace odin::graphics

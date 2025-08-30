@@ -28,9 +28,9 @@ using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
     using PipelineBuilder = vk::pipeline::PipelineBuilder;
 
     PipelineBuilder builder{ device };
+    vk::resource::VertexDescription desc = vk::resource::VertexBuffer::get_vertex_description();
     if (request.vs.has_value())
     {
-        vk::resource::VertexDescription desc = vk::resource::VertexBuffer::get_vertex_description();
         builder.vertex_input_state(common::to_span(desc.bindings), common::to_span(desc.attributes));
 
         const resource::shader::ShaderHandle& shader = request.vs.value();

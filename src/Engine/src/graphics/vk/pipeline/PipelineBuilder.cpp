@@ -33,7 +33,6 @@ constexpr std::uint16_t VERTEX_INPUT_BIT = 1 << 1;
 constexpr std::uint16_t RASTERIZATION_BIT = 1 << 2;
 constexpr std::uint16_t MULTISAMPLING_BIT = 1 << 3;
 constexpr std::uint16_t DYNAMIC_RENDERING_BIT = 1 << 4;
-constexpr std::uint16_t GRAPHICS_DATA_FULLFILLED = SHADER_MODULES_BIT | RASTERIZATION_BIT | MULTISAMPLING_BIT | DYNAMIC_RENDERING_BIT;
 //
 //
 [[nodiscard]] VkPipelineShaderStageCreateInfo make_shader_stage_create_info(resource::ShaderModuleRef shader, VkShaderStageFlagBits stage)
@@ -294,7 +293,24 @@ void PipelineBuilder::add_dynamic_states()
         }
     }
 
-    return m_GraphicsMask == GRAPHICS_DATA_FULLFILLED;
+    if ((m_GraphicsMask & SHADER_MODULES_BIT) == 0)
+    {
+        return false;
+    }
+    if ((m_GraphicsMask & RASTERIZATION_BIT) == 0)
+    {
+        return false;
+    }
+    if ((m_GraphicsMask & MULTISAMPLING_BIT) == 0)
+    {
+        return false;
+    }
+    if ((m_GraphicsMask & DYNAMIC_RENDERING_BIT) == 0)
+    {
+        return false;
+    }
+
+    return true;
 }
 //[[nodiscard]] bool validate_compute_pipeline_data() const
 //{

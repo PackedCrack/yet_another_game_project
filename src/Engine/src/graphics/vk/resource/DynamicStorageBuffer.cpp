@@ -6,10 +6,12 @@
 //
 namespace odin::graphics::vk::resource
 {
+// clang-format off
 DynamicStorageBuffer::DynamicStorageBuffer(AllocatedBuffer buffer,
                                            std::function<void(AllocatedBuffer)> deleter,
                                            VkDeviceSize partitionSize,
                                            std::uint64_t numPartitions)
-    : Buffer<DynamicStorageBuffer>{ buffer, std::move(deleter) }
-    , DynamicBuffer<DynamicStorageBuffer>{ partitionSize, numPartitions } {};
+    : DynamicBuffer<DynamicStorageBuffer>{ buffer, std::move(deleter), partitionSize, numPartitions }
+{};
+// clang-format on
 }    // namespace odin::graphics::vk::resource

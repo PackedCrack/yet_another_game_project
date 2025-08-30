@@ -9,9 +9,7 @@
 //
 namespace odin::graphics::vk::resource
 {
-class DynamicUniformBuffer
-    : public Buffer<DynamicUniformBuffer>
-    , public DynamicBuffer<DynamicUniformBuffer>
+class DynamicUniformBuffer : public DynamicBuffer<DynamicUniformBuffer>
 {
 public:
     DynamicUniformBuffer(AllocatedBuffer buffer,

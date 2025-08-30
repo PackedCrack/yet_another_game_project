@@ -70,7 +70,12 @@ public:
     [[nodiscard]] VkDeviceSize min_alignment() const { return m_Buffer.minAlignment; }
 protected:
     template<typename data_t>
-    void write_to_buffer(std::span<data_t>& content, std::size_t offset = 0)
+    void write_to_buffer(std::span<const data_t> content)
+    {
+        write_to_buffer_with_offset(content, 0);
+    }
+    template<typename data_t>
+    void write_to_buffer_with_offset(std::span<const data_t> content, std::size_t offset)
     {
         ODIN_ASSERT(m_Buffer.pData != nullptr);
         std::byte* pData = static_cast<std::byte*>(m_Buffer.pData) + offset;

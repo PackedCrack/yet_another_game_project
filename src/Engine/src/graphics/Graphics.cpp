@@ -59,7 +59,7 @@ public:
         // Make Presenter
         Presenter presenter{ device, physicalDevice, std::move(surface), frameHandler.in_flight_count() };
         // Make Renderer
-        Renderer renderer{ pAllocator };
+        Renderer renderer{ pAllocator, device.handle() };
         // Make TransferManager
         TransferManager transferManager{ device.handle(), queueFamilies.transfer() };
         // Make MeshRegisrty

@@ -105,8 +105,11 @@ void submit(QueueView queue,
 }    // namespace
 namespace odin::graphics
 {
-Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator)
-    : m_RenderResources{ make_render_resources(pAllocator) }
+Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceRef device)
+    : m_ResourceRegistry{ device }
+    , m_pPipelineRegistry{ registry::pipeline::PipelineRegistry::make(device) }
+    , m_RenderResources{ make_render_resources(pAllocator) }
+    , m_ForwardPass{ pAllocator, device, *m_pPipelineRegistry, m_ResourceRegistry }
 {}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
                             vk::QueueView graphicsQ,
@@ -169,8 +172,7 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
         .pDepthAttachment = nullptr,
         .pStencilAttachment = nullptr
     };
-    vkCmdBeginRendering(gfxCmdBuffer.handle().handle, std::addressof(ri));
-    vkCmdEndRendering(gfxCmdBuffer.handle().handle);
+    m_ForwardPass.execute(gfxCmdBuffer.handle(), ri);
 
     VkImageMemoryBarrier2 presentBarrier = colorAttachment.barrier_to_present();
     const VkDependencyInfo dep2{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,

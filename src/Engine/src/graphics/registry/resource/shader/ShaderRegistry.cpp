@@ -23,7 +23,7 @@ using namespace odin::graphics::registry::resource::shader;
 [[nodiscard]] std::filesystem::path to_spirv_filepath(const std::filesystem::path& shaderSource)
 {
     std::filesystem::path spirv = shaderSource;
-    spirv = spirv.replace_extension(".spv");
+    spirv += ".spv";
     return spirv;
 }
 void compile_shader(const std::filesystem::path& shaderSource)

@@ -13,11 +13,15 @@
 namespace odin::graphics::vk::resource
 {
 template<typename dervied_t>
-class DynamicBuffer
+class DynamicBuffer : public Buffer<dervied_t>
 {
 public:
-    DynamicBuffer(VkDeviceSize partitionSize, std::uint64_t numPartitions)
-        : m_PartitionSize{ partitionSize }
+    DynamicBuffer(AllocatedBuffer buffer,
+                  std::function<void(AllocatedBuffer)> deleter,
+                  VkDeviceSize partitionSize,
+                  std::uint64_t numPartitions)
+        : Buffer<dervied_t>{ buffer, std::move(deleter) }
+        , m_PartitionSize{ partitionSize }
         , m_NumPartitions{ numPartitions } {};
 public:
     [[nodiscard]] VkDeviceSize range() const { return m_PartitionSize; }
@@ -29,7 +33,7 @@ public:
     void write(std::span<const data_t> content, std::uint64_t frameID)
     {
         ODIN_ASSERT(content.size() * sizeof(data_t) < m_PartitionSize);
-        write_to_buffer(content, offset(frameID));
+        Buffer<dervied_t>::template write_to_buffer_with_offset(content, offset(frameID));
     }
 private:
     VkDeviceSize m_PartitionSize;

@@ -43,7 +43,7 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/external/shaderc/third_party/spirv-tools/CM
                     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/external/shaderc/utils")
 endif()
 
-set(SHADERC_ENABLE_SHARED_CRT       OFF CACHE BOOL "" FORCE)
+set(SHADERC_ENABLE_SHARED_CRT       ON CACHE BOOL "" FORCE)
 set(SHADERC_SKIP_COPYRIGHT_CHECK    ON CACHE BOOL "" FORCE)
 set(SHADERC_SKIP_TESTS              ON CACHE BOOL "" FORCE)
 set(SHADERC_SKIP_EXAMPLES           ON CACHE BOOL "" FORCE)

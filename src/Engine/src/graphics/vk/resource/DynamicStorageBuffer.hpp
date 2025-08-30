@@ -9,9 +9,7 @@
 //
 namespace odin::graphics::vk::resource
 {
-class DynamicStorageBuffer
-    : public Buffer<DynamicStorageBuffer>
-    , public DynamicBuffer<DynamicStorageBuffer>
+class DynamicStorageBuffer : public DynamicBuffer<DynamicStorageBuffer>
 {
 public:
     DynamicStorageBuffer(AllocatedBuffer buffer,
