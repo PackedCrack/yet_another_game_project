@@ -28,6 +28,17 @@ using StagingBuffer = odin::graphics::vk::resource::StagingBuffer;
 //
 template<typename buffer_t>
 requires std::ranges::contiguous_range<buffer_t>
+[[nodiscard]] std::unique_ptr<StagingBuffer> to_staging_buffer(const std::shared_ptr<Allocator>& pAllocator, buffer_t&& data)
+{
+    using element_t = typename std::remove_cvref_t<buffer_t>::value_type;
+
+    auto pStaging = std::make_unique<StagingBuffer>(pAllocator->create_staging_buffer(data.size(), sizeof(element_t)));
+    pStaging->write(std::forward<buffer_t>(data));
+
+    return pStaging;
+}
+template<typename buffer_t>
+requires std::ranges::contiguous_range<buffer_t>
 void upload_to_gpu(TransferManager& transferManager,
                    const std::shared_ptr<Allocator>& pAllocator,
                    BufferRef dst,
@@ -35,7 +46,7 @@ void upload_to_gpu(TransferManager& transferManager,
                    const ArenaAllocation& allocation,
                    buffer_t&& content)
 {
-    std::unique_ptr<StagingBuffer> pStaging = pAllocator->to_staging_buffer(std::forward<buffer_t>(content));
+    std::unique_ptr<StagingBuffer> pStaging = to_staging_buffer(pAllocator, std::forward<buffer_t>(content));
     transferManager.enqueue_buffer_transfer(dst, std::move(pStaging), queue, allocation);
 }
 [[nodiscard]] std::unique_ptr<MeshTableArena> make_mesh_table_arena(const RenderResources& renderResources)

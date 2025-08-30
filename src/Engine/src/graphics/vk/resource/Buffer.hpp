@@ -70,10 +70,11 @@ public:
     [[nodiscard]] VkDeviceSize min_alignment() const { return m_Buffer.minAlignment; }
 protected:
     template<typename data_t>
-    void write_to_buffer(std::span<data_t>& content)
+    void write_to_buffer(std::span<data_t>& content, std::size_t offset = 0)
     {
         ODIN_ASSERT(m_Buffer.pData != nullptr);
-        std::memcpy(m_Buffer.pData, content.data(), content.size() * sizeof(std::remove_cvref_t<data_t>));
+        std::byte* pData = static_cast<std::byte*>(m_Buffer.pData) + offset;
+        std::memcpy(pData, content.data(), content.size() * sizeof(std::remove_cvref_t<data_t>));
     }
 private:
     AllocatedBuffer m_Buffer;

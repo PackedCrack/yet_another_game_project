@@ -28,13 +28,13 @@ public:
 private:
     PipelineRegistry(vk::DeviceRef device);
 public:
+    [[nodiscard]] VkDescriptorSet allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID);
     [[nodiscard]] GraphicsHandle graphics_pipeline(const Request& request);
 private:
     [[nodiscard]] std::shared_ptr<GraphicsSlot> make_graphics_slot(const PipelineKey& key, const Request& request);
     [[nodiscard]] std::shared_ptr<GraphicsResource> make_graphics_resource(const Request& request);
     [[nodiscard]] GraphicsHandle make_graphics_handle(std::shared_ptr<GraphicsSlot> pSlot);
     [[nodiscard]] std::shared_ptr<GraphicsSlot> get_graphics_pipeline_slot(const PipelineKey& key, const Request& request);
-    [[nodiscard]] VkDescriptorSet allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID);
     [[nodiscard]] PipelineKey make_pipeline_key(const Request& request);
     void rebuild_graphics_pipeline(std::shared_ptr<GraphicsSlot>& pSlot);
 private:

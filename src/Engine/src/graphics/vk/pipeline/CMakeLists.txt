@@ -16,6 +16,8 @@ SET(SOURCES
 	DescriptorPool.cpp
 	DescriptorSetAllocator.hpp
 	DescriptorSetAllocator.cpp
+	DescriptorWriter.hpp
+	DescriptorWriter.cpp
 )
 
 

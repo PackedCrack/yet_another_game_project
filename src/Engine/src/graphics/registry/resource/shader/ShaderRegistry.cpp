@@ -17,7 +17,7 @@ using namespace odin::graphics::registry::resource::shader;
 //
 [[nodiscard]] std::filesystem::path resolve_shader_filepath(std::string_view filename)
 {
-    auto& resolver = odin::FilepathResolver::get();
+    const auto& resolver = odin::FilepathResolver::get();
     return resolver.resolve_shader_path(filename);
 }
 [[nodiscard]] std::filesystem::path to_spirv_filepath(const std::filesystem::path& shaderSource)
@@ -91,6 +91,7 @@ std::shared_ptr<ShaderSlot> ShaderRegistry::slot(const std::filesystem::path& sh
     if (pSlot == nullptr)
     {
         std::unique_lock lock{ *m_pMutex };
+        // cppcheck-suppress identicalInnerCondition
         if (pSlot == nullptr)
         {
             pSlot = create_slot(shaderSource);

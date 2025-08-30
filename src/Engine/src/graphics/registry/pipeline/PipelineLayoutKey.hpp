@@ -60,6 +60,7 @@ struct PipelineLayoutKeyHasher : public common::SplitMix64<PipelineLayoutKeyHash
         descriptors::DescriptorSetLayoutKeyHasher hasher{};
         for (auto&& k : key.descriptorLayoutKeys)
         {
+            // cppcheck-suppress useStlAlgorithm
             hash ^= splitmix64(hasher(k)) + (hash << 5) + (hash >> 3);
         }
         for (auto&& range : key.pushConstants)

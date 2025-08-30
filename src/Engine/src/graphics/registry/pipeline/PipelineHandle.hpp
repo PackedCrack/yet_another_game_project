@@ -13,10 +13,10 @@ struct PipelineHandle
         : m_pSlot{ pSlot == nullptr ? nullptr : std::move(pSlot) }
         , cb_hot_reload{ std::move(hot_reload) }
     {}
-    std::shared_ptr<const resource_t> acquire() const 
-    { 
+    std::shared_ptr<const resource_t> acquire() const
+    {
         cb_hot_reload();
-        return std::atomic_load(std::addressof(m_pSlot->pResource)); 
+        return std::atomic_load(std::addressof(m_pSlot->pResource));
     }
     operator bool() const { return m_pSlot != nullptr; }
 protected:

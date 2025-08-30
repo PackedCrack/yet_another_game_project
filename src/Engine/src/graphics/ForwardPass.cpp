@@ -18,15 +18,15 @@ using namespace odin::graphics;
 {
     using ShaderStage = registry::pipeline::ShaderStage;
     using ShaderHandle = registry::resource::shader::ShaderHandle;
+    using DescriptorType = registry::pipeline::DescriptorType;
+    using ShaderStage = registry::pipeline::ShaderStage;
+
 
     ShaderHandle vert = resourceRegistry.shader("forward_pass.vert");
     ShaderHandle frag = resourceRegistry.shader("forward_pass.frag");
 
-    using DescriptorType = registry::pipeline::DescriptorType;
-    using ShaderStage = registry::pipeline::ShaderStage;
     registry::pipeline::RequestBuilder builder{};
-    builder.add_vertex_shader(std::move(vert))
-        .add_fragment_shader(std::move(frag))
+    builder
         .add_descriptor_layout(GLOBAL_SET_ID,
                                GLOBAL_SET_BIND_ID_CAMERA_DATA,
                                DescriptorType::dynamicUniformBuffer,
@@ -35,6 +35,10 @@ using namespace odin::graphics;
                                ShaderStage::fragment)
         .add_color_format(VK_FORMAT_R8G8B8A8_SRGB)    // get this from swapchain's color attachment
         .add_polygon_mode(VK_POLYGON_MODE_FILL);
+
+    // Cppcheck thinks we're using using vert/frag after move if these calls are chained..
+    builder.add_vertex_shader(std::move(vert));
+    builder.add_fragment_shader(std::move(frag));
 
     return builder.build();
 }
@@ -45,6 +49,6 @@ ForwardPass::ForwardPass(registry::pipeline::PipelineRegistry& pipelineRegistry,
     : m_GraphicsRequest{ make_request(resourceRegistry) }
     , m_Pipeline{ pipelineRegistry.graphics_pipeline(m_GraphicsRequest) }
 {
-
+    VkDescriptorSet set = pipelineRegistry.allocate_descriptor_set(m_Pipeline, GLOBAL_SET_ID);
 }
 }    // namespace odin::graphics

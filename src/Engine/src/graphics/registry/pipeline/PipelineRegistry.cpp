@@ -66,17 +66,20 @@ using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
 
     return builder.build_graphics_pipeline(layout);
 }
-[[nodiscard]] bool vertex_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
+[[nodiscard]] bool vertex_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot,
+                                           const std::shared_ptr<const GraphicsResource>& pResource)
 {
     std::shared_ptr<const vk::resource::ShaderModule> pVsShader = pSlot->request.vs->acquire();
     return pResource->vsHash.value() != pVsShader->hash();
 }
-[[nodiscard]] bool fragment_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
+[[nodiscard]] bool fragment_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot,
+                                             const std::shared_ptr<const GraphicsResource>& pResource)
 {
     std::shared_ptr<const vk::resource::ShaderModule> pFsShader = pSlot->request.fs->acquire();
     return pResource->fsHash.value() != pFsShader->hash();
 }
-[[nodiscard]] bool compute_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
+[[nodiscard]] bool compute_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot,
+                                            const std::shared_ptr<const GraphicsResource>& pResource)
 {
     std::shared_ptr<const vk::resource::ShaderModule> pCsShader = pSlot->request.cs->acquire();
     return pResource->csHash.value() != pCsShader->hash();
@@ -131,6 +134,18 @@ PipelineRegistry::PipelineRegistry(vk::DeviceRef device)
     , m_GraphicsPipelines{}
     , m_pMutex{ std::make_unique<mutex_t>() }
 {}
+VkDescriptorSet PipelineRegistry::allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID)
+{
+    using DescriptorSetLayoutRef = vk::pipeline::DescriptorSetLayoutRef;
+
+    const PipelineLayoutKey& key = handle.acquire()->pipelineLayoutKey;
+    bool updateAfterBind = m_PipelineLayouts.update_after_bind(key, setID);
+
+    std::vector<DescriptorSetLayoutRef> refs = m_PipelineLayouts.descriptor_set_layouts(key);
+    DescriptorSetLayoutRef layout = refs[setID];
+
+    return m_DescriptorAllocator.alloc(layout, updateAfterBind);
+}
 GraphicsHandle PipelineRegistry::graphics_pipeline(const Request& request)
 {
     using GraphicsPipeline = vk::pipeline::GraphicsPipeline;
@@ -155,7 +170,7 @@ std::shared_ptr<GraphicsSlot> PipelineRegistry::make_graphics_slot(const Pipelin
 {
     auto pSlot = std::make_shared<GraphicsSlot>();
     pSlot->request = request;
-    auto[it, emplaced] = m_GraphicsPipelines.try_emplace(key, pSlot->weak_from_this());
+    auto [it, emplaced] = m_GraphicsPipelines.try_emplace(key, pSlot->weak_from_this());
     if (!emplaced)
     {
         it->second = pSlot->weak_from_this();
@@ -182,7 +197,7 @@ std::shared_ptr<GraphicsResource> PipelineRegistry::make_graphics_resource(const
 }
 GraphicsHandle PipelineRegistry::make_graphics_handle(std::shared_ptr<GraphicsSlot> pSlot)
 {
-    auto cb_hot_reload = [this, slot = pSlot->shared_from_this()] () mutable
+    auto cb_hot_reload = [this, slot = pSlot->shared_from_this()]() mutable
     {
         if (shader_outdated(slot))
         {
@@ -208,18 +223,6 @@ std::shared_ptr<GraphicsSlot> PipelineRegistry::get_graphics_pipeline_slot(const
     }
 
     return pSlot;
-}
-VkDescriptorSet PipelineRegistry::allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID)
-{
-    using DescriptorSetLayoutRef = vk::pipeline::DescriptorSetLayoutRef;
-
-    const PipelineLayoutKey& key = handle.acquire()->pipelineLayoutKey;
-    bool updateAfterBind = m_PipelineLayouts.update_after_bind(key, setID);
-
-    std::vector<DescriptorSetLayoutRef> refs = m_PipelineLayouts.descriptor_set_layouts(key);
-    DescriptorSetLayoutRef layout = refs[setID];
-
-    return m_DescriptorAllocator.alloc(layout, updateAfterBind);
 }
 PipelineKey PipelineRegistry::make_pipeline_key(const Request& request)
 {

@@ -3,8 +3,8 @@
 //
 #pragma once
 
-#include "ShaderSlot.hpp"
-#include "ShaderHandle.hpp"
+#include "shader/ShaderRegistry.hpp"
+#include "../../vk/Device.hpp"
 //
 //
 namespace odin::graphics::registry::resource
@@ -13,16 +13,12 @@ class ResourceRegistry
 {
     using mutex_t = std::mutex;
     using Mutex = std::unique_ptr<mutex_t>;
-    using ShaderResource = vk::resource::ShaderModule;
-    using ShaderRegistry = std::unordered_map<std::filesystem::path, std::weak_ptr<ShaderSlot>>;
 public:
-    ResourceRegistry();
+    ResourceRegistry(vk::DeviceRef device);
 public:
-    [[nodiscard]] ShaderHandle shader(const std::filesystem::path& filepath);
+    [[nodiscard]] shader::ShaderHandle shader(std::string_view filename);
 private:
-    [[nodiscard]] std::shared_ptr<ShaderSlot> shader_slot(const std::filesystem::path& filepath);
-private:
-    ShaderRegistry m_Shaders;
+    std::unique_ptr<shader::ShaderRegistry> m_pShaders;
     Mutex m_pMutex;
 };
 }    // namespace odin::graphics::registry::resource

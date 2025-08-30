@@ -4,10 +4,15 @@ SET(SOURCES
 	ImageView.hpp
 	ImageView.cpp
 	Buffer.hpp
+	DynamicBuffer.hpp
 	StagingBuffer.hpp
 	StagingBuffer.cpp
 	UniformBuffer.hpp
 	UniformBuffer.cpp
+	DynamicUniformBuffer.hpp
+	DynamicUniformBuffer.cpp
+	DynamicStorageBuffer.hpp
+	DynamicStorageBuffer.cpp
 	StorageBuffer.hpp
 	StorageBuffer.cpp
 	VertexBuffer.hpp
