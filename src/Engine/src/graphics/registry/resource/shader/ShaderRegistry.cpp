@@ -1,5 +1,5 @@
 //
-// Created by qwerty on 29/07/2025.
+// Created by qwerty on 29/08/2025.
 //
 #include "ShaderRegistry.hpp"
 
@@ -31,7 +31,9 @@ void compile_shader(const std::filesystem::path& shaderSource)
     ShaderCompiler compiler{ shaderSource, to_spirv_filepath(shaderSource) };
     compiler.compile();
 }
-void store_shader(std::shared_ptr<ShaderSlot>& pSlot, std::shared_ptr<const vk::resource::ShaderModule>& pShader, const std::filesystem::path& shaderSource)
+void store_shader(std::shared_ptr<ShaderSlot>& pSlot,
+                  std::shared_ptr<const vk::resource::ShaderModule>& pShader,
+                  const std::filesystem::path& shaderSource)
 {
     pSlot->sourceFile = shaderSource;
     pSlot->lastWrite = std::filesystem::last_write_time(shaderSource);
@@ -78,7 +80,7 @@ std::shared_ptr<ShaderSlot> ShaderRegistry::create_slot(const std::filesystem::p
     auto pSlot = std::make_shared<ShaderSlot>();
     refresh_slot(pSlot, shaderSource);
     m_Shaders.emplace(shaderSource, pSlot->weak_from_this());
-    
+
     return pSlot;
 }
 std::shared_ptr<ShaderSlot> ShaderRegistry::slot(const std::filesystem::path& shaderSource)
@@ -104,7 +106,7 @@ std::shared_ptr<const vk::resource::ShaderModule> ShaderRegistry::load_shader(co
         ODIN_ASSERT(std::filesystem::is_regular_file(shaderSource));
         compile_shader(shaderSource);
     }
-    
+
     std::filesystem::path spirv = to_spirv_filepath(shaderSource);
     if (std::filesystem::exists(spirv))
     {
@@ -123,9 +125,9 @@ bool ShaderRegistry::is_outdated(const std::shared_ptr<ShaderSlot>& pSlot)
 }
 std::function<void()> ShaderRegistry::make_hot_reload_cb(std::shared_ptr<ShaderSlot> pSlot, std::filesystem::path shaderSource)
 {
-    // ShaderRegistry now requires a stable this pointer since we capture it
-    // TODO: Enforce ShaderRegisrty to live in heap
-    return [this, slot = std::move(pSlot), shaderSource = std::move(shaderSource)] () mutable
+    // this should probably be weak ptr since Handle holders keeps the slots alive.
+    // Could happen that handle owners outlive the Registry if its stored as unique_ptr
+    return [this, slot = std::move(pSlot), shaderSource = std::move(shaderSource)]() mutable
     {
         if (is_outdated(slot))
         {

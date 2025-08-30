@@ -13,6 +13,7 @@ SET(SOURCES
 	PipelineLayoutRegistry.hpp
 	PipelineLayoutRegistry.cpp
 	PipelineLayoutKey.hpp
+	PipelineHandle.hpp
 )
 
 

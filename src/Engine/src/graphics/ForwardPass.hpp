@@ -15,7 +15,7 @@ class ForwardPass
 public:
     ForwardPass(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry);
 private:
-    registry::pipeline::Request m_PipelineRequest;
+    registry::pipeline::Request m_GraphicsRequest;
     registry::pipeline::GraphicsHandle m_Pipeline;
 };
 }    // namespace odin::graphics

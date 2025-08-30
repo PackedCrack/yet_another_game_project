@@ -6,23 +6,19 @@
 #include "gpu_types.hpp"
 #include "registry/pipeline/Request.hpp"
 #include "registry/pipeline/RequestBuilder.hpp"
-#include "registry/resource/ShaderHandle.hpp"
+#include "registry/resource/shader/ShaderHandle.hpp"
 //
 //
 namespace
 {
 using namespace odin::graphics;
-using ShaderStages = registry::pipeline::ShaderStages;
-using ShaderHandle = registry::resource::ShaderHandle;
 //
 //
-}    // namespace
-namespace odin::graphics
+[[nodiscard]] registry::pipeline::Request make_request(registry::resource::ResourceRegistry& resourceRegistry)
 {
-ForwardPass::ForwardPass(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry)
-    : m_PipelineRequest{}
-    , m_Pipeline{ nullptr }
-{
+    using ShaderStage = registry::pipeline::ShaderStage;
+    using ShaderHandle = registry::resource::shader::ShaderHandle;
+
     ShaderHandle vert = resourceRegistry.shader("forward_pass.vert");
     ShaderHandle frag = resourceRegistry.shader("forward_pass.frag");
 
@@ -40,8 +36,15 @@ ForwardPass::ForwardPass(registry::pipeline::PipelineRegistry& pipelineRegistry,
         .add_color_format(VK_FORMAT_R8G8B8A8_SRGB)    // get this from swapchain's color attachment
         .add_polygon_mode(VK_POLYGON_MODE_FILL);
 
+    return builder.build();
+}
+}    // namespace
+namespace odin::graphics
+{
+ForwardPass::ForwardPass(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry)
+    : m_GraphicsRequest{ make_request(resourceRegistry) }
+    , m_Pipeline{ pipelineRegistry.graphics_pipeline(m_GraphicsRequest) }
+{
 
-    m_PipelineRequest = builder.build();
-    m_Pipeline = pipelineRegistry.graphics_pipeline(m_PipelineRequest);
 }
 }    // namespace odin::graphics

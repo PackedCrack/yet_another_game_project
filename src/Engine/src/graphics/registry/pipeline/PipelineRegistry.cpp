@@ -1,5 +1,5 @@
 //
-// Created by qwerty on 26/07/2025.
+// Created by qwerty on 26/08/2025.
 //
 #include "PipelineRegistry.hpp"
 
@@ -66,24 +66,33 @@ using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
 
     return builder.build_graphics_pipeline(layout);
 }
-[[nodiscard]] bool vertex_shader_missmatch(std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
+[[nodiscard]] bool vertex_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
 {
     std::shared_ptr<const vk::resource::ShaderModule> pVsShader = pSlot->request.vs->acquire();
     return pResource->vsHash.value() != pVsShader->hash();
 }
-[[nodiscard]] bool fragment_shader_missmatch(std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
+[[nodiscard]] bool fragment_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
 {
     std::shared_ptr<const vk::resource::ShaderModule> pFsShader = pSlot->request.fs->acquire();
     return pResource->fsHash.value() != pFsShader->hash();
 }
-[[nodiscard]] bool compute_shader_missmatch(std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
+[[nodiscard]] bool compute_shader_missmatch(const std::shared_ptr<GraphicsSlot>& pSlot, std::shared_ptr<const GraphicsResource>& pResource)
 {
     std::shared_ptr<const vk::resource::ShaderModule> pCsShader = pSlot->request.cs->acquire();
     return pResource->csHash.value() != pCsShader->hash();
 }
-[[nodiscard]] bool shader_outdated(std::shared_ptr<GraphicsSlot>& pSlot)
+[[nodiscard]] bool shader_outdated(const std::shared_ptr<GraphicsSlot>& pSlot)
 {
+    if (pSlot == nullptr)
+    {
+        return true;
+    }
+
     auto pResource = std::atomic_load(std::addressof(pSlot->pResource));
+    if (pResource == nullptr)
+    {
+        return true;
+    }
     if (pResource->vsHash)
     {
         if (vertex_shader_missmatch(pSlot, pResource))
@@ -111,6 +120,10 @@ using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
 }    // namespace
 namespace odin::graphics::registry::pipeline
 {
+std::unique_ptr<PipelineRegistry> PipelineRegistry::make(vk::DeviceRef device)
+{
+    return std::make_unique<PipelineRegistry>(PipelineRegistry{ device });
+}
 PipelineRegistry::PipelineRegistry(vk::DeviceRef device)
     : m_Device{ device }
     , m_PipelineLayouts{ m_Device }
@@ -129,11 +142,25 @@ GraphicsHandle PipelineRegistry::graphics_pipeline(const Request& request)
         // In case multiple threads are waiting on the above lock
         if (!m_GraphicsPipelines.contains(key))
         {
-            return make_graphics_handle(key, request);
+            auto pSlot = make_graphics_slot(key, request);
+            rebuild_graphics_pipeline(pSlot);
+            return make_graphics_handle(pSlot);
         }
     }
 
-    return GraphicsHandle{ get_graphics_pipeline_slot(key) };
+    std::shared_ptr<GraphicsSlot> pSlot = get_graphics_pipeline_slot(key, request);
+    return make_graphics_handle(std::move(pSlot));
+}
+std::shared_ptr<GraphicsSlot> PipelineRegistry::make_graphics_slot(const PipelineKey& key, const Request& request)
+{
+    auto pSlot = std::make_shared<GraphicsSlot>();
+    pSlot->request = request;
+    auto[it, emplaced] = m_GraphicsPipelines.try_emplace(key, pSlot->weak_from_this());
+    if (!emplaced)
+    {
+        it->second = pSlot->weak_from_this();
+    }
+    return pSlot;
 }
 std::shared_ptr<GraphicsResource> PipelineRegistry::make_graphics_resource(const Request& request)
 {
@@ -153,26 +180,29 @@ std::shared_ptr<GraphicsResource> PipelineRegistry::make_graphics_resource(const
 
     return std::make_shared<GraphicsResource>(std::move(resource));
 }
-GraphicsHandle PipelineRegistry::make_graphics_handle(const PipelineKey& key, const Request& request)
+GraphicsHandle PipelineRegistry::make_graphics_handle(std::shared_ptr<GraphicsSlot> pSlot)
 {
-    std::shared_ptr<GraphicsResource> pResource = make_graphics_resource(request);
-
-    auto pSlot = std::make_shared<GraphicsSlot>();
-    std::atomic_store(std::addressof(pSlot->pResource), std::move(pResource));
-    pSlot->request = request;
-
-    m_GraphicsPipelines.emplace(key, pSlot->shared_from_this());
-    return GraphicsHandle{ std::move(pSlot) };
-}
-std::shared_ptr<GraphicsSlot> PipelineRegistry::get_graphics_pipeline_slot(const PipelineKey& key)
-{
-    std::shared_ptr<GraphicsSlot> pSlot = m_GraphicsPipelines.at(key);
-    if (shader_outdated(pSlot))
+    auto cb_hot_reload = [this, slot = pSlot->shared_from_this()] () mutable
     {
-        std::unique_lock lock{ *m_pMutex };
-        // In case multiple threads are waiting on the above lock
-        if (shader_outdated(pSlot))
+        if (shader_outdated(slot))
         {
+            rebuild_graphics_pipeline(slot);
+        }
+    };
+    return GraphicsHandle{ std::move(pSlot), std::move(cb_hot_reload) };
+}
+std::shared_ptr<GraphicsSlot> PipelineRegistry::get_graphics_pipeline_slot(const PipelineKey& key, const Request& request)
+{
+    std::weak_ptr<GraphicsSlot> wpSlot = m_GraphicsPipelines.at(key);
+    std::shared_ptr<GraphicsSlot> pSlot = wpSlot.lock();
+    if (pSlot == nullptr)
+    {
+        std::lock_guard lock{ *m_pMutex };
+        wpSlot = m_GraphicsPipelines.at(key);
+        pSlot = wpSlot.lock();
+        if (pSlot == nullptr)
+        {
+            pSlot = make_graphics_slot(key, request);
             rebuild_graphics_pipeline(pSlot);
         }
     }
@@ -211,9 +241,12 @@ PipelineKey PipelineRegistry::make_pipeline_key(const Request& request)
 }
 void PipelineRegistry::rebuild_graphics_pipeline(std::shared_ptr<GraphicsSlot>& pSlot)
 {
-    const Request& request = pSlot->request;
-    std::shared_ptr<GraphicsResource> pResource = make_graphics_resource(request);
-
-    std::atomic_store(std::addressof(pSlot->pResource), std::move(pResource));
+    std::lock_guard lock{ pSlot->initMutex };
+    if (shader_outdated(pSlot))
+    {
+        const Request& request = pSlot->request;
+        std::shared_ptr<GraphicsResource> pResource = make_graphics_resource(request);
+        std::atomic_store(std::addressof(pSlot->pResource), std::move(pResource));
+    }
 }
 }    // namespace odin::graphics::registry::pipeline

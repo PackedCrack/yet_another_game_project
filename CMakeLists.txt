@@ -67,6 +67,6 @@ set_target_properties(shaderc shaderc_combined shaderc_combined-pkg-config shade
 set_target_properties(add-copyright build-version core_tables extinst_tables PROPERTIES FOLDER "_external_shaderc")
 set_target_properties(spirv-tools-check-python-types spirv-tools-check-python-tests spirv-tools-vimsyntax SPIRV-Tools-diff SPIRV-Tools-link SPIRV-Tools-lint SPIRV-Tools-opt SPIRV-Tools-reduce SPIRV-Tools-shared SPIRV-Tools-static PROPERTIES FOLDER "_external_SPIR-V")
 set_target_properties(spirv-tools-pkg-config spirv-tools-tables spirv-tools-build-version spirv-tools-header-DebugInfo spirv-tools-header-NonSemanticShaderDebugInfo100 spirv-tools-header-OpenCLDebugInfo100 PROPERTIES FOLDER "_external_SPIR-V")
-set_target_properties(GenericCodeGen glslang glslang-default-resource-limits MachineIndependent OSDependent SPIRV SPVRemapper glslc PROPERTIES FOLDER "_external_glslan")
+set_target_properties(GenericCodeGen glslang glslang-default-resource-limits MachineIndependent OSDependent SPIRV SPVRemapper glslc PROPERTIES FOLDER "_external_glslang")
 
 add_subdirectory("src")

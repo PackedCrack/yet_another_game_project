@@ -1,5 +1,5 @@
 //
-// Created by qwerty on 26/07/2025.
+// Created by qwerty on 26/08/2025.
 //
 #include "ShaderHandle.hpp"
 //
@@ -11,12 +11,12 @@ ShaderHandle::ShaderHandle(std::shared_ptr<ShaderSlot> pSlot, std::function<void
     , PFN_hot_reload(std::move(hot_reload))
 {}
 std::shared_ptr<const vk::resource::ShaderModule> ShaderHandle::acquire() const
-{ 
+{
     if (PFN_hot_reload)
     {
         PFN_hot_reload();
     }
-    return std::atomic_load(std::addressof(m_pSlot->pResource)); 
+    return std::atomic_load(std::addressof(m_pSlot->pResource));
 }
 std::uintptr_t ShaderHandle::id() const
 {
