@@ -15,7 +15,7 @@ private:
 public:
     [[nodiscard]] std::filesystem::path resolve_shader_path(std::string_view filename) const;
 private:
-    std::filesystem::path m_Root;
+    std::filesystem::path m_Cwd;
     std::filesystem::path m_ShaderDir;
 };
 }    // namespace odin
