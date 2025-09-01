@@ -37,7 +37,7 @@ public:
     [[nodiscard]] resource::UniformBuffer create_uniform_buffer(const VkBufferCreateInfo& info);
     [[nodiscard]] resource::DynamicUniformBuffer create_dynamic_uniform_buffer(VkDeviceSize partitionSize, std::uint64_t numPartitions);
     [[nodiscard]] resource::StorageBuffer create_storage_buffer(VkDeviceSize size);
-    [[nodiscard]] resource::DynamicStorageBuffer create_dynamic_storage_buffer(VkDeviceSize partitionSize, std::uint64_t numPartitions);
+    [[nodiscard]] resource::DynamicStorageBuffer create_dynamic_storage_buffer(VkDeviceSize partitionSize, std::uint64_t numPartitions, bool indirectDrawUsage = false);
     [[nodiscard]] resource::Image create_image_attachment(const VkImageCreateInfo& info);
     [[nodiscard]] resource::Image create_image_texture(const VkImageCreateInfo& info);
     [[nodiscard]] resource::IndexBuffer create_index_buffer(std::uint64_t numElements);

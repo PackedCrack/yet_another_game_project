@@ -15,7 +15,7 @@ class DescriptorSetAllocator
 {
 public:
     DescriptorSetAllocator(DeviceRef device);
-    [[nodiscard]] VkDescriptorSet alloc(DescriptorSetLayoutRef layout, bool requiresUpdateAfterBind = false);
+    [[nodiscard]] VkDescriptorSet alloc(DescriptorSetLayoutRef layout, bool requiresUpdateAfterBind = false, std::uint32_t variableCount = 0);
 private:
     DescriptorPool m_Pool;
     DescriptorPool m_PoolWithUAB;

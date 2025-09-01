@@ -12,11 +12,11 @@ using namespace odin::graphics::vk::pipeline;
 constexpr bool updateAfterBind = true;
 //
 //
-[[nodiscard]] VkDescriptorSetAllocateInfo make_alloc_info(DescriptorPoolRef pool, const DescriptorSetLayoutRef& layout)
+[[nodiscard]] VkDescriptorSetAllocateInfo make_alloc_info(DescriptorPoolRef pool, const DescriptorSetLayoutRef& layout, const VkDescriptorSetVariableDescriptorCountAllocateInfo& variableCountInfo)
 {
     VkDescriptorSetAllocateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    info.pNext = nullptr;
+    info.pNext = std::addressof(variableCountInfo);
     info.descriptorPool = pool.handle;
     info.descriptorSetCount = 1;
     info.pSetLayouts = std::addressof(layout.handle);
@@ -31,13 +31,18 @@ DescriptorSetAllocator::DescriptorSetAllocator(DeviceRef device)
     , m_PoolWithUAB{ device, updateAfterBind }
     , m_Device{ device }
 {}
-VkDescriptorSet DescriptorSetAllocator::alloc(DescriptorSetLayoutRef layout, bool requiresUpdateAfterBind)
+VkDescriptorSet DescriptorSetAllocator::alloc(DescriptorSetLayoutRef layout, bool requiresUpdateAfterBind, std::uint32_t variableCount)
 {
-    DescriptorPoolRef pool = requiresUpdateAfterBind ? m_PoolWithUAB.handle() : m_Pool.handle();
-    VkDescriptorSetAllocateInfo info = make_alloc_info(pool, layout);
-
     // TODO: This is for bindless Textures - which is a future project
-    // VkDescriptorSetVariableDescriptorCountAllocateInfo varInfo{};
+    ODIN_ASSERT(variableCount == 0);
+    VkDescriptorSetVariableDescriptorCountAllocateInfo varInfo{};
+    varInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+    varInfo.pNext = nullptr;
+    varInfo.descriptorSetCount = variableCount;
+    varInfo.pDescriptorCounts = nullptr;
+
+    DescriptorPoolRef pool = requiresUpdateAfterBind ? m_PoolWithUAB.handle() : m_Pool.handle();
+    VkDescriptorSetAllocateInfo info = make_alloc_info(pool, layout, varInfo);
 
     VkDescriptorSet set{};
     VK_CHECK(vkAllocateDescriptorSets(m_Device.handle, std::addressof(info), std::addressof(set)), "Failed to allocate Descriptor Set.");

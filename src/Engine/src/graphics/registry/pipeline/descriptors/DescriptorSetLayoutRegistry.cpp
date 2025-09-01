@@ -83,6 +83,10 @@ DescriptorSetLayoutRegistry::descriptor_set_layouts(std::span<const DescriptorSe
 
     return refs;
 }
+vk::pipeline::DescriptorSetLayoutRef DescriptorSetLayoutRegistry::descriptor_set_layout(const DescriptorSetLayoutKey& key)
+{
+    return m_Layouts.at(key).handle();
+}
 std::vector<DescriptorSetLayoutKey> DescriptorSetLayoutRegistry::make_layout_keys(const Request& request)
 {
     std::vector<DescriptorSetLayoutKey> keys{};

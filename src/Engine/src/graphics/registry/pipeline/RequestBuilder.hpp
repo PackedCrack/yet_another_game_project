@@ -39,7 +39,15 @@ public:
     template<typename... stage_t>
     requires(std::same_as<std::remove_cvref_t<stage_t>, ShaderStage> && ...)
     RequestBuilder&
-    add_descriptor_layout(std::uint32_t setID, std::uint32_t bindingID, DescriptorType type, bool updateAfterBind = false, stage_t... stage)
+        add_descriptor_layout(std::uint32_t setID, std::uint32_t bindingID, DescriptorType type, stage_t... stage)
+    {
+        add_descriptor_layout(setID, bindingID, type, false, std::forward<stage_t>(stage)...);
+        return *this;
+    }
+    template<typename... stage_t>
+        requires(std::same_as<std::remove_cvref_t<stage_t>, ShaderStage> && ...)
+    RequestBuilder&
+        add_descriptor_layout(std::uint32_t setID, std::uint32_t bindingID, DescriptorType type, bool updateAfterBind = false, stage_t... stage)
     {
         DescriptorRequest& binding = add_descriptor_request(setID, bindingID);
         binding.bindingID = bindingID;

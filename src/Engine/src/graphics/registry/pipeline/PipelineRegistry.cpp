@@ -130,21 +130,35 @@ std::unique_ptr<PipelineRegistry> PipelineRegistry::make(vk::DeviceRef device)
 PipelineRegistry::PipelineRegistry(vk::DeviceRef device)
     : m_Device{ device }
     , m_PipelineLayouts{ m_Device }
+    , m_DescriptorLayouts{ m_Device }
     , m_DescriptorAllocator{ m_Device }
     , m_GraphicsPipelines{}
     , m_pMutex{ std::make_unique<mutex_t>() }
 {}
-VkDescriptorSet PipelineRegistry::allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID)
+//VkDescriptorSet PipelineRegistry::allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID)
+//{
+//    using DescriptorSetLayoutRef = vk::pipeline::DescriptorSetLayoutRef;
+//
+//
+//    const PipelineLayoutKey& key = handle.acquire()->pipelineLayoutKey;
+//    const descriptors::DescriptorSetLayoutKey& setKey = key.descriptorLayoutKeys[setID];
+//    bool updateAfterBind = m_DescriptorLayouts.requires_update_after_bind(setKey);
+//
+//    const std::vector<descriptors::DescriptorSetLayoutKey>& descriptorLayoutKey = key.descriptorLayoutKeys;
+//    std::vector<DescriptorSetLayoutRef> refs = m_DescriptorLayouts.descriptor_set_layouts(descriptorLayoutKey);
+//    DescriptorSetLayoutRef layout = refs[setID];
+//
+//    return m_DescriptorAllocator.alloc(layout, updateAfterBind);
+//}
+VkDescriptorSet PipelineRegistry::allocate_descriptor_set(const descriptors::DescriptorSetLayoutKey& key, std::uint32_t variableCount)
 {
-    using DescriptorSetLayoutRef = vk::pipeline::DescriptorSetLayoutRef;
-
-    const PipelineLayoutKey& key = handle.acquire()->pipelineLayoutKey;
-    bool updateAfterBind = m_PipelineLayouts.update_after_bind(key, setID);
-
-    std::vector<DescriptorSetLayoutRef> refs = m_PipelineLayouts.descriptor_set_layouts(key);
-    DescriptorSetLayoutRef layout = refs[setID];
-
-    return m_DescriptorAllocator.alloc(layout, updateAfterBind);
+    bool updateAfterBind = m_DescriptorLayouts.requires_update_after_bind(key);
+    vk::pipeline::DescriptorSetLayoutRef layout = m_DescriptorLayouts.descriptor_set_layout(key);
+    return m_DescriptorAllocator.alloc(layout, updateAfterBind, variableCount);
+}
+std::vector<descriptors::DescriptorSetLayoutKey> PipelineRegistry::make_descriptor_layouts(const Request& request)
+{
+    return m_DescriptorLayouts.make_layout_keys(request);
 }
 GraphicsHandle PipelineRegistry::graphics_pipeline(const Request& request)
 {
@@ -179,7 +193,7 @@ std::shared_ptr<GraphicsSlot> PipelineRegistry::make_graphics_slot(const Pipelin
 }
 std::shared_ptr<GraphicsResource> PipelineRegistry::make_graphics_resource(const Request& request)
 {
-    PipelineLayoutKey plKey = m_PipelineLayouts.make_layout_key(request);
+    PipelineLayoutKey plKey = m_PipelineLayouts.make_layout_key(request, m_DescriptorLayouts);
     PipelineLayoutRef layout = m_PipelineLayouts.pipeline_layout(plKey);
 
     GraphicsResource resource{ .pipeline = build_graphics_pipeline(m_Device, request, layout) };
@@ -237,7 +251,7 @@ PipelineKey PipelineRegistry::make_pipeline_key(const Request& request)
     key.polygon = request.polygonMode;
     key.samples = request.MsaaSamples;
 
-    PipelineLayoutKey plKey = m_PipelineLayouts.make_layout_key(request);
+    PipelineLayoutKey plKey = m_PipelineLayouts.make_layout_key(request, m_DescriptorLayouts);
     key.pipelineLayoutHash = PipelineLayoutKeyHasher{}(plKey);
 
     return key;

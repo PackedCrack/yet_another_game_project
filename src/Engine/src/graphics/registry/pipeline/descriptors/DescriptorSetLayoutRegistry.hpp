@@ -23,6 +23,7 @@ public:
     DescriptorSetLayoutRegistry(vk::DeviceRef device);
 public:
     [[nodiscard]] std::vector<DescriptorSetLayoutRef> descriptor_set_layouts(std::span<const DescriptorSetLayoutKey> keys);
+    [[nodiscard]] DescriptorSetLayoutRef descriptor_set_layout(const DescriptorSetLayoutKey& key);
     [[nodiscard]] std::vector<DescriptorSetLayoutKey> make_layout_keys(const Request& request);
     [[nodiscard]] bool requires_update_after_bind(const DescriptorSetLayoutKey& key) const;
 private:

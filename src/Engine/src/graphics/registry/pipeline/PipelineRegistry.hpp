@@ -9,6 +9,8 @@
 #include "PipelineLayoutKey.hpp"
 #include "PipelineLayoutRegistry.hpp"
 #include "Request.hpp"
+#include "descriptors/DescriptorSetLayoutKey.hpp"
+#include "descriptors/DescriptorSetLayoutRegistry.hpp"
 #include "../../vk/Device.hpp"
 #include "../../vk/pipeline/DescriptorSetAllocator.hpp"
 #include "../../vk/pipeline/DescriptorSetLayout.hpp"
@@ -28,7 +30,9 @@ public:
 private:
     PipelineRegistry(vk::DeviceRef device);
 public:
-    [[nodiscard]] VkDescriptorSet allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID);
+    //[[nodiscard]] VkDescriptorSet allocate_descriptor_set(GraphicsHandle handle, std::uint32_t setID);
+    [[nodiscard]] VkDescriptorSet allocate_descriptor_set(const descriptors::DescriptorSetLayoutKey& key, std::uint32_t variableCount = 0);
+    [[nodiscard]] std::vector<descriptors::DescriptorSetLayoutKey> make_descriptor_layouts(const Request& request);
     [[nodiscard]] GraphicsHandle graphics_pipeline(const Request& request);
 private:
     [[nodiscard]] std::shared_ptr<GraphicsSlot> make_graphics_slot(const PipelineKey& key, const Request& request);
@@ -40,6 +44,7 @@ private:
 private:
     vk::DeviceRef m_Device;
     PipelineLayoutRegistry m_PipelineLayouts;
+    descriptors::DescriptorSetLayoutRegistry m_DescriptorLayouts;
     vk::pipeline::DescriptorSetAllocator m_DescriptorAllocator;
     GraphicsRegistry m_GraphicsPipelines;
     Mutex m_pMutex;
