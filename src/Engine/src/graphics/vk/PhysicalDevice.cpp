@@ -103,13 +103,16 @@ struct GPU
     msg += "\n\t\tSupports Timeline Semaphore: ";
     msg += log_feature_support(gpu.features.timeline_semaphore());
 
-    msg += "\n\t\tSupports descriptor binding partially bound: ";
-    msg += log_feature_support(gpu.features.descriptor_binding_partially_bound());
-
-    msg += "\n\t\tSupports descriptor indexing: ";
+    msg += "\n\t\tSupports Descriptor Indexing: ";
     msg += log_feature_support(gpu.features.descriptor_indexing());
 
-    msg += "\n\t\tSupports draw indirect count: ";
+    msg += "\n\t\tSupports Descriptor Update After Bind: ";
+    msg += log_feature_support(gpu.features.descriptor_update_after_bind());
+
+    msg += "\n\t\tSupports Descriptor Binding Partially Bound: ";
+    msg += log_feature_support(gpu.features.descriptor_binding_partially_bound());
+
+    msg += "\n\t\tSupports Draw Indirect Count: ";
     msg += log_feature_support(gpu.features.draw_indirect_count());
 
     msg += "\n\t\tSupports Dynamic Rendering: ";

@@ -4,9 +4,44 @@
 #include "PhysicalDeviceFeatures.hpp"
 
 #include "vulkan_defines.hpp"
-#include "vulkan_info.hpp"
 //
 //
+namespace
+{
+[[nodiscard]] constexpr VkPhysicalDeviceExtendedDynamicState2FeaturesEXT
+physical_device_features_dynamic_state2(VkPhysicalDeviceExtendedDynamicState3FeaturesEXT* pDynamicState3 = nullptr)
+{
+    return VkPhysicalDeviceExtendedDynamicState2FeaturesEXT{ .sType =
+                                                                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT,
+                                                             .pNext = pDynamicState3 };
+}
+[[nodiscard]] constexpr VkPhysicalDeviceExtendedDynamicState3FeaturesEXT physical_device_features_dynamic_state3()
+{
+    return VkPhysicalDeviceExtendedDynamicState3FeaturesEXT{ .sType =
+                                                                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT,
+                                                             .pNext = nullptr };
+}
+[[nodiscard]] constexpr VkPhysicalDeviceFeatures2 physical_device_features_2(VkPhysicalDeviceVulkan11Features* pFeatures11 = nullptr)
+{
+    return VkPhysicalDeviceFeatures2{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = pFeatures11 };
+}
+[[nodiscard]] constexpr VkPhysicalDeviceVulkan11Features
+physical_device_features_vulkan_11(VkPhysicalDeviceVulkan12Features* pFeatures12 = nullptr)
+{
+    return VkPhysicalDeviceVulkan11Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES, .pNext = pFeatures12 };
+}
+[[nodiscard]] constexpr VkPhysicalDeviceVulkan12Features physical_device_features_vulkan_12(VkPhysicalDeviceVulkan13Features* pFeatures13)
+{
+    return VkPhysicalDeviceVulkan12Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = pFeatures13 };
+}
+[[nodiscard]] constexpr VkPhysicalDeviceVulkan13Features physical_device_features_vulkan_13(VkPhysicalDeviceVulkan14Features* pFeatures14)
+{
+    return VkPhysicalDeviceVulkan13Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = pFeatures14 };
+}
+[[nodiscard]] constexpr VkPhysicalDeviceVulkan14Features physical_device_features_vulkan_14(void* pNext = nullptr)
+{
+    return VkPhysicalDeviceVulkan14Features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES, .pNext = pNext };
+}
 [[nodiscard]] std::vector<VkExtensionProperties> device_extension_properties(VkPhysicalDevice gpu)
 {
     std::uint32_t count{};
@@ -43,6 +78,7 @@
 
     return state1 && state2;
 }
+}    // namespace
 namespace odin::graphics::vk
 {
 PhysicalDeviceFeatures::PhysicalDeviceFeatures(VkPhysicalDevice gpu)
@@ -126,6 +162,10 @@ VkBool32 PhysicalDeviceFeatures::timeline_semaphore() const
 VkBool32 PhysicalDeviceFeatures::descriptor_binding_partially_bound() const
 {
     return m_v12Features.descriptorBindingPartiallyBound;
+}
+VkBool32 PhysicalDeviceFeatures::descriptor_update_after_bind() const
+{
+    return m_v12Features.descriptorBindingStorageBufferUpdateAfterBind;
 }
 VkBool32 PhysicalDeviceFeatures::descriptor_indexing() const
 {

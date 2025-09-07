@@ -43,10 +43,14 @@ public:
         add_descriptor_layout(setID, bindingID, type, false, std::forward<stage_t>(stage)...);
         return *this;
     }
+    // clang-format off
     template<typename... stage_t>
     requires(std::same_as<std::remove_cvref_t<stage_t>, ShaderStage> && ...)
-    RequestBuilder&
-    add_descriptor_layout(std::uint32_t setID, std::uint32_t bindingID, DescriptorType type, bool updateAfterBind = false, stage_t... stage)
+    RequestBuilder& add_descriptor_layout(std::uint32_t setID, 
+                                          std::uint32_t bindingID,
+                                          DescriptorType type, 
+                                          bool updateAfterBind = false, 
+                                          stage_t... stage)
     {
         DescriptorRequest& binding = add_descriptor_request(setID, bindingID);
         binding.bindingID = bindingID;
@@ -61,9 +65,10 @@ public:
 
         return *this;
     }
+    // clang-format on
     [[nodiscard]] Request build();
 private:
-    [[nodiscard]] std::vector<DescriptorRequest>& descriptor_set_bindings(std::uint32_t setID);
+    [[nodiscard]] std::map<std::uint32_t, DescriptorRequest>& descriptor_set_bindings(std::uint32_t setID);
     [[nodiscard]] DescriptorRequest& add_descriptor_request(std::uint32_t setID, std::uint32_t bindingID);
     template<typename... stage_t>
     requires(std::same_as<std::remove_cvref_t<stage_t>, ShaderStage> && ...)
@@ -92,5 +97,6 @@ private:
     [[nodiscard]] VkDescriptorType to_vk_desc_type(DescriptorType type);
 private:
     Request m_Request;
+    std::map<std::uint32_t, std::map<std::uint32_t, DescriptorRequest>> m_DescriptorRequests;
 };
 }    // namespace odin::graphics::registry::pipeline

@@ -30,6 +30,15 @@ namespace
     info.bindingCount = static_cast<std::uint32_t>(bindings.size());
     info.pBindings = bindings.data();
 
+    std::span<const VkDescriptorBindingFlags> flags{ flagsInfo.pBindingFlags, flagsInfo.bindingCount };
+    for (auto flag : flags)
+    {
+        if (flag & VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT)
+        {
+            info.flags |= VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+        }
+    }
+
     return info;
 }
 }    // namespace

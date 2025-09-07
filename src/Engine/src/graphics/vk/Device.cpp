@@ -63,6 +63,7 @@ required_dynamic_state2_features(VkPhysicalDeviceExtendedDynamicState3FeaturesEX
     v12features.drawIndirectCount = VK_TRUE;
     v12features.descriptorIndexing = VK_TRUE;
     v12features.descriptorBindingPartiallyBound = VK_TRUE;
+    v12features.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
     v12features.runtimeDescriptorArray = VK_TRUE;
     v12features.timelineSemaphore = VK_TRUE;
 

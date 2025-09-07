@@ -32,7 +32,9 @@ Global::Global(vk::DeviceRef device, registry::resource::ResourceRegistry& resou
 }
 void Global::bind(vk::CommandBufferRef cmdBuffer, const vk::pipeline::PipelineLayoutRef layout, VkShaderStageFlags stages) const
 {
-    DescriptorSet<Global>::bind(cmdBuffer, layout, stages, GLOBAL_SET_ID, nullptr, 0);
+    // This is 100% a retarded driver bug..
+    std::uint32_t offset{};
+    DescriptorSet<Global>::bind(cmdBuffer, layout, stages, GLOBAL_SET_ID, std::addressof(offset), 0);
 }
 //
 //
@@ -47,6 +49,7 @@ odin::graphics::registry::pipeline::RequestBuilder& global_preset(odin::graphics
                                   Descriptor::storageBuffer,
                                   true,
                                   Stage::compute,
+                                  Stage::vertex,
                                   Stage::fragment);
 
     builder.add_descriptor_layout(GLOBAL_SET_ID,

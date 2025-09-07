@@ -40,22 +40,26 @@ using namespace odin::graphics::pass;
 
     return builder.build();
 }
-[[nodiscard]] VkRenderingInfo make_rendering_info(const ColorAttachment& colorAttachment)
+[[nodiscard]] VkRenderingAttachmentInfo make_attachment_info(const ColorAttachment& colorAttachment)
 {
     vk::resource::ImageViewRef colorView = colorAttachment.view();
 
-    VkRenderingAttachmentInfo colorAtt{};
-    colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAtt.pNext = nullptr;
-    colorAtt.imageView = colorView.handle;
-    colorAtt.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAtt.resolveMode = VK_RESOLVE_MODE_NONE;
-    colorAtt.resolveImageView = VK_NULL_HANDLE;
-    colorAtt.resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,    // or LOAD if you preserved previou;
-        colorAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAtt.clearValue = { .color = { { 1.0f, 0.0f, 1.0f, 1.0f } } };
+    VkRenderingAttachmentInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    info.pNext = nullptr;
+    info.imageView = colorView.handle;
+    info.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    info.resolveMode = VK_RESOLVE_MODE_NONE;
+    info.resolveImageView = VK_NULL_HANDLE;
+    info.resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    info.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;    // or LOAD if you preserved previous
+    info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    info.clearValue = { .color = { { 1.0f, 0.0f, 1.0f, 1.0f } } };
 
+    return info;
+}
+[[nodiscard]] VkRenderingInfo make_rendering_info(const ColorAttachment& colorAttachment, const VkRenderingAttachmentInfo& attachInfo)
+{
     VkRenderingInfo info{};
     info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
     info.pNext = nullptr;
@@ -67,7 +71,7 @@ using namespace odin::graphics::pass;
     info.layerCount = 1;
     info.viewMask = 0;
     info.colorAttachmentCount = 1;
-    info.pColorAttachments = &colorAtt;
+    info.pColorAttachments = std::addressof(attachInfo);
     info.pDepthAttachment = nullptr;
     info.pStencilAttachment = nullptr;
 
@@ -100,7 +104,8 @@ void Forward::execute(const FrameContext& frameContext,
                                 .pImageMemoryBarriers = std::addressof(renderBarrier) };
     vkCmdPipelineBarrier2(cmdBuffer.handle, std::addressof(dep));
 
-    VkRenderingInfo info = make_rendering_info(colorAttachment);
+    VkRenderingAttachmentInfo attachInfo = make_attachment_info(colorAttachment);
+    VkRenderingInfo info = make_rendering_info(colorAttachment, attachInfo);
     vkCmdBeginRendering(cmdBuffer.handle, std::addressof(info));
 
     m_Pipeline.acquire()->pipeline.bind(cmdBuffer);

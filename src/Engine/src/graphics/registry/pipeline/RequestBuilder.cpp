@@ -9,18 +9,6 @@
 #include <debug/Logger.hpp>
 //
 //
-namespace
-{
-using namespace odin::graphics::registry::pipeline;
-//
-//
-[[nodiscard]] bool binding_exists(std::span<const DescriptorRequest> bindings, std::uint32_t id)
-{
-    auto it =
-        std::find_if(std::begin(bindings), std::end(bindings), [id](const DescriptorRequest& request) { return request.bindingID == id; });
-    return it != std::end(bindings);
-}
-}    // namespace
 namespace odin::graphics::registry::pipeline
 {
 RequestBuilder& RequestBuilder::add_vertex_shader(resource::shader::ShaderHandle shader)
@@ -70,35 +58,37 @@ RequestBuilder& RequestBuilder::add_msaa_sample_count(VkSampleCountFlagBits samp
 }
 Request RequestBuilder::build()
 {
+    for (auto&& [setID, set] : m_DescriptorRequests)
+    {
+        m_Request.DescLayoutRequirement.emplace_back();
+        auto&& s = m_Request.DescLayoutRequirement.back();
+        for (auto&& [bindingID, request] : set)
+        {
+            s.emplace_back(request);
+        }
+    }
+
     Request tmp = std::move(m_Request);
     m_Request = Request{};
+
     return tmp;
 }
-std::vector<DescriptorRequest>& RequestBuilder::descriptor_set_bindings(std::uint32_t setID)
+std::map<std::uint32_t, DescriptorRequest>& RequestBuilder::descriptor_set_bindings(std::uint32_t setID)
 {
     ODIN_ASSERT(setID <= 7);    // Minimum # sets guarenteed by vulkan 1.4
 
-    std::vector<std::vector<DescriptorRequest>>& sets = m_Request.DescLayoutRequirement;
-    auto id = static_cast<std::size_t>(setID);
-    if (sets.size() <= id)
-    {
-        sets.resize(id + 1);
-    }
-
-    return sets[id];
+    auto&& [it, emplaced] = m_DescriptorRequests.try_emplace(setID);
+    return it->second;
 }
 DescriptorRequest& RequestBuilder::add_descriptor_request(std::uint32_t setID, std::uint32_t bindingID)
 {
-    std::vector<DescriptorRequest>& bindings = descriptor_set_bindings(setID);
-    ODIN_ASSERT(!binding_exists(common::to_span(bindings), bindingID));
+    std::map<std::uint32_t, DescriptorRequest>& bindings = descriptor_set_bindings(setID);
+    ODIN_ASSERT(!bindings.contains(bindingID));
 
-    auto id = static_cast<std::size_t>(bindingID);
-    if (bindings.size() <= id)
-    {
-        bindings.resize(id + 1);
-    }
+    auto&& [it, emplaced] = bindings.try_emplace(bindingID, DescriptorRequest{});
+    ODIN_ASSERT(emplaced);
 
-    return bindings[id];
+    return it->second;
 }
 VkDescriptorType RequestBuilder::to_vk_desc_type(DescriptorType type)
 {
@@ -119,5 +109,7 @@ VkDescriptorType RequestBuilder::to_vk_desc_type(DescriptorType type)
     case DescriptorType::dynamicUniformBuffer:
         return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     }
+
+    std::unreachable();
 }
 }    // namespace odin::graphics::registry::pipeline
