@@ -347,18 +347,25 @@ resource::StorageBuffer Allocator::create_storage_buffer(VkDeviceSize size)
     info.pQueueFamilyIndices = nullptr;
     return m_pImpl->create_storage_buffer(shared_from_this(), info);
 }
-resource::DynamicStorageBuffer Allocator::create_dynamic_storage_buffer(VkDeviceSize partitionSize, std::uint64_t numPartitions, bool indirectDrawUsage)
+resource::DynamicStorageBuffer Allocator::create_dynamic_storage_buffer(VkDeviceSize partitionSize,
+                                                                        std::uint64_t numPartitions,
+                                                                        bool transferDestination,
+                                                                        bool indirectDrawUsage)
 {
     VkBufferCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = VK_NO_FLAGS;
     info.size = 0;
-    info.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    info.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     info.queueFamilyIndexCount = 0;
     info.pQueueFamilyIndices = nullptr;
 
+    if (transferDestination)
+    {
+        info.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    }
     if (indirectDrawUsage)
     {
         info.usage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;

@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "Buffer.hpp"
 // Debug
 #include <debug/Logger.hpp>
 #include <debug/debug_defines.hpp>

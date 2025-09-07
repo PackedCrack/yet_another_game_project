@@ -51,22 +51,22 @@ void upload_to_gpu(TransferManager& transferManager,
 }
 [[nodiscard]] std::unique_ptr<MeshTableArena> make_mesh_table_arena(const RenderResources& renderResources)
 {
-    std::size_t elementCapacity = renderResources.meshTable.byte_capacity() / sizeof(MeshInfo);
-    VkDeviceSize minAlignment = renderResources.meshTable.min_alignment();
+    std::size_t elementCapacity = renderResources.meshTable->byte_capacity() / sizeof(MeshInfo);
+    VkDeviceSize minAlignment = renderResources.meshTable->min_alignment();
 
     return MeshTableArena::make_arena_allocator(elementCapacity, minAlignment);
 }
 [[nodiscard]] std::unique_ptr<VertexArena> make_vertex_arena(const RenderResources& renderResources)
 {
-    std::size_t elementCapacity = renderResources.vertexBuffer.capacity();
-    VkDeviceSize minAlignment = renderResources.vertexBuffer.min_alignment();
+    std::size_t elementCapacity = renderResources.vertexBuffer.get().capacity();
+    VkDeviceSize minAlignment = renderResources.vertexBuffer.get().min_alignment();
 
     return VertexArena::make_arena_allocator(elementCapacity, minAlignment);
 }
 [[nodiscard]] std::unique_ptr<IndexArena> make_index_arena(const RenderResources& renderResources)
 {
-    std::size_t elementCapacity = renderResources.indexBuffer.capacity();
-    VkDeviceSize minAlignment = renderResources.indexBuffer.min_alignment();
+    std::size_t elementCapacity = renderResources.indexBuffer.get().capacity();
+    VkDeviceSize minAlignment = renderResources.indexBuffer.get().min_alignment();
 
     return IndexArena::make_arena_allocator(elementCapacity, minAlignment);
 }
@@ -180,16 +180,16 @@ void MeshRegistry::register_model(TransferManager& transferManager,
 
                 const EntryAllocation& ea = entry.allocation.value();
 
-                BufferRef vertexBuffer = resources.vertexBuffer.handle();
+                BufferRef vertexBuffer = resources.vertexBuffer.get().handle();
                 upload_to_gpu(transferManager, pAllocator, vertexBuffer, graphicsQ, ea.vertices, vertices);
 
-                BufferRef indexBuffer = resources.indexBuffer.handle();
+                BufferRef indexBuffer = resources.indexBuffer.get().handle();
                 upload_to_gpu(transferManager, pAllocator, indexBuffer, graphicsQ, ea.indices, indices);
 
                 // hack to get the .data() and .size() members..
                 std::array<MeshInfo, 1> meshInfo{};
                 meshInfo[0] = make_mesh_info(rv, indices, entry);
-                BufferRef meshTable = resources.meshTable.handle();
+                BufferRef meshTable = resources.meshTable->handle();
                 upload_to_gpu(transferManager, pAllocator, meshTable, graphicsQ, ea.meshTable, common::to_span(meshInfo));
 
 

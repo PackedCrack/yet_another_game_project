@@ -6,6 +6,9 @@
 //
 namespace
 {
+using BindType =  odin::graphics::registry::resource::buffer::BindType;
+//
+//
 [[nodiscard]] VkDescriptorBufferInfo make_buffer_info(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
 {
     VkDescriptorBufferInfo info{};
@@ -19,8 +22,8 @@ namespace
 [[nodiscard]] VkWriteDescriptorSet make_write_descriptor_set(
     VkDescriptorSet set, 
     std::uint32_t bindingID, 
-    std::uint32_t firstElement, 
-    VkDescriptorType type,
+    std::uint32_t firstElement,
+    BindType type,
     std::uint32_t count)
 {
     VkWriteDescriptorSet writeSet{};
@@ -30,10 +33,22 @@ namespace
     writeSet.dstBinding = bindingID;
     writeSet.dstArrayElement = firstElement;
     writeSet.descriptorCount = count;
-    writeSet.descriptorType = type;
     writeSet.pImageInfo = nullptr;
     writeSet.pBufferInfo = nullptr;
     writeSet.pTexelBufferView = nullptr;
+
+    switch (type)
+    {
+    case BindType::storage:
+        writeSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        break;
+    case BindType::dynamicStorage:
+        writeSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+        break;
+    case BindType::dynamicUniform:
+        writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        break;
+    }
 
     return writeSet;
 }
@@ -45,25 +60,10 @@ DescriptorWriter::DescriptorWriter(DeviceRef device, VkDescriptorSet set)
     : m_Device{ device }
     , m_Set{ set }
 {}
-DescriptorWriter& DescriptorWriter::add_dynamic_uniform_buffer(std::uint32_t bindingID, const resource::DynamicUniformBuffer& buffer)
+DescriptorWriter& DescriptorWriter::add_buffer(std::uint32_t bindingID, const registry::resource::buffer::BindView& view)
 {
-    resource::BufferRef b = buffer.handle();
-    return add_buffer(bindingID, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, b.handle, buffer.range());
-}
-DescriptorWriter& DescriptorWriter::add_dynamic_storage_buffer(std::uint32_t bindingID, const resource::DynamicStorageBuffer& buffer)
-{
-    resource::BufferRef b = buffer.handle();
-    return add_buffer(bindingID, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, b.handle, buffer.range());
-}
-DescriptorWriter& DescriptorWriter::add_storage_buffer(std::uint32_t bindingID, const resource::StorageBuffer& buffer)
-{
-    resource::BufferRef b = buffer.handle();
-    return add_buffer(bindingID, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, b.handle, buffer.byte_capacity());
-}
-DescriptorWriter& DescriptorWriter::add_buffer(std::uint32_t bindingID, VkDescriptorType type, VkBuffer buffer, VkDeviceSize range)
-{
-    m_BufferInfo.emplace_back(make_buffer_info(buffer, 0, range));
-    m_Writes.emplace_back(make_write_descriptor_set(m_Set, bindingID, 0, type, 1));
+    m_BufferInfo.emplace_back(make_buffer_info(view.handle, view.offset, view.range));
+    m_Writes.emplace_back(make_write_descriptor_set(m_Set, bindingID, 0, view.type, 1));
     m_Writes.back().pBufferInfo = std::addressof(m_BufferInfo.back());
 
     return *this;

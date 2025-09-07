@@ -12,7 +12,9 @@ using namespace odin::graphics::vk::pipeline;
 constexpr bool updateAfterBind = true;
 //
 //
-[[nodiscard]] VkDescriptorSetAllocateInfo make_alloc_info(DescriptorPoolRef pool, const DescriptorSetLayoutRef& layout, const VkDescriptorSetVariableDescriptorCountAllocateInfo& variableCountInfo)
+[[nodiscard]] VkDescriptorSetAllocateInfo make_alloc_info(DescriptorPoolRef pool,
+                                                          const DescriptorSetLayoutRef& layout,
+                                                          const VkDescriptorSetVariableDescriptorCountAllocateInfo& variableCountInfo)
 {
     VkDescriptorSetAllocateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

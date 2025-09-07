@@ -32,7 +32,8 @@ PipelineLayoutRegistry::PipelineLayoutRegistry(vk::DeviceRef device)
     , m_Layouts{}
     , m_pMutex{ std::make_unique<std::mutex>() }
 {}
-PipelineLayoutKey PipelineLayoutRegistry::make_layout_key(const Request& request, descriptors::DescriptorSetLayoutRegistry& descriptorLayoutRegistry)
+PipelineLayoutKey PipelineLayoutRegistry::make_layout_key(const Request& request,
+                                                          descriptors::DescriptorSetLayoutRegistry& descriptorLayoutRegistry)
 {
     PipelineLayoutKey pk{};
     pk.descriptorLayoutKeys = descriptorLayoutRegistry.make_layout_keys(request);
