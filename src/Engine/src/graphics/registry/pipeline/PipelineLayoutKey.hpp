@@ -4,7 +4,7 @@
 #pragma once
 
 
-#include "descriptors/DescriptorSetLayoutKey.hpp"
+#include "DescriptorSetLayoutKey.hpp"
 // common
 #include <SplitMix64.hpp>
 // vulkan
@@ -15,7 +15,7 @@ namespace odin::graphics::registry::pipeline
 {
 struct PipelineLayoutKey
 {
-    std::vector<descriptors::DescriptorSetLayoutKey> descriptorLayoutKeys;
+    std::vector<DescriptorSetLayoutKey> descriptorLayoutKeys;
     std::vector<VkPushConstantRange> pushConstants;
     VkPipelineLayoutCreateFlags flags;
     [[nodiscard]] constexpr bool operator==(const PipelineLayoutKey& key) const
@@ -57,7 +57,7 @@ struct PipelineLayoutKeyHasher : public common::SplitMix64<PipelineLayoutKeyHash
     {
         std::uint64_t hash = key.descriptorLayoutKeys.size() + key.pushConstants.size();
 
-        descriptors::DescriptorSetLayoutKeyHasher hasher{};
+        DescriptorSetLayoutKeyHasher hasher{};
         for (auto&& k : key.descriptorLayoutKeys)
         {
             // cppcheck-suppress useStlAlgorithm

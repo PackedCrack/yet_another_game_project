@@ -6,7 +6,7 @@
 //
 namespace
 {
-using BindType =  odin::graphics::registry::resource::buffer::BindType;
+using BindType = odin::graphics::registry::resource::buffer::BindType;
 //
 //
 [[nodiscard]] VkDescriptorBufferInfo make_buffer_info(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)

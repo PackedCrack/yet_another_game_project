@@ -12,7 +12,7 @@
 #include <vulkan/vulkan.h>
 //
 //
-namespace odin::graphics::registry::pipeline::descriptors
+namespace odin::graphics::registry::pipeline
 {
 struct Binding
 {
@@ -88,4 +88,4 @@ struct DescriptorSetLayoutKeyHasher : public common::SplitMix64<DescriptorSetLay
         return hash;
     }
 };
-}    // namespace odin::graphics::registry::pipeline::descriptors
+}    // namespace odin::graphics::registry::pipeline

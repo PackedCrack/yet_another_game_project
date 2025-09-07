@@ -7,12 +7,12 @@
 #include <unordered_map>
 
 #include "DescriptorSetLayoutKey.hpp"
-#include "../Request.hpp"
-#include "../../../vk/Device.hpp"
-#include "../../../vk/pipeline/DescriptorSetLayout.hpp"
+#include "Request.hpp"
+#include "../../vk/Device.hpp"
+#include "../../vk/pipeline/DescriptorSetLayout.hpp"
 //
 //
-namespace odin::graphics::registry::pipeline::descriptors
+namespace odin::graphics::registry::pipeline
 {
 class DescriptorSetLayoutRegistry
 {
@@ -33,4 +33,4 @@ private:
     Registry m_Layouts;
     std::unique_ptr<std::mutex> m_pMutex;
 };
-}    // namespace odin::graphics::registry::pipeline::descriptors
+}    // namespace odin::graphics::registry::pipeline

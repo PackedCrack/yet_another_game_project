@@ -4,10 +4,11 @@
 #pragma once
 
 #include "ColorAttachment.hpp"
-#include "ForwardPass.hpp"
 #include "FrameHandler.hpp"
-#include "descriptor_presets.hpp"
 #include "TransferManager.hpp"
+#include "descriptors/Global.hpp"
+#include "descriptors/Indirect.hpp"
+#include "pass/Forward.hpp"
 #include "registry/pipeline/PipelineRegistry.hpp"
 #include "registry/resource/ResourceRegistry.hpp"
 #include "vk/Allocator.hpp"
@@ -39,14 +40,13 @@ public:
                       const TransferManager& transferManager);
     [[nodiscard]] const RenderResources render_resources() const;
 private:
-    void bind_global_resources(const vk::CommandBuffer& cmdBuffer) const;
     void bind_vertex_buffer(vk::CommandBufferRef cb) const;
     void bind_index_buffer(vk::CommandBufferRef cb) const;
 private:
     registry::resource::ResourceRegistry m_ResourceRegistry;
     std::unique_ptr<registry::pipeline::PipelineRegistry> m_pPipelineRegistry;
-    GlobalDescriptors m_GlobalDescriptors;
-    IndirectDescriptors m_IndirectDescriptors;
-    ForwardPass m_ForwardPass;
+    descriptors::Global m_Global;
+    descriptors::Indirect m_Indirect;
+    pass::Forward m_Forward;
 };
 }    // namespace odin::graphics

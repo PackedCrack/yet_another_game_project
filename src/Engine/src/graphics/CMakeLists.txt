@@ -1,5 +1,7 @@
 add_subdirectory("vk")
 add_subdirectory("registry")
+add_subdirectory("pass")
+add_subdirectory("descriptors")
 
 SET(SOURCES
 	gpu_types.hpp
@@ -9,18 +11,14 @@ SET(SOURCES
         Graphics.cpp
         Presenter.hpp
         Presenter.cpp
+        ColorAttachment.hpp
+        ColorAttachment.cpp
         FrameHandler.hpp
         FrameHandler.cpp
         Renderer.hpp
         Renderer.cpp
-        ColorAttachment.hpp
-        ColorAttachment.cpp
-        ForwardPass.hpp
-        ForwardPass.cpp
         TransferManager.hpp
         TransferManager.cpp
-	descriptor_presets.hpp
-	descriptor_presets.cpp
 )
 
 #set(EXPORT_HEADERS

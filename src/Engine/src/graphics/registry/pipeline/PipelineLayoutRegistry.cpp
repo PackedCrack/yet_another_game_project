@@ -13,14 +13,14 @@ using namespace odin::graphics::registry;
 using namespace odin::graphics::registry::pipeline;
 //
 //
-[[nodiscard]] std::vector<std::uint64_t> hash_descriptor_layout_keys(std::span<descriptors::DescriptorSetLayoutKey> keys)
+[[nodiscard]] std::vector<std::uint64_t> hash_descriptor_layout_keys(std::span<DescriptorSetLayoutKey> keys)
 {
-    descriptors::DescriptorSetLayoutKeyHasher hasher{};
+    DescriptorSetLayoutKeyHasher hasher{};
     std::vector<std::uint64_t> hashes{};
     std::transform(std::begin(keys),
                    std::end(keys),
                    std::back_inserter(hashes),
-                   [&hasher](const descriptors::DescriptorSetLayoutKey& key) { return hasher(key); });
+                   [&hasher](const DescriptorSetLayoutKey& key) { return hasher(key); });
 
     return hashes;
 }
@@ -32,8 +32,7 @@ PipelineLayoutRegistry::PipelineLayoutRegistry(vk::DeviceRef device)
     , m_Layouts{}
     , m_pMutex{ std::make_unique<std::mutex>() }
 {}
-PipelineLayoutKey PipelineLayoutRegistry::make_layout_key(const Request& request,
-                                                          descriptors::DescriptorSetLayoutRegistry& descriptorLayoutRegistry)
+PipelineLayoutKey PipelineLayoutRegistry::make_layout_key(const Request& request, DescriptorSetLayoutRegistry& descriptorLayoutRegistry)
 {
     PipelineLayoutKey pk{};
     pk.descriptorLayoutKeys = descriptorLayoutRegistry.make_layout_keys(request);
@@ -47,25 +46,13 @@ PipelineLayoutKey PipelineLayoutRegistry::make_layout_key(const Request& request
 
     return pk;
 }
-vk::pipeline::PipelineLayoutRef PipelineLayoutRegistry::pipeline_layout(const PipelineLayoutKey& key)
+vk::pipeline::PipelineLayoutRef PipelineLayoutRegistry::pipeline_layout(const PipelineLayoutKey& key) const
 {
     return m_Layouts.at(key).handle();
 }
-//std::vector<vk::pipeline::DescriptorSetLayoutRef> PipelineLayoutRegistry::descriptor_set_layouts(const PipelineLayoutKey& key)
-//{
-//    const auto& setLayoutKeys = key.descriptorLayoutKeys;
-//    return m_DescriptorLayouts.descriptor_set_layouts(setLayoutKeys);
-//}
-//bool PipelineLayoutRegistry::update_after_bind(const PipelineLayoutKey& key, std::uint32_t setID) const
-//{
-//    ODIN_ASSERT(setID < key.descriptorLayoutKeys.size());
-//
-//    const descriptors::DescriptorSetLayoutKey& setKey = key.descriptorLayoutKeys[setID];
-//    return m_DescriptorLayouts.requires_update_after_bind(setKey);
-//}
 void PipelineLayoutRegistry::add_pipeline_layout(const PipelineLayoutKey& pipelineLayoutKey,
-                                                 descriptors::DescriptorSetLayoutRegistry& descriptorLayoutRegistry,
-                                                 std::span<const descriptors::DescriptorSetLayoutKey> descKeys)
+                                                 DescriptorSetLayoutRegistry& descriptorLayoutRegistry,
+                                                 std::span<const DescriptorSetLayoutKey> descKeys)
 {
     std::lock_guard lock{ *m_pMutex };
 

@@ -7,7 +7,7 @@
 #include <mutex>
 
 #include "PipelineLayoutKey.hpp"
-#include "descriptors/DescriptorSetLayoutRegistry.hpp"
+#include "DescriptorSetLayoutRegistry.hpp"
 #include "../../vk/Device.hpp"
 #include "../../vk/pipeline/PipelineLayout.hpp"
 //
@@ -22,18 +22,14 @@ class PipelineLayoutRegistry
 public:
     PipelineLayoutRegistry(vk::DeviceRef device);
 public:
-    [[nodiscard]] PipelineLayoutKey make_layout_key(const Request& request,
-                                                    descriptors::DescriptorSetLayoutRegistry& descriptorLayoutRegistry);
-    [[nodiscard]] PipelineLayoutRef pipeline_layout(const PipelineLayoutKey& key);
-    //[[nodiscard]] std::vector<vk::pipeline::DescriptorSetLayoutRef> descriptor_set_layouts(const PipelineLayoutKey& key);
-    //[[nodiscard]] bool update_after_bind(const PipelineLayoutKey& key, std::uint32_t setID) const;
+    [[nodiscard]] PipelineLayoutKey make_layout_key(const Request& request, DescriptorSetLayoutRegistry& descriptorLayoutRegistry);
+    [[nodiscard]] PipelineLayoutRef pipeline_layout(const PipelineLayoutKey& key) const;
 private:
     void add_pipeline_layout(const PipelineLayoutKey& pipelineLayoutKey,
-                             descriptors::DescriptorSetLayoutRegistry& descriptorLayoutRegistry,
-                             std::span<const descriptors::DescriptorSetLayoutKey> descKeys);
+                             DescriptorSetLayoutRegistry& descriptorLayoutRegistry,
+                             std::span<const DescriptorSetLayoutKey> descKeys);
 private:
     vk::DeviceRef m_Device;
-    //descriptors::DescriptorSetLayoutRegistry m_DescriptorLayouts;
     Registry m_Layouts;
     std::unique_ptr<std::mutex> m_pMutex;
 };

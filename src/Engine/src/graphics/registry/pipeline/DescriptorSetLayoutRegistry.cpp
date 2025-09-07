@@ -3,13 +3,12 @@
 //
 #include "DescriptorSetLayoutRegistry.hpp"
 
-#include "../../../vk/pipeline/DescriptorSetLayoutBuilder.hpp"
+#include "../../vk/pipeline/DescriptorSetLayoutBuilder.hpp"
 //
 //
 namespace
 {
 using namespace odin::graphics::registry::pipeline;
-using namespace odin::graphics::registry::pipeline::descriptors;
 using DescriptorSetLayoutBuilder = odin::graphics::vk::pipeline::DescriptorSetLayoutBuilder;
 //
 //
@@ -61,7 +60,7 @@ using DescriptorSetLayoutBuilder = odin::graphics::vk::pipeline::DescriptorSetLa
     return binding;
 }
 }    // namespace
-namespace odin::graphics::registry::pipeline::descriptors
+namespace odin::graphics::registry::pipeline
 {
 DescriptorSetLayoutRegistry::DescriptorSetLayoutRegistry(vk::DeviceRef device)
     : m_Device{ device }
@@ -135,4 +134,4 @@ void DescriptorSetLayoutRegistry::add_descriptor_layout(const DescriptorSetLayou
         ODIN_ASSERT(emplaced);
     }
 }
-}    // namespace odin::graphics::registry::pipeline::descriptors
+}    // namespace odin::graphics::registry::pipeline

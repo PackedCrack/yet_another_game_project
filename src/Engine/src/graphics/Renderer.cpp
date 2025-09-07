@@ -98,9 +98,9 @@ namespace odin::graphics
 Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceRef device, const FrameHandler& frameHandler)
     : m_ResourceRegistry{ device, pAllocator, frameHandler, maxDraws, maxInstances }
     , m_pPipelineRegistry{ registry::pipeline::PipelineRegistry::make(device) }
-    , m_GlobalDescriptors{ device, m_ResourceRegistry, *m_pPipelineRegistry }
-    , m_IndirectDescriptors{ device, m_ResourceRegistry, *m_pPipelineRegistry }
-    , m_ForwardPass{ pAllocator, device, *m_pPipelineRegistry, m_ResourceRegistry }
+    , m_Global{ device, m_ResourceRegistry, *m_pPipelineRegistry }
+    , m_Indirect{ device, m_ResourceRegistry, *m_pPipelineRegistry }
+    , m_Forward{ *m_pPipelineRegistry, m_ResourceRegistry }
 {}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
                             vk::QueueView graphicsQ,
@@ -115,56 +115,16 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     // Acquire Transfer buffers
     transferManager.record_buffer_acquisition(graphicsQ, gfxCmdBuffer.handle());
 
-    // Bind Global buffers
-    bind_global_resources(gfxCmdBuffer);
+    // Bind Geometry buffers
+    vk::CommandBufferRef cb = gfxCmdBuffer.handle();
+    bind_vertex_buffer(cb);
+    bind_index_buffer(cb);
+
+    // execute all passes - todo render graph in the future
+    m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect);
 
 
-    // Bind descriptors
-
-    // Bind pipelines
-    //m_Pipeline.bind(cmdBuffer.handle());
-
-
-    // Should be handled by the forward pass?
-    VkImageMemoryBarrier2 renderBarrier = colorAttachment.barrier_to_render();
-    const VkDependencyInfo dep{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                                .pNext = nullptr,
-                                .dependencyFlags = 0,
-                                .memoryBarrierCount = 0,
-                                .pMemoryBarriers = nullptr,
-                                .bufferMemoryBarrierCount = 0,
-                                .pBufferMemoryBarriers = nullptr,
-                                .imageMemoryBarrierCount = 1,
-                                .pImageMemoryBarriers = std::addressof(renderBarrier) };
-    vkCmdPipelineBarrier2(gfxCmdBuffer.handle().handle, std::addressof(dep));
-
-
-    // Dynamic rendering
-    vk::resource::ImageViewRef colorView = colorAttachment.view();
-    VkRenderingAttachmentInfo colorAtt{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-                                        .pNext = nullptr,
-                                        .imageView = colorView.handle,
-                                        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                        .resolveMode = VK_RESOLVE_MODE_NONE,
-                                        .resolveImageView = VK_NULL_HANDLE,
-                                        .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,    // or LOAD if you preserved previous
-                                        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                        .clearValue = { .color = { { 1.0f, 0.0f, 1.0f, 1.0f } } } };
-    VkRenderingInfo ri{
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .renderArea = { { 0, 0 }, colorAttachment.extent() },
-        .layerCount = 1,
-        .viewMask = 0,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAtt,
-        .pDepthAttachment = nullptr,
-        .pStencilAttachment = nullptr
-    };
-    m_ForwardPass.execute(gfxCmdBuffer.handle(), ri);
-
+    // Should present be its own pass?
     VkImageMemoryBarrier2 presentBarrier = colorAttachment.barrier_to_present();
     const VkDependencyInfo dep2{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
                                  .pNext = nullptr,
@@ -191,12 +151,6 @@ const RenderResources Renderer::render_resources() const
     return RenderResources{ .indexBuffer = m_ResourceRegistry.index_buffer(),
                             .vertexBuffer = m_ResourceRegistry.vertex_buffer(),
                             .meshTable = m_ResourceRegistry.storage_buffer(m_ResourceRegistry.SSBO_MESH_TABLE) };
-}
-void Renderer::bind_global_resources(const vk::CommandBuffer& cmdBuffer) const
-{
-    vk::CommandBufferRef cb = cmdBuffer.handle();
-    bind_vertex_buffer(cb);
-    bind_index_buffer(cb);
 }
 void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb) const
 {

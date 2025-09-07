@@ -150,13 +150,13 @@ PipelineRegistry::PipelineRegistry(vk::DeviceRef device)
 //
 //    return m_DescriptorAllocator.alloc(layout, updateAfterBind);
 //}
-VkDescriptorSet PipelineRegistry::allocate_descriptor_set(const descriptors::DescriptorSetLayoutKey& key, std::uint32_t variableCount)
+VkDescriptorSet PipelineRegistry::allocate_descriptor_set(const DescriptorSetLayoutKey& key, std::uint32_t variableCount)
 {
     bool updateAfterBind = m_DescriptorLayouts.requires_update_after_bind(key);
     vk::pipeline::DescriptorSetLayoutRef layout = m_DescriptorLayouts.descriptor_set_layout(key);
     return m_DescriptorAllocator.alloc(layout, updateAfterBind, variableCount);
 }
-std::vector<descriptors::DescriptorSetLayoutKey> PipelineRegistry::make_descriptor_layouts(const Request& request)
+std::vector<DescriptorSetLayoutKey> PipelineRegistry::make_descriptor_layouts(const Request& request)
 {
     return m_DescriptorLayouts.make_layout_keys(request);
 }
@@ -179,6 +179,10 @@ GraphicsHandle PipelineRegistry::graphics_pipeline(const Request& request)
 
     std::shared_ptr<GraphicsSlot> pSlot = get_graphics_pipeline_slot(key, request);
     return make_graphics_handle(std::move(pSlot));
+}
+vk::pipeline::PipelineLayoutRef PipelineRegistry::pipeline_layout(const PipelineLayoutKey& key) const
+{
+    return m_PipelineLayouts.pipeline_layout(key);
 }
 std::shared_ptr<GraphicsSlot> PipelineRegistry::make_graphics_slot(const PipelineKey& key, const Request& request)
 {
