@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "FrameHandler.hpp"
 #include "vk/Device.hpp"
 #include "vk/PhysicalDevice.hpp"
 #include "vk/Swapchain.hpp"
@@ -16,7 +17,7 @@ namespace odin::graphics
 class Presenter
 {
 public:
-    Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface, std::uint32_t framesInFlight);
+    Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface, const FrameHandler& frameHandler);
 public:
     [[nodiscard]] std::optional<ColorAttachment> acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable);
     [[nodiscard]] bool present(const vk::QueueView& present, vk::synchronization::SemaphoreRef renderingFinished);

@@ -19,6 +19,8 @@ SET(SOURCES
         ForwardPass.cpp
         TransferManager.hpp
         TransferManager.cpp
+	descriptor_presets.hpp
+	descriptor_presets.cpp
 )
 
 #set(EXPORT_HEADERS

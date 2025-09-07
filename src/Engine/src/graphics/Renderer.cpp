@@ -92,23 +92,14 @@ void submit(QueueView queue,
 
     VK_CHECK(vkQueueSubmit2(queue.handle, 1, std::addressof(submitInfo), inFlight.handle), "Failed to submit to Graphics Queue!");
 }
-[[nodiscard]] RenderResources make_render_resources(const std::shared_ptr<Allocator>& pAllocator)
-{
-    static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million vertices
-    static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;     // Aproximately 8,3 million indices
-    static constexpr std::uint64_t meshTableSize = 15000 * sizeof(odin::graphics::MeshInfo);
-
-    return RenderResources{ .meshTable = pAllocator->create_storage_buffer(meshTableSize),
-                            .indexBuffer = pAllocator->create_index_buffer(indexCapacity),
-                            .vertexBuffer = pAllocator->create_vertex_buffer(vertexCapacity) };
-}
 }    // namespace
 namespace odin::graphics
 {
-Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceRef device)
-    : m_ResourceRegistry{ device }
+Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceRef device, const FrameHandler& frameHandler)
+    : m_ResourceRegistry{ device, pAllocator, frameHandler, maxDraws, maxInstances }
     , m_pPipelineRegistry{ registry::pipeline::PipelineRegistry::make(device) }
-    , m_RenderResources{ make_render_resources(pAllocator) }
+    , m_GlobalDescriptors{ device, m_ResourceRegistry, *m_pPipelineRegistry }
+    , m_IndirectDescriptors{ device, m_ResourceRegistry, *m_pPipelineRegistry }
     , m_ForwardPass{ pAllocator, device, *m_pPipelineRegistry, m_ResourceRegistry }
 {}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
@@ -195,9 +186,11 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     std::optional<TransferEpoch> transferEpoch = transferManager.epoch();
     submit(graphicsQ, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight, transferEpoch);
 }
-const RenderResources& Renderer::render_resources() const
+const RenderResources Renderer::render_resources() const
 {
-    return m_RenderResources;
+    return RenderResources{ .indexBuffer = m_ResourceRegistry.index_buffer(),
+                            .vertexBuffer = m_ResourceRegistry.vertex_buffer(),
+                            .meshTable = m_ResourceRegistry.storage_buffer(m_ResourceRegistry.SSBO_MESH_TABLE) };
 }
 void Renderer::bind_global_resources(const vk::CommandBuffer& cmdBuffer) const
 {
@@ -209,7 +202,7 @@ void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb) const
 {
     using namespace vk::resource;
 
-    const VertexBuffer& vb = m_RenderResources.vertexBuffer;
+    const VertexBuffer& vb = m_ResourceRegistry.vertex_buffer();
     BufferRef vbRef = vb.handle();
     VkDeviceSize offset = 0;
     VkDeviceSize size = vb.byte_capacity();
@@ -226,7 +219,7 @@ void Renderer::bind_index_buffer(vk::CommandBufferRef cb) const
 {
     using namespace vk::resource;
 
-    const IndexBuffer& ib = m_RenderResources.indexBuffer;
+    const IndexBuffer& ib = m_ResourceRegistry.index_buffer();
     BufferRef ibRef = ib.handle();
     vkCmdBindIndexBuffer2(cb.handle, ibRef.handle, 0, VK_WHOLE_SIZE, VK_INDEX_TYPE_UINT16);
 }

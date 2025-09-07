@@ -8,8 +8,8 @@
 //
 namespace odin::graphics
 {
-Presenter::Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface, std::uint32_t framesInFlight)
-    : m_FramesInFlight{ framesInFlight }
+Presenter::Presenter(const vk::Device& device, const vk::PhysicalDevice& physDevice, vk::Surface surface, const FrameHandler& frameHandler)
+    : m_FramesInFlight{ frameHandler.in_flight_count() }
     , m_Device{ device.handle() }
     , m_PhysDevice{ physDevice.handle() }
     , m_Surface{ std::move(surface) }
