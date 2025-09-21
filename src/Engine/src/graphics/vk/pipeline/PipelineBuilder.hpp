@@ -21,6 +21,9 @@ public:
     PipelineBuilder(DeviceRef device);
 public:
     PipelineBuilder& shader_module(const registry::resource::shader::ShaderHandle& shader, VkShaderStageFlagBits stage);
+    PipelineBuilder& add_vertex_module(const registry::resource::shader::ShaderHandle& shader);
+    PipelineBuilder& add_fragment_module(const registry::resource::shader::ShaderHandle& shader);
+    PipelineBuilder& add_compute_module(const registry::resource::shader::ShaderHandle& shader);
     PipelineBuilder& vertex_input_state(std::span<VkVertexInputBindingDescription> vertexBindings,
                                         std::span<VkVertexInputAttributeDescription> vertexAttributes);
     PipelineBuilder& rasterization_state(VkPolygonMode polygonMode, bool depthBias = false);
@@ -28,13 +31,15 @@ public:
     PipelineBuilder&
     dynamic_rendering(std::span<const VkFormat> colorFormats, std::optional<VkFormat> depthFormat, std::optional<VkFormat> stencilFormat);
     GraphicsPipeline build_graphics_pipeline(PipelineLayoutRef layout);
+    ComputePipeline build_compute_pipeline(PipelineLayoutRef layout);
 private:
     void add_dynamic_states();
     [[nodiscard]] bool validate_graphics_pipeline_data() const;
-    //[[nodiscard]] bool validate_compute_pipeline_data() const;
+    [[nodiscard]] bool validate_compute_pipeline_data() const;
 private:
     DeviceRef m_Device;
 
+    bool m_HasShaderStage;
     // Requirements for ComputePipeline goes here
 
     // Requirements for GraphicsPipeline

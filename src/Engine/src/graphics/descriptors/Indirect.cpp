@@ -66,10 +66,10 @@ std::array<std::uint32_t, 7> Indirect::dynamic_offsets(std::uint64_t frameID) co
 }
 //
 //
-odin::graphics::registry::pipeline::RequestBuilder& indirect_preset(odin::graphics::registry::pipeline::RequestBuilder& builder)
+registry::pipeline::RequestBuilder& indirect_preset(registry::pipeline::RequestBuilder& builder)
 {
-    using Descriptor = odin::graphics::registry::pipeline::DescriptorType;
-    using Stage = odin::graphics::registry::pipeline::ShaderStage;
+    using Descriptor = registry::pipeline::DescriptorType;
+    using Stage = registry::pipeline::ShaderStage;
 
     // clang-format off
     builder.add_descriptor_layout(INDIRECT_SET_ID,

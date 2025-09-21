@@ -38,10 +38,10 @@ void Global::bind(vk::CommandBufferRef cmdBuffer, const vk::pipeline::PipelineLa
 }
 //
 //
-odin::graphics::registry::pipeline::RequestBuilder& global_preset(odin::graphics::registry::pipeline::RequestBuilder& builder)
+registry::pipeline::RequestBuilder& global_preset(registry::pipeline::RequestBuilder& builder)
 {
-    using Descriptor = odin::graphics::registry::pipeline::DescriptorType;
-    using Stage = odin::graphics::registry::pipeline::ShaderStage;
+    using Descriptor = registry::pipeline::DescriptorType;
+    using Stage = registry::pipeline::ShaderStage;
 
     // clang-format off
     builder.add_descriptor_layout(GLOBAL_SET_ID,

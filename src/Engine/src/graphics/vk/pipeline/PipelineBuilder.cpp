@@ -28,11 +28,10 @@ constexpr std::array<VkDynamicState, 15> enabledDynamicStates{ VK_DYNAMIC_STATE_
                                                                VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
                                                                VK_DYNAMIC_STATE_BLEND_CONSTANTS };
 
-constexpr std::uint16_t SHADER_MODULES_BIT = 1 << 0;
-constexpr std::uint16_t VERTEX_INPUT_BIT = 1 << 1;
-constexpr std::uint16_t RASTERIZATION_BIT = 1 << 2;
-constexpr std::uint16_t MULTISAMPLING_BIT = 1 << 3;
-constexpr std::uint16_t DYNAMIC_RENDERING_BIT = 1 << 4;
+constexpr std::uint16_t VERTEX_INPUT_BIT = 1 << 0;
+constexpr std::uint16_t RASTERIZATION_BIT = 1 << 1;
+constexpr std::uint16_t MULTISAMPLING_BIT = 1 << 2;
+constexpr std::uint16_t DYNAMIC_RENDERING_BIT = 1 << 3;
 //
 //
 [[nodiscard]] VkPipelineShaderStageCreateInfo make_shader_stage_create_info(resource::ShaderModuleRef shader, VkShaderStageFlagBits stage)
@@ -175,6 +174,7 @@ namespace odin::graphics::vk::pipeline
 {
 PipelineBuilder::PipelineBuilder(DeviceRef device)
     : m_Device{ device }
+    , m_HasShaderStage{}
     , m_GraphicsMask{}
     , m_Viewport{}
     , m_Scissor{}
@@ -197,9 +197,21 @@ PipelineBuilder& PipelineBuilder::shader_module(const registry::resource::shader
     resource::ShaderModuleRef shaderRef = shader.acquire()->handle();
     m_ShaderModules.emplace_back(shaderRef);
     m_ShaderStages.emplace_back(make_shader_stage_create_info(shaderRef, stage));
-    m_GraphicsMask |= SHADER_MODULES_BIT;
+    m_HasShaderStage = true;
 
     return *this;
+}
+PipelineBuilder& PipelineBuilder::add_vertex_module(const registry::resource::shader::ShaderHandle& shader)
+{
+    return shader_module(shader, VK_SHADER_STAGE_VERTEX_BIT);
+}
+PipelineBuilder& PipelineBuilder::add_fragment_module(const registry::resource::shader::ShaderHandle& shader)
+{
+    return shader_module(shader, VK_SHADER_STAGE_FRAGMENT_BIT);
+}
+PipelineBuilder& PipelineBuilder::add_compute_module(const registry::resource::shader::ShaderHandle& shader)
+{
+    return shader_module(shader, VK_SHADER_STAGE_COMPUTE_BIT);
 }
 PipelineBuilder& PipelineBuilder::vertex_input_state(std::span<VkVertexInputBindingDescription> vertexBindings,
                                                      std::span<VkVertexInputAttributeDescription> vertexAttributes)
@@ -272,6 +284,21 @@ GraphicsPipeline PipelineBuilder::build_graphics_pipeline(PipelineLayoutRef layo
     ODIN_ASSERT(validate_graphics_pipeline_data());
     return GraphicsPipeline(m_Device, info);
 }
+ComputePipeline PipelineBuilder::build_compute_pipeline(PipelineLayoutRef layout)
+{
+    ODIN_ASSERT(validate_compute_pipeline_data());
+
+    VkComputePipelineCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = VK_NO_FLAGS;
+    info.stage = m_ShaderStages.front();
+    info.layout = layout.handle;
+    info.basePipelineHandle = VK_NULL_HANDLE;
+    info.basePipelineIndex = 0;
+
+    return ComputePipeline(m_Device, info);
+}
 void PipelineBuilder::add_dynamic_states()
 {
     m_DynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -293,7 +320,7 @@ void PipelineBuilder::add_dynamic_states()
         }
     }
 
-    if ((m_GraphicsMask & SHADER_MODULES_BIT) == 0)
+    if (!m_HasShaderStage)
     {
         return false;
     }
@@ -312,8 +339,17 @@ void PipelineBuilder::add_dynamic_states()
 
     return true;
 }
-//[[nodiscard]] bool validate_compute_pipeline_data() const
-//{
-//
-//}
+[[nodiscard]] bool PipelineBuilder::validate_compute_pipeline_data() const
+{
+    if (!m_HasShaderStage)
+    {
+        return false;
+    }
+    if (m_ShaderStages.size() != 1)
+    {
+        return false;
+    }
+
+    return true;
+}
 }    // namespace odin::graphics::vk::pipeline

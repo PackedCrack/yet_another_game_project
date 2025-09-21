@@ -2,6 +2,9 @@
 // Created by qwerty on 30/08/2025.
 //
 #pragma once
+
+// debug
+#include <debug/debug_defines.hpp>
 //
 //
 namespace odin::graphics::registry::pipeline
@@ -15,6 +18,7 @@ struct PipelineHandle
     {}
     std::shared_ptr<const resource_t> acquire() const
     {
+        ODIN_ASSERT(m_pSlot != nullptr);
         cb_hot_reload();
         return std::atomic_load(std::addressof(m_pSlot->pResource));
     }

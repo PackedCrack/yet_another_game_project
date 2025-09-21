@@ -7,6 +7,9 @@ SET(SOURCES
 	GraphicsHandle.hpp
 	GraphicsHandle.cpp
 	GraphicsSlot.hpp
+	ComputeHandle.hpp
+	ComputeHandle.cpp
+	ComputeSlot.hpp
 	PipelineKey.hpp
 	PipelineLayoutRegistry.hpp
 	PipelineLayoutRegistry.cpp

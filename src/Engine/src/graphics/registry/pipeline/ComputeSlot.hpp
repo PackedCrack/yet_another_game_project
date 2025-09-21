@@ -1,25 +1,24 @@
 //
-// Created by qwerty on 26/08/2025.
+// Created by qwerty on 21/09/2025.
 //
 #pragma once
 
 #include "Request.hpp"
 #include "PipelineLayoutKey.hpp"
 #include "../Slot.hpp"
-#include "../../vk/pipeline/GraphicsPipeline.hpp"
+#include "../../vk/pipeline/ComputePipeline.hpp"
 #include "../../vk/pipeline/PipelineLayout.hpp"
 //
 //
 namespace odin::graphics::registry::pipeline
 {
-struct GraphicsResource
+struct ComputeResource
 {
-    vk::pipeline::GraphicsPipeline pipeline;
+    vk::pipeline::ComputePipeline pipeline;
     PipelineLayoutKey pipelineLayoutKey;
-    std::optional<std::uint64_t> vsHash;
-    std::optional<std::uint64_t> fsHash;
+    std::optional<std::uint64_t> csHash;
 };
-struct GraphicsSlot : public Slot<GraphicsSlot, GraphicsResource>
+struct ComputeSlot : public Slot<ComputeSlot, ComputeResource>
 {
     Request request;
 };
