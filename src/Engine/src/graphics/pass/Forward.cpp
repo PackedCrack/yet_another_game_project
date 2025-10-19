@@ -81,9 +81,9 @@ using namespace odin::graphics::pass;
 namespace odin::graphics::pass
 {
 Forward::Forward(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry)
-    : m_GraphicsRequest{ make_request(resourceRegistry) }
+    : registry::pipeline::PipelineResolver<Forward>{ pipelineRegistry }
+    , m_GraphicsRequest{ make_request(resourceRegistry) }
     , m_Pipeline{ pipelineRegistry.graphics_pipeline(m_GraphicsRequest) }
-    , m_PipelineRegistry{ pipelineRegistry }
 {}
 void Forward::execute(const FrameContext& frameContext,
                       const ColorAttachment& colorAttachment,
@@ -119,8 +119,7 @@ void Forward::bind_descriptors(const FrameContext& frameContext,
                                const descriptors::Global& global,
                                const descriptors::Indirect& indirect) const
 {
-    const registry::pipeline::PipelineLayoutKey& key = m_Pipeline.acquire()->pipelineLayoutKey;
-    vk::pipeline::PipelineLayoutRef layout = m_PipelineRegistry.get().pipeline_layout(key);
+    vk::pipeline::PipelineLayoutRef layout = resolve_layout(m_Pipeline);
 
     vk::CommandBufferRef cmdBuffer = frameContext.graphicsBuffer.get().handle();
     global.bind(cmdBuffer, layout, VK_SHADER_STAGE_ALL_GRAPHICS);

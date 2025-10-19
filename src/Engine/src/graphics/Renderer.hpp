@@ -9,6 +9,7 @@
 #include "descriptors/Global.hpp"
 #include "descriptors/Indirect.hpp"
 #include "pass/Forward.hpp"
+#include "pass/IndirectSetup.hpp"
 #include "registry/pipeline/PipelineRegistry.hpp"
 #include "registry/resource/ResourceRegistry.hpp"
 #include "vk/Allocator.hpp"
@@ -48,5 +49,6 @@ private:
     descriptors::Global m_Global;
     descriptors::Indirect m_Indirect;
     pass::Forward m_Forward;
+    pass::IndirectSetup m_IndirectSetup;
 };
 }    // namespace odin::graphics

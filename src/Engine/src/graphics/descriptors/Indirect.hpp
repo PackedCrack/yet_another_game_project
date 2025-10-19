@@ -26,6 +26,13 @@ public:
               const vk::pipeline::PipelineLayoutRef layout,
               VkShaderStageFlags stages,
               std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_draw_count(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_draw_args(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_instance_base(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_instance_counter(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_instance_index(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_instance_info(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_camera_data(std::uint64_t frameID) const;
 private:
     std::array<std::uint32_t, 7> dynamic_offsets(std::uint64_t frameID) const;
 private:

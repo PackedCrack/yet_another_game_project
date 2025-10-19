@@ -22,6 +22,8 @@ public:
     Global(vk::DeviceRef device, registry::resource::ResourceRegistry& resources, registry::pipeline::PipelineRegistry& pipelines);
 public:
     void bind(vk::CommandBufferRef cmdBuffer, const vk::pipeline::PipelineLayoutRef layout, VkShaderStageFlags stages) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_mesh_table(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_material_table(std::uint64_t frameID) const;
 private:
     SSBOHandle m_MeshTable;
     SSBOHandle m_MaterialTable;

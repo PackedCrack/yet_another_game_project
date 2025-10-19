@@ -101,6 +101,7 @@ Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceR
     , m_Global{ device, m_ResourceRegistry, *m_pPipelineRegistry }
     , m_Indirect{ device, m_ResourceRegistry, *m_pPipelineRegistry }
     , m_Forward{ *m_pPipelineRegistry, m_ResourceRegistry }
+    , m_IndirectSetup{ *m_pPipelineRegistry, m_ResourceRegistry }
 {}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
                             vk::QueueView graphicsQ,
@@ -120,7 +121,10 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     bind_vertex_buffer(cb);
     bind_index_buffer(cb);
 
+
     // execute all passes - todo render graph in the future
+    m_IndirectSetup.execute();
+
     m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect);
 
 

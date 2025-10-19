@@ -7,6 +7,7 @@
 #include "../descriptors/Indirect.hpp"
 #include "../ColorAttachment.hpp"
 #include "../registry/pipeline/PipelineRegistry.hpp"
+#include "../registry/pipeline/PipelineResolver.hpp"
 #include "../registry/pipeline/GraphicsHandle.hpp"
 #include "../registry/resource/ResourceRegistry.hpp"
 #include "../vk/resource/DynamicUniformBuffer.hpp"
@@ -16,7 +17,7 @@
 //
 namespace odin::graphics::pass
 {
-class Forward
+class Forward : public registry::pipeline::PipelineResolver<Forward>
 {
 public:
     Forward(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry);
@@ -30,6 +31,5 @@ private:
 private:
     registry::pipeline::Request m_GraphicsRequest;
     registry::pipeline::GraphicsHandle m_Pipeline;
-    std::reference_wrapper<const registry::pipeline::PipelineRegistry> m_PipelineRegistry;
 };
 }    // namespace odin::graphics::pass

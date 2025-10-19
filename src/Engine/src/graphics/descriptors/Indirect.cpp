@@ -57,6 +57,34 @@ void Indirect::bind(vk::CommandBufferRef cmdBuffer,
     std::array<std::uint32_t, 7> offsets = dynamic_offsets(frameID);
     DescriptorSet<Indirect>::bind(cmdBuffer, layout, stages, INDIRECT_SET_ID, offsets.data(), static_cast<std::uint32_t>(offsets.size()));
 }
+registry::resource::buffer::BindView Indirect::view_draw_count(std::uint64_t frameID) const
+{
+    return m_DrawCount.to_view(frameID);
+}
+registry::resource::buffer::BindView Indirect::view_draw_args(std::uint64_t frameID) const
+{
+    return m_DrawArgs.to_view(frameID);
+}
+registry::resource::buffer::BindView Indirect::view_instance_base(std::uint64_t frameID) const
+{
+    return m_InstanceBase.to_view(frameID);
+}
+registry::resource::buffer::BindView Indirect::view_instance_counter(std::uint64_t frameID) const
+{
+    return m_InstanceCounter.to_view(frameID);
+}
+registry::resource::buffer::BindView Indirect::view_instance_index(std::uint64_t frameID) const
+{
+    return m_InstanceIndex.to_view(frameID);
+}
+registry::resource::buffer::BindView Indirect::view_instance_info(std::uint64_t frameID) const
+{
+    return m_InstanceInfo.to_view(frameID);
+}
+registry::resource::buffer::BindView Indirect::view_camera_data(std::uint64_t frameID) const
+{
+    return m_CameraData.to_view(frameID);
+}
 std::array<std::uint32_t, 7> Indirect::dynamic_offsets(std::uint64_t frameID) const
 {
     return { static_cast<std::uint32_t>(m_DrawCount->offset(frameID)),     static_cast<std::uint32_t>(m_DrawArgs->offset(frameID)),
