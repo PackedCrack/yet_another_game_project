@@ -66,6 +66,22 @@ public:
         return *this;
     }
     // clang-format on
+    template<typename... stage_t>
+    requires(std::same_as<std::remove_cvref_t<stage_t>, ShaderStage> && ...)
+    RequestBuilder& add_push_constant_range(std::uint32_t offset, std::uint32_t size, stage_t... stage)
+    {
+        if (!m_Request.pushConstants.has_value())
+        {
+            m_Request.pushConstants = std::make_optional<std::vector<VkPushConstantRange>>();
+        }
+
+        VkPushConstantRange range{};
+        range.offset = offset;
+        range.size = size;
+        range.stageFlags = to_vk_shader_stage(std::forward<stage_t>(stage)...);
+
+        m_Request.pushConstants->push_back(range);
+    }
     [[nodiscard]] Request build();
 private:
     [[nodiscard]] std::map<std::uint32_t, DescriptorRequest>& descriptor_set_bindings(std::uint32_t setID);

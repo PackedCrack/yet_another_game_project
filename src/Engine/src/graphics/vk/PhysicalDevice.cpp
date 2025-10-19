@@ -8,6 +8,11 @@
 //
 namespace
 {
+using namespace odin::graphics::vk;
+PhysicalDeviceProperties s_Properties;  // basically a singleton but this needs to be accessed everywhere so..
+PhysicalDeviceFeatures s_Features;
+//
+//
 struct GPU
 {
     VkPhysicalDevice device;
@@ -82,13 +87,19 @@ struct GPU
 
     msg += std::format("\n\t\tMinimum Storage buffer offset alignment: {}", gpu.properties.min_storage_buffer_offset_alignment());
 
-    msg += std::format("\n\t\tMaximum Compute Work Group Total Invocations: {}", gpu.properties.max_compute_work_group_invocations());
+    msg += std::format("\n\t\tMaximum Compute Work Group Invocations: {}", gpu.properties.max_compute_work_group_invocations());
 
-    msg += std::format("\n\t\tMaximum Compute Work Group Size - X: {}", gpu.properties.work_group_size_x());
+    msg += std::format("\n\t\tMaximum Compute Work Group Size - X: {}", gpu.properties.max_work_group_size_x());
 
-    msg += std::format("\n\t\tMaximum Compute Work Group Size - Y: {}", gpu.properties.work_group_size_y());
+    msg += std::format("\n\t\tMaximum Compute Work Group Size - Y: {}", gpu.properties.max_work_group_size_y());
 
-    msg += std::format("\n\t\tMaximum Compute Work Group Size - Z: {}", gpu.properties.work_group_size_z());
+    msg += std::format("\n\t\tMaximum Compute Work Group Size - Z: {}", gpu.properties.max_work_group_size_z());
+
+    msg += std::format("\n\t\tMaximum Compute Work Group Count - X: {}", gpu.properties.max_compute_work_group_count_x());
+
+    msg += std::format("\n\t\tMaximum Compute Work Group Count - Y: {}", gpu.properties.max_compute_work_group_count_y());
+
+    msg += std::format("\n\t\tMaximum Compute Work Group Count - Z: {}", gpu.properties.max_compute_work_group_count_z());
 
     return msg;
 }
@@ -288,12 +299,23 @@ void log_gpus(const std::vector<GPU>& gpus, const GPU& selected, const odin::gra
 }    // namespace
 namespace odin::graphics::vk
 {
+const PhysicalDeviceProperties& PhysicalDevice::properties()
+{
+    return s_Properties;
+}
+const PhysicalDeviceFeatures& PhysicalDevice::features()
+{
+    return s_Features;
+}
 PhysicalDevice::PhysicalDevice(const Instance& instance, const Surface& surface)
     : m_PhysicalDevice{ VK_NULL_HANDLE }
-    , m_Properties{}
-    , m_Features{}
     , m_QueueProperties{}
 {
+    // There can only be a single physical device created as long as
+    // properties remain static for easy global access
+    static std::int32_t count{};
+    ODIN_ASSERT(count++ == 0);
+
     std::vector<GPU> gpus = get_gpus(instance);
     std::reference_wrapper<GPU> selectedGPU = select_gpu(gpus, surface);
     GPU& selected = selectedGPU.get();
@@ -301,20 +323,16 @@ PhysicalDevice::PhysicalDevice(const Instance& instance, const Surface& surface)
     log_gpus(gpus, selected, surface);
 
     m_PhysicalDevice = selected.device;
-    m_Properties = std::move(selected.properties);
-    m_Features = std::move(selected.features);
+    s_Properties = std::move(selected.properties);
+    s_Features = std::move(selected.features);
     m_QueueProperties = std::move(selected.queueProperties);
 }
 PhysicalDevice::PhysicalDevice(const PhysicalDevice& other)
     : m_PhysicalDevice{ other.m_PhysicalDevice }
-    , m_Properties{ other.m_Properties }
-    , m_Features{ other.m_Features }
     , m_QueueProperties{ other.m_QueueProperties }
 {}
 PhysicalDevice::PhysicalDevice(PhysicalDevice&& other) noexcept
     : m_PhysicalDevice{ VK_NULL_HANDLE }
-    , m_Properties{ std::move(other.m_Properties) }
-    , m_Features{ std::move(other.m_Features) }
     , m_QueueProperties{ std::move(other.m_QueueProperties) }
 {
     std::swap(m_PhysicalDevice, other.m_PhysicalDevice);
@@ -324,8 +342,6 @@ PhysicalDevice& PhysicalDevice::operator=(const PhysicalDevice& other)
     if (this != std::addressof(other))
     {
         m_PhysicalDevice = other.m_PhysicalDevice;
-        m_Properties = other.m_Properties;
-        m_Features = other.m_Features;
         m_QueueProperties = other.m_QueueProperties;
     }
 
@@ -336,8 +352,6 @@ PhysicalDevice& PhysicalDevice::operator=(PhysicalDevice&& other) noexcept
     if (this != std::addressof(other))
     {
         m_PhysicalDevice = std::exchange(other.m_PhysicalDevice, m_PhysicalDevice);
-        m_Properties = std::move(other.m_Properties);
-        m_Features = std::move(other.m_Features);
         m_QueueProperties = std::move(other.m_QueueProperties);
     }
 
@@ -348,14 +362,6 @@ PhysicalDeviceRef PhysicalDevice::handle() const
     ODIN_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE);
 
     return PhysicalDeviceRef{ .handle = m_PhysicalDevice };
-}
-const PhysicalDeviceProperties& PhysicalDevice::properties() const
-{
-    return m_Properties;
-}
-const PhysicalDeviceFeatures& PhysicalDevice::features() const
-{
-    return m_Features;
 }
 const std::vector<VkQueueFamilyProperties>& PhysicalDevice::queue_families_properties() const
 {

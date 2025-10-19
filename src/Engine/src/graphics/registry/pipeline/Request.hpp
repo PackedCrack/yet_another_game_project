@@ -20,6 +20,8 @@ struct DescriptorRequest
 };
 struct Request
 {
+    std::optional<std::vector<VkPushConstantRange>> pushConstants;
+
     std::optional<VkPolygonMode> polygonMode;
 
     std::optional<std::vector<VkFormat>> colorFormats;

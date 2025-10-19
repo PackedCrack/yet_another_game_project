@@ -26,8 +26,7 @@ public:
     [[nodiscard]] PipelineLayoutRef pipeline_layout(const PipelineLayoutKey& key) const;
 private:
     void add_pipeline_layout(const PipelineLayoutKey& pipelineLayoutKey,
-                             DescriptorSetLayoutRegistry& descriptorLayoutRegistry,
-                             std::span<const DescriptorSetLayoutKey> descKeys);
+                             DescriptorSetLayoutRegistry& descriptorLayoutRegistry);
 private:
     vk::DeviceRef m_Device;
     Registry m_Layouts;

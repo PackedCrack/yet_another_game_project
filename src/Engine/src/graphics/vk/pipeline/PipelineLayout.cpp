@@ -33,24 +33,17 @@ namespace odin::graphics::vk::pipeline
 {
 PipelineLayout::PipelineLayout(DeviceRef device,
                                std::span<const DescriptorSetLayoutRef> descriptorLayouts,
-                               std::optional<std::reference_wrapper<std::vector<VkPushConstantRange>>> pushContantRanges)
+                               std::span<VkPushConstantRange> pushContantRanges)
     : m_Layout{ VK_NULL_HANDLE }
     , m_Device{ device }
 {
-    std::vector<VkPushConstantRange> ranges{};
-    if (pushContantRanges)
-    {
-        // Just copy.. how often would this really be called?
-        ranges = pushContantRanges->get();
-    }
-
     std::vector<VkDescriptorSetLayout> layouts{};
     std::transform(std::begin(descriptorLayouts),
                    std::end(descriptorLayouts),
                    std::back_inserter(layouts),
                    [](DescriptorSetLayoutRef layout) { return layout.handle; });
 
-    VkPipelineLayoutCreateInfo info = make_layout_create_info(common::to_span(ranges), common::to_span(layouts));
+    VkPipelineLayoutCreateInfo info = make_layout_create_info(pushContantRanges, common::to_span(layouts));
     VK_CHECK(vkCreatePipelineLayout(m_Device.handle, std::addressof(info), nullptr, std::addressof(m_Layout)),
              "Failed to create Vulkan Pipeline Layout");
 }

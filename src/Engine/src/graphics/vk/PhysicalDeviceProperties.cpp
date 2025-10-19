@@ -123,15 +123,27 @@ std::uint32_t PhysicalDeviceProperties::max_compute_work_group_invocations() con
 {
     return m_Properties.properties.limits.maxComputeWorkGroupInvocations;
 }
-std::uint32_t PhysicalDeviceProperties::work_group_size_x() const
+std::uint32_t PhysicalDeviceProperties::max_compute_work_group_count_x() const
+{
+    return m_Properties.properties.limits.maxComputeWorkGroupCount[0u];
+}
+std::uint32_t PhysicalDeviceProperties::max_compute_work_group_count_y() const
+{
+    return m_Properties.properties.limits.maxComputeWorkGroupCount[1u];
+}
+std::uint32_t PhysicalDeviceProperties::max_compute_work_group_count_z() const
+{
+    return m_Properties.properties.limits.maxComputeWorkGroupCount[2u];
+}
+std::uint32_t PhysicalDeviceProperties::max_work_group_size_x() const
 {
     return m_Properties.properties.limits.maxComputeWorkGroupSize[0u];
 }
-std::uint32_t PhysicalDeviceProperties::work_group_size_y() const
+std::uint32_t PhysicalDeviceProperties::max_work_group_size_y() const
 {
     return m_Properties.properties.limits.maxComputeWorkGroupSize[1u];
 }
-std::uint32_t PhysicalDeviceProperties::work_group_size_z() const
+std::uint32_t PhysicalDeviceProperties::max_work_group_size_z() const
 {
     return m_Properties.properties.limits.maxComputeWorkGroupSize[2u];
 }

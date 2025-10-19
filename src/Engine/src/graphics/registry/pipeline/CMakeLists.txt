@@ -18,6 +18,7 @@ SET(SOURCES
 	DescriptorSetLayoutRegistry.hpp
 	DescriptorSetLayoutRegistry.cpp
 	DescriptorSetLayoutKey.hpp
+	PipelineResolver.hpp
 )
 
 

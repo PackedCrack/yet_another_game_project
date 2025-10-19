@@ -24,6 +24,16 @@ using namespace odin::graphics::registry::pipeline;
 
     return hashes;
 }
+[[nodiscard]] std::vector<VkPushConstantRange> make_push_constant_ranges(const Request& request)
+{
+    if (!request.pushConstants.has_value())
+    {
+        return {};
+    }
+
+    // Just copy.. how often would this really be called
+    return request.pushConstants.value();
+}
 }    // namespace
 namespace odin::graphics::registry::pipeline
 {
@@ -36,12 +46,12 @@ PipelineLayoutKey PipelineLayoutRegistry::make_layout_key(const Request& request
 {
     PipelineLayoutKey pk{};
     pk.descriptorLayoutKeys = descriptorLayoutRegistry.make_layout_keys(request);
-    // pk.pushConstants - Push Constants not allowed in the forseeable future
+    pk.pushConstants = make_push_constant_ranges(request);
     pk.flags = VK_NO_FLAGS;    // Dont know what these flags do
 
     if (!m_Layouts.contains(pk))
     {
-        add_pipeline_layout(pk, descriptorLayoutRegistry, common::to_span(pk.descriptorLayoutKeys));
+        add_pipeline_layout(pk, descriptorLayoutRegistry);
     }
 
     return pk;
@@ -51,16 +61,17 @@ vk::pipeline::PipelineLayoutRef PipelineLayoutRegistry::pipeline_layout(const Pi
     return m_Layouts.at(key).handle();
 }
 void PipelineLayoutRegistry::add_pipeline_layout(const PipelineLayoutKey& pipelineLayoutKey,
-                                                 DescriptorSetLayoutRegistry& descriptorLayoutRegistry,
-                                                 std::span<const DescriptorSetLayoutKey> descKeys)
+                                                 DescriptorSetLayoutRegistry& descriptorLayoutRegistry)
 {
     std::lock_guard lock{ *m_pMutex };
 
     // In case multiple threads are waiting on the above lock
     if (!m_Layouts.contains(pipelineLayoutKey))
     {
+        std::span<const DescriptorSetLayoutKey> descKeys = pipelineLayoutKey.descriptorLayoutKeys;
+        std::span<const VkPushConstantRange> pushConstants = pipelineLayoutKey.pushConstants;
         auto layouts = descriptorLayoutRegistry.descriptor_set_layouts(descKeys);
-        auto [it, emplaced] = m_Layouts.try_emplace(pipelineLayoutKey, m_Device, common::to_span(layouts));
+        auto [it, emplaced] = m_Layouts.try_emplace(pipelineLayoutKey, m_Device, layouts, pushConstants);
     }
 }
 }    // namespace odin::graphics::registry::pipeline

@@ -1,6 +1,8 @@
 //
 // Created by qwerty on 21/09/2025.
 //
+#pragma once
+
 #include "ComputeSlot.hpp"
 #include "PipelineHandle.hpp"
 #include "../../vk/pipeline/GraphicsPipeline.hpp"

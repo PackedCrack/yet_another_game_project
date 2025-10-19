@@ -100,7 +100,8 @@ using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
     std::shared_ptr<const vk::resource::ShaderModule> pCsShader = pSlot->request.cs->acquire();
     return pResource->csHash.value() != pCsShader->hash();
 }
-[[nodiscard]] bool graphics_shader_outdated(const std::shared_ptr<GraphicsSlot>& pSlot, const std::shared_ptr<const GraphicsResource>& pResource)
+[[nodiscard]] bool graphics_shader_outdated(const std::shared_ptr<GraphicsSlot>& pSlot,
+                                            const std::shared_ptr<const GraphicsResource>& pResource)
 {
     if (pResource->vsHash)
     {
@@ -119,7 +120,8 @@ using PipelineLayoutRef = vk::pipeline::PipelineLayoutRef;
 
     return false;
 }
-[[nodiscard]] bool compute_shader_outdated(const std::shared_ptr<ComputeSlot>& pSlot, const std::shared_ptr<const ComputeResource>& pResource)
+[[nodiscard]] bool compute_shader_outdated(const std::shared_ptr<ComputeSlot>& pSlot,
+                                           const std::shared_ptr<const ComputeResource>& pResource)
 {
     ODIN_ASSERT(pResource->csHash);
     return compute_shader_missmatch(pSlot, pResource);
@@ -276,7 +278,7 @@ std::shared_ptr<ComputeResource> PipelineRegistry::make_compute_resource(const R
 }
 GraphicsHandle PipelineRegistry::make_graphics_handle(std::shared_ptr<GraphicsSlot> pSlot)
 {
-    auto cb_hot_reload = [this, slot = pSlot->shared_from_this()] () mutable
+    auto cb_hot_reload = [this, slot = pSlot->shared_from_this()]() mutable
     {
         if (shader_outdated<GraphicsSlot>(slot))
         {
@@ -287,7 +289,7 @@ GraphicsHandle PipelineRegistry::make_graphics_handle(std::shared_ptr<GraphicsSl
 }
 ComputeHandle PipelineRegistry::make_compute_handle(std::shared_ptr<ComputeSlot> pSlot)
 {
-    auto cb_hot_reload = [this, slot = pSlot->shared_from_this()] () mutable
+    auto cb_hot_reload = [this, slot = pSlot->shared_from_this()]() mutable
     {
         if (shader_outdated<ComputeSlot>(slot))
         {
