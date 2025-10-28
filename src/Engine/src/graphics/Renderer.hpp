@@ -30,6 +30,7 @@ struct RenderResources
 };
 class Renderer
 {
+    // TODO: I pulled these numbers from my ass
     static constexpr std::int32_t maxInstances = 41'94304;
     static constexpr std::int32_t maxDraws = 2048;
 public:

@@ -112,6 +112,10 @@ void Forward::execute(const FrameContext& frameContext,
 
     bind_descriptors(frameContext, global, indirect);
 
+    auto drawArgs = indirect.view_draw_args(frameContext.frame);
+    auto drawCount = indirect.view_draw_count(frameContext.frame);
+    std::uint32_t maxDraws = drawArgs.range / sizeof(VkDrawIndexedIndirectCommand);
+    vkCmdDrawIndexedIndirectCount(cmdBuffer.handle, drawArgs.handle, drawArgs.offset, drawCount.handle, drawCount.offset, maxDraws, sizeof(VkDrawIndexedIndirectCommand));
 
     vkCmdEndRendering(cmdBuffer.handle);
 }
