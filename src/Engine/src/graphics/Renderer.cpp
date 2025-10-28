@@ -101,6 +101,7 @@ Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceR
     , m_Global{ device, m_ResourceRegistry, *m_pPipelineRegistry }
     , m_Indirect{ device, m_ResourceRegistry, *m_pPipelineRegistry }
     , m_Forward{ *m_pPipelineRegistry, m_ResourceRegistry }
+    , m_FrustumCull{ *m_pPipelineRegistry, m_ResourceRegistry }
     , m_IndirectSetup{ *m_pPipelineRegistry, m_ResourceRegistry }
 {}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
@@ -123,7 +124,10 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
 
 
     // execute all passes - todo render graph in the future
-    m_IndirectSetup.execute();
+    std::int32_t instanceCount = 512; // TODO: Get this from total entities..?
+    m_FrustumCull.execute(frameContext, m_Indirect, instanceCount);
+
+    m_IndirectSetup.execute(frameContext, m_Global, m_Indirect, );
 
     m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect);
 

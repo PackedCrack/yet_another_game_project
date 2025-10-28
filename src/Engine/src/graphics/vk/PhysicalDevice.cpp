@@ -9,7 +9,7 @@
 namespace
 {
 using namespace odin::graphics::vk;
-PhysicalDeviceProperties s_Properties;  // basically a singleton but this needs to be accessed everywhere so..
+PhysicalDeviceProperties s_Properties;    // basically a singleton but this needs to be accessed everywhere so..
 PhysicalDeviceFeatures s_Features;
 //
 //

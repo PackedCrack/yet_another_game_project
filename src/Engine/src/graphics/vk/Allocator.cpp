@@ -176,8 +176,7 @@ public:
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
         VkDeviceSize minAlignment = PhysicalDevice::properties().min_uniform_buffer_offset_alignment();
-        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo),
-                 make_buffer_deleter(std::move(pAllocator)) };
+        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     resource::DynamicUniformBuffer create_dynamic_uniform_buffer(std::shared_ptr<Allocator> pAllocator,
                                                                  VkBufferCreateInfo& info,
@@ -233,8 +232,7 @@ public:
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
         VkDeviceSize minAlignment = PhysicalDevice::properties().min_storage_buffer_offset_alignment();
-        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo),
-                 make_buffer_deleter(std::move(pAllocator)) };
+        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     void destroy_buffer(VkBuffer buffer, VmaAllocation allocation, const void* pData) const
     {
@@ -285,13 +283,13 @@ private:
         // https://stackoverflow.com/questions/45213511/formula-for-memory-alignment
         return ((size + (alignment - 1)) & ~(alignment - 1));
     }
-    VkDeviceSize make_uniform_aligned(VkDeviceSize size) const 
+    VkDeviceSize make_uniform_aligned(VkDeviceSize size) const
     {
         VkDeviceSize minAlignment = PhysicalDevice::properties().min_uniform_buffer_offset_alignment();
         return make_aligned(size, minAlignment);
     }
-    VkDeviceSize make_storage_aligned(VkDeviceSize size) const 
-    { 
+    VkDeviceSize make_storage_aligned(VkDeviceSize size) const
+    {
         VkDeviceSize minAlignment = PhysicalDevice::properties().min_storage_buffer_offset_alignment();
         return make_aligned(size, minAlignment);
     }

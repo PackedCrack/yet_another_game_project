@@ -25,8 +25,7 @@ public:
     [[nodiscard]] PipelineLayoutKey make_layout_key(const Request& request, DescriptorSetLayoutRegistry& descriptorLayoutRegistry);
     [[nodiscard]] PipelineLayoutRef pipeline_layout(const PipelineLayoutKey& key) const;
 private:
-    void add_pipeline_layout(const PipelineLayoutKey& pipelineLayoutKey,
-                             DescriptorSetLayoutRegistry& descriptorLayoutRegistry);
+    void add_pipeline_layout(const PipelineLayoutKey& pipelineLayoutKey, DescriptorSetLayoutRegistry& descriptorLayoutRegistry);
 private:
     vk::DeviceRef m_Device;
     Registry m_Layouts;
