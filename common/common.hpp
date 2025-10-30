@@ -151,4 +151,10 @@ requires std::ranges::contiguous_range<std::remove_cvref_t<buffer_t>>
 {
     return { buffer.data(), buffer.size() };
 }
+template<typename int_t>
+requires std::integral<int_t>
+constexpr int_t ceil_divison(int_t numerator, int_t denominator)
+{
+    return (numerator + denominator - 1) / denominator;
+}
 }    // namespace common

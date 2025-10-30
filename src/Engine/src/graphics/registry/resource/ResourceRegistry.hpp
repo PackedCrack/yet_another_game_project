@@ -16,9 +16,10 @@ class ResourceRegistry
     using mutex_t = std::mutex;
     using Mutex = std::unique_ptr<mutex_t>;
 public:
+    // This makes me want to kms but I dont have a better solution right now
     static constexpr std::string_view SSBO_MESH_TABLE = "meshtable";
     static constexpr std::string_view SSBO_MATERIAL_TABLE = "materialtable";
-    static constexpr std::string_view DYN_SSBO_DRAW_COUNT = "drawcount";
+    static constexpr std::string_view DYN_SSBO_DRAW_VARIABLES = "drawvariables";
     static constexpr std::string_view DYN_SSBO_DRAW_ARGS = "drawargs";
     static constexpr std::string_view DYN_SSBO_INSTANCE_BASE = "instancebase";
     static constexpr std::string_view DYN_SSBO_INSTANCE_COUNTER = "instancecounter";

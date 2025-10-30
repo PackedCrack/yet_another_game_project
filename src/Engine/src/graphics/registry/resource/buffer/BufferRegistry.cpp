@@ -13,10 +13,11 @@
 namespace
 {
 using namespace odin::graphics;
+using namespace odin::graphics::vk::resource;
 using namespace odin::graphics::registry::resource::buffer;
 //
 //
-[[nodiscard]] std::unique_ptr<vk::resource::IndexBuffer> make_index_buffer(const std::shared_ptr<vk::Allocator>& pAllocator)
+[[nodiscard]] std::unique_ptr<IndexBuffer> make_index_buffer(const std::shared_ptr<vk::Allocator>& pAllocator)
 {
     static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million indices
 
@@ -24,7 +25,7 @@ using namespace odin::graphics::registry::resource::buffer;
     LOG_INFO("Creating Vertex Buffer with size: {} (bytes)", indexBuffer.byte_capacity());
     return std::make_unique<vk::resource::IndexBuffer>(std::move(indexBuffer));
 }
-[[nodiscard]] std::unique_ptr<vk::resource::VertexBuffer> make_vertex_buffer(const std::shared_ptr<vk::Allocator>& pAllocator)
+[[nodiscard]] std::unique_ptr<VertexBuffer> make_vertex_buffer(const std::shared_ptr<vk::Allocator>& pAllocator)
 {
     static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million vertices
 
@@ -32,7 +33,7 @@ using namespace odin::graphics::registry::resource::buffer;
     LOG_INFO("Creating Vertex Buffer with size: {} (bytes)", vertexBuffer.byte_capacity());
     return std::make_unique<vk::resource::VertexBuffer>(std::move(vertexBuffer));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::StorageBuffer> make_mesh_table(const std::shared_ptr<vk::Allocator>& pAllocator)
+[[nodiscard]] std::shared_ptr<StorageBuffer> make_mesh_table(const std::shared_ptr<vk::Allocator>& pAllocator)
 {
     static constexpr std::uint64_t meshTableSize = 15000 * sizeof(odin::graphics::MeshInfo);
 
@@ -40,7 +41,7 @@ using namespace odin::graphics::registry::resource::buffer;
     LOG_INFO("Creating Storage Buffer (Mesh Table) with size: {} (bytes)", meshTable.byte_capacity());
     return std::make_shared<vk::resource::StorageBuffer>(std::move(meshTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::StorageBuffer> make_material_table(const std::shared_ptr<vk::Allocator>& pAllocator)
+[[nodiscard]] std::shared_ptr<StorageBuffer> make_material_table(const std::shared_ptr<vk::Allocator>& pAllocator)
 {
     static constexpr std::uint64_t materialTableSize = 1000 * sizeof(odin::graphics::Material);
 
@@ -48,20 +49,20 @@ using namespace odin::graphics::registry::resource::buffer;
     LOG_INFO("Creating Storage Buffer (Material Table) with size: {} (bytes)", materialTable.byte_capacity());
     return std::make_shared<vk::resource::StorageBuffer>(std::move(materialTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::DynamicStorageBuffer> make_draw_count_table(const std::shared_ptr<vk::Allocator>& pAllocator,
+[[nodiscard]] std::shared_ptr<DynamicStorageBuffer> make_draw_variables_table(const std::shared_ptr<vk::Allocator>& pAllocator,
                                                                                         std::int32_t numFramesInFlight)
 {
-    VkDeviceSize partitionSize = sizeof(std::uint32_t);
+    VkDeviceSize partitionSize = sizeof(DrawVariables);
     VkDeviceSize numPartitions = numFramesInFlight;
     bool transferDestination = true;
     bool indirectUsage = true;
 
-    vk::resource::DynamicStorageBuffer drawCountTable =
+    DynamicStorageBuffer drawCountTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
-    LOG_INFO("Creating Dynamic Storage Buffer (Draw Count Table) with size: {} (bytes)", drawCountTable.byte_capacity());
-    return std::make_shared<vk::resource::DynamicStorageBuffer>(std::move(drawCountTable));
+    LOG_INFO("Creating Dynamic Storage Buffer (Draw Variables Table) with size: {} (bytes)", drawCountTable.byte_capacity());
+    return std::make_shared<DynamicStorageBuffer>(std::move(drawCountTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::DynamicStorageBuffer>
+[[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
 make_draw_args_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::int32_t numFramesInFlight, std::uint32_t maxDraws)
 {
     VkDeviceSize partitionSize = sizeof(VkDrawIndexedIndirectCommand) * maxDraws;
@@ -69,12 +70,12 @@ make_draw_args_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::int3
     bool transferDestination = false;
     bool indirectUsage = true;
 
-    vk::resource::DynamicStorageBuffer drawArgsTable =
+    DynamicStorageBuffer drawArgsTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Draw Arguments Table) with size: {} (bytes)", drawArgsTable.byte_capacity());
-    return std::make_shared<vk::resource::DynamicStorageBuffer>(std::move(drawArgsTable));
+    return std::make_shared<DynamicStorageBuffer>(std::move(drawArgsTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::DynamicStorageBuffer>
+[[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
 make_instance_base_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::int32_t numFramesInFlight, std::uint32_t maxDraws)
 {
     VkDeviceSize partitionSize = sizeof(std::uint32_t) * maxDraws;
@@ -82,12 +83,12 @@ make_instance_base_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::
     bool transferDestination = false;
     bool indirectUsage = false;
 
-    vk::resource::DynamicStorageBuffer instanceBaseTable =
+    DynamicStorageBuffer instanceBaseTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Base Table) with size: {} (bytes)", instanceBaseTable.byte_capacity());
-    return std::make_shared<vk::resource::DynamicStorageBuffer>(std::move(instanceBaseTable));
+    return std::make_shared<DynamicStorageBuffer>(std::move(instanceBaseTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::DynamicStorageBuffer>
+[[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
 make_instance_counter_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::int32_t numFramesInFlight, std::uint32_t maxDraws)
 {
     VkDeviceSize partitionSize = sizeof(std::uint32_t) * maxDraws;
@@ -95,12 +96,12 @@ make_instance_counter_table(const std::shared_ptr<vk::Allocator>& pAllocator, st
     bool transferDestination = false;
     bool indirectUsage = false;
 
-    vk::resource::DynamicStorageBuffer instanceCounterTable =
+    DynamicStorageBuffer instanceCounterTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Counter Table) with size: {} (bytes)", instanceCounterTable.byte_capacity());
-    return std::make_shared<vk::resource::DynamicStorageBuffer>(std::move(instanceCounterTable));
+    return std::make_shared<DynamicStorageBuffer>(std::move(instanceCounterTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::DynamicStorageBuffer>
+[[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
 make_instance_index_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::int32_t numFramesInFlight, std::uint32_t maxInstances)
 {
     VkDeviceSize partitionSize = sizeof(std::uint32_t) * maxInstances;
@@ -108,12 +109,12 @@ make_instance_index_table(const std::shared_ptr<vk::Allocator>& pAllocator, std:
     bool transferDestination = false;
     bool indirectUsage = false;
 
-    vk::resource::DynamicStorageBuffer instanceIndexTable =
+    DynamicStorageBuffer instanceIndexTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Index Table) with size: {} (bytes)", instanceIndexTable.byte_capacity());
-    return std::make_shared<vk::resource::DynamicStorageBuffer>(std::move(instanceIndexTable));
+    return std::make_shared<DynamicStorageBuffer>(std::move(instanceIndexTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::DynamicStorageBuffer>
+[[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
 make_instance_info_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::int32_t numFramesInFlight, std::uint32_t maxInstances)
 {
     VkDeviceSize partitionSize = sizeof(InstanceInfo) * maxInstances;
@@ -121,20 +122,20 @@ make_instance_info_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::
     bool transferDestination = true;
     bool indirectUsage = false;
 
-    vk::resource::DynamicStorageBuffer instanceInfoTable =
+    DynamicStorageBuffer instanceInfoTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Info Table) with size: {} (bytes)", instanceInfoTable.byte_capacity());
-    return std::make_shared<vk::resource::DynamicStorageBuffer>(std::move(instanceInfoTable));
+    return std::make_shared<DynamicStorageBuffer>(std::move(instanceInfoTable));
 }
-[[nodiscard]] std::shared_ptr<vk::resource::DynamicUniformBuffer> make_camera_data(const std::shared_ptr<vk::Allocator>& pAllocator,
+[[nodiscard]] std::shared_ptr<DynamicUniformBuffer> make_camera_data(const std::shared_ptr<vk::Allocator>& pAllocator,
                                                                                    std::int32_t numFramesInFlight)
 {
     VkDeviceSize partitionSize = sizeof(CameraInfo);
     VkDeviceSize numPartitions = numFramesInFlight;
 
-    vk::resource::DynamicUniformBuffer cameraBuffer = pAllocator->create_dynamic_uniform_buffer(partitionSize, numPartitions);
+    DynamicUniformBuffer cameraBuffer = pAllocator->create_dynamic_uniform_buffer(partitionSize, numPartitions);
     LOG_INFO("Creating Dynamic Uniform Buffer (Camera Buffer) with size: {} (bytes)", cameraBuffer.byte_capacity());
-    return std::make_shared<vk::resource::DynamicUniformBuffer>(std::move(cameraBuffer));
+    return std::make_shared<DynamicUniformBuffer>(std::move(cameraBuffer));
 }
 }    // namespace
 namespace odin::graphics::registry::resource::buffer
@@ -187,7 +188,7 @@ void BufferRegistry::make_buffers(const std::shared_ptr<vk::Allocator>& pAllocat
     m_SSBO.emplace(ResourceRegistry::SSBO_MESH_TABLE, make_mesh_table(pAllocator));
     m_SSBO.emplace(ResourceRegistry::SSBO_MATERIAL_TABLE, make_material_table(pAllocator));
 
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_COUNT, make_draw_count_table(pAllocator, numFramesInFlight));
+    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_VARIABLES, make_draw_variables_table(pAllocator, numFramesInFlight));
     m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_ARGS, make_draw_args_table(pAllocator, numFramesInFlight, maxDraws));
     m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_BASE, make_instance_base_table(pAllocator, numFramesInFlight, maxDraws));
     m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_COUNTER, make_instance_counter_table(pAllocator, numFramesInFlight, maxDraws));

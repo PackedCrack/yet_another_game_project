@@ -42,6 +42,11 @@ namespace odin::graphics
 #define INDIRECT_SET_BIND_ID_CAMERA_DATA 6
 //
 //
+struct DrawVariables
+{
+    uint drawCount;
+    uint instanceHead;   // prefix head for instances
+};
 struct InstanceInfo
 {
     vec3 translation;

@@ -28,7 +28,7 @@ namespace odin::graphics::descriptors
 {
 Indirect::Indirect(vk::DeviceRef device, registry::resource::ResourceRegistry& resources, registry::pipeline::PipelineRegistry& pipelines)
     : DescriptorSet<Indirect>{ make_request(), pipelines }
-    , m_DrawCount{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_COUNT) }
+    , m_DrawCount{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_VARIABLES) }
     , m_DrawArgs{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_ARGS) }
     , m_InstanceBase{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_BASE) }
     , m_InstanceCounter{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_COUNTER) }
@@ -42,9 +42,9 @@ Indirect::Indirect(vk::DeviceRef device, registry::resource::ResourceRegistry& r
     writer.add_buffer(INDIRECT_SET_BIND_ID_CAMERA_DATA, m_CameraData.to_view(frameID));
     writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_ARGS, m_DrawArgs.to_view(frameID));
     writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_COUNT, m_DrawCount.to_view(frameID));
-    writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_INSTANCE_BASE, m_InstanceBase.to_view(frameID));
-    writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_INSTANCE_COUNTER, m_InstanceCounter.to_view(frameID));
-    writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_INSTANCE_INDEX, m_InstanceIndex.to_view(frameID));
+    writer.add_buffer(INDIRECT_SET_BIND_ID_INSTANCE_BASE, m_InstanceBase.to_view(frameID));
+    writer.add_buffer(INDIRECT_SET_BIND_ID_INSTANCE_COUNTER, m_InstanceCounter.to_view(frameID));
+    writer.add_buffer(INDIRECT_SET_BIND_ID_INSTANCE_INDEX, m_InstanceIndex.to_view(frameID));
     writer.add_buffer(INDIRECT_SET_BIND_ID_INSTANCE_INFO, m_InstanceInfo.to_view(frameID));
 
     writer.write_descriptor_set();
@@ -57,7 +57,7 @@ void Indirect::bind(vk::CommandBufferRef cmdBuffer,
     std::array<std::uint32_t, 7> offsets = dynamic_offsets(frameID);
     DescriptorSet<Indirect>::bind(cmdBuffer, layout, stages, INDIRECT_SET_ID, offsets.data(), static_cast<std::uint32_t>(offsets.size()));
 }
-registry::resource::buffer::BindView Indirect::view_draw_count(std::uint64_t frameID) const
+registry::resource::buffer::BindView Indirect::view_draw_variables(std::uint64_t frameID) const
 {
     return m_DrawCount.to_view(frameID);
 }
@@ -111,17 +111,17 @@ registry::pipeline::RequestBuilder& indirect_preset(registry::pipeline::RequestB
                                   Stage::compute);
 
     builder.add_descriptor_layout(INDIRECT_SET_ID,
-                                  INDIRECT_SET_BIND_ID_DRAW_INSTANCE_BASE,
+                                  INDIRECT_SET_BIND_ID_INSTANCE_BASE,
                                   Descriptor::dynamicStorageBuffer,
                                   Stage::compute);
 
     builder.add_descriptor_layout(INDIRECT_SET_ID,
-                                  INDIRECT_SET_BIND_ID_DRAW_INSTANCE_COUNTER,
+                                  INDIRECT_SET_BIND_ID_INSTANCE_COUNTER,
                                   Descriptor::dynamicStorageBuffer,
                                   Stage::compute);
 
     builder.add_descriptor_layout(INDIRECT_SET_ID,
-                                  INDIRECT_SET_BIND_ID_DRAW_INSTANCE_INDEX,
+                                  INDIRECT_SET_BIND_ID_INSTANCE_INDEX,
                                   Descriptor::dynamicStorageBuffer,
                                   Stage::compute,
                                   Stage::vertex,

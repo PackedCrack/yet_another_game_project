@@ -22,7 +22,7 @@ using BufferView = registry::resource::buffer::BindView;
 {
     using ShaderHandle = registry::resource::shader::ShaderHandle;
 
-    ShaderHandle comp = resourceRegistry.shader("indirect.comp");
+    ShaderHandle comp = resourceRegistry.shader("indirect_setup.comp");
 
     registry::pipeline::RequestBuilder builder{};
     builder = descriptors::global_preset(builder);
@@ -32,7 +32,7 @@ using BufferView = registry::resource::buffer::BindView;
 
     return builder.build();
 }
-[[nodiscard]] VkBufferMemoryBarrier2 make_draw_count_reset_barrier(const registry::resource::buffer::BindView& view)
+[[nodiscard]] VkBufferMemoryBarrier2 make_draw_variables_reset_barrier(const registry::resource::buffer::BindView& view)
 {
     VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
@@ -40,7 +40,7 @@ using BufferView = registry::resource::buffer::BindView;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
     barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
     barrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
+    barrier.dstAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.buffer = view.handle;
@@ -55,7 +55,7 @@ using BufferView = registry::resource::buffer::BindView;
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.pNext = nullptr;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;
     barrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
     barrier.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -68,19 +68,19 @@ using BufferView = registry::resource::buffer::BindView;
 
     return barrier;
 }
-[[nodiscard]] VkBufferMemoryBarrier2 make_draw_count_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
+[[nodiscard]] VkBufferMemoryBarrier2 make_draw_variables_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
 {
     VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.pNext = nullptr;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;
     barrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
     barrier.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-    BufferView view = indirect.view_draw_count(frame);
+    BufferView view = indirect.view_draw_variables(frame);
     barrier.buffer = view.handle;
     barrier.offset = view.offset;
     barrier.size = view.range;
@@ -93,9 +93,9 @@ using BufferView = registry::resource::buffer::BindView;
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.pNext = nullptr;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-    barrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+    barrier.dstAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
@@ -108,13 +108,14 @@ using BufferView = registry::resource::buffer::BindView;
 }
 [[nodiscard]] VkBufferMemoryBarrier2 make_instance_counter_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
 {
+    // Is this barrier really needed?
     VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.pNext = nullptr;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;
     barrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-    barrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
+    barrier.dstAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
@@ -125,53 +126,14 @@ using BufferView = registry::resource::buffer::BindView;
 
     return barrier;
 }
-[[nodiscard]] VkBufferMemoryBarrier2 make_instance_index_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
+[[nodiscard]] std::tuple<VkDependencyInfo, std::array<VkBufferMemoryBarrier2, 4>>
+make_indirect_stage_barriers(FrameIndex frame, const descriptors::Indirect& indirect)
 {
-    VkBufferMemoryBarrier2 barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.pNext = nullptr;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-    barrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-    BufferView view = indirect.view_instance_index(frame);
-    barrier.buffer = view.handle;
-    barrier.offset = view.offset;
-    barrier.size = view.range;
-
-    return barrier;
-}
-[[nodiscard]] VkBufferMemoryBarrier2 make_instance_info_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
-{
-    VkBufferMemoryBarrier2 barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.pNext = nullptr;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-    barrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-    BufferView view = indirect.view_instance_info(frame);
-    barrier.buffer = view.handle;
-    barrier.offset = view.offset;
-    barrier.size = view.range;
-
-    return barrier;
-}
-[[nodiscard]] std::tuple<VkDependencyInfo, std::array<VkBufferMemoryBarrier2, 6>> make_indirect_stage_barriers(FrameIndex frame, const descriptors::Indirect& indirect)
-{
-    std::array<VkBufferMemoryBarrier2, 6> barriers{};
+    std::array<VkBufferMemoryBarrier2, 4> barriers{};
     barriers[0] = make_draw_args_barrier(frame, indirect);
-    barriers[1] = make_draw_count_barrier(frame, indirect);
+    barriers[1] = make_draw_variables_barrier(frame, indirect);
     barriers[2] = make_instance_base_barrier(frame, indirect);
     barriers[3] = make_instance_counter_barrier(frame, indirect);
-    barriers[4] = make_instance_index_barrier(frame, indirect);
-    barriers[5] = make_instance_info_barrier(frame, indirect);
 
     VkDependencyInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
@@ -182,12 +144,12 @@ using BufferView = registry::resource::buffer::BindView;
 
     return { info, barriers };
 }
-void reset_draw_count(vk::CommandBufferRef cmd, FrameIndex frame, const descriptors::Indirect& indirect)
+void reset_draw_variables(vk::CommandBufferRef cmd, FrameIndex frame, const descriptors::Indirect& indirect)
 {
-    BufferView view = indirect.view_draw_count(frame);
+    BufferView view = indirect.view_draw_variables(frame);
     vkCmdFillBuffer(cmd.handle, view.handle, view.offset, view.range, 0);
 
-    VkBufferMemoryBarrier2 barrier = make_draw_count_reset_barrier(view);
+    VkBufferMemoryBarrier2 barrier = make_draw_variables_reset_barrier(view);
     VkDependencyInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
     info.pNext = nullptr;
@@ -208,21 +170,21 @@ IndirectSetup::IndirectSetup(registry::pipeline::PipelineRegistry& pipelineRegis
 void IndirectSetup::execute(const FrameContext& frameContext,
                             const descriptors::Global& global,
                             const descriptors::Indirect& indirect,
-                            std::int32_t invocationCount) const
+                            std::int32_t meshCount) const
 {
     vk::CommandBufferRef cmdBuffer = frameContext.graphicsBuffer.get().handle();
 
     m_Pipeline.acquire()->pipeline.bind(cmdBuffer);
     bind_descriptors(frameContext, global, indirect);
 
-    reset_draw_count(cmdBuffer, frameContext.frame, indirect);
+    reset_draw_variables(cmdBuffer, frameContext.frame, indirect);
 
-    push_invocation_count(cmdBuffer, invocationCount);
-    
-    std::uint32_t maxWorkgroupSize = vk::PhysicalDevice::properties().max_compute_work_group_count_x();
-    vkCmdDispatch(cmdBuffer.handle, maxWorkgroupSize, 1, 1);
+    push_mesh_count(cmdBuffer, meshCount);
 
-    auto[dependency, barriers] = make_indirect_stage_barriers(frameContext.frame, indirect);
+    std::int32_t groupsX = common::ceil_divison(meshCount, INDIRECT_SET_LOCAL_SIZE_X);
+    vkCmdDispatch(cmdBuffer.handle, groupsX, 1, 1);
+
+    auto [dependency, barriers] = make_indirect_stage_barriers(frameContext.frame, indirect);
     vkCmdPipelineBarrier2(cmdBuffer.handle, std::addressof(dependency));
 }
 void IndirectSetup::bind_descriptors(const FrameContext& frameContext,
@@ -235,14 +197,9 @@ void IndirectSetup::bind_descriptors(const FrameContext& frameContext,
     global.bind(cmdBuffer, layout, VK_SHADER_STAGE_COMPUTE_BIT);
     indirect.bind(cmdBuffer, layout, VK_SHADER_STAGE_COMPUTE_BIT, frameContext.frame);
 }
-void IndirectSetup::push_invocation_count(vk::CommandBufferRef cmd, std::int32_t invocationCount) const
+void IndirectSetup::push_mesh_count(vk::CommandBufferRef cmd, std::int32_t meshCount) const
 {
     vk::pipeline::PipelineLayoutRef layout = resolve_layout(m_Pipeline);
-    vkCmdPushConstants(cmd.handle,
-                       layout.handle,
-                       VK_SHADER_STAGE_COMPUTE_BIT,
-                       0,
-                       sizeof(std::int32_t),
-                       std::addressof(invocationCount));
+    vkCmdPushConstants(cmd.handle, layout.handle, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(std::int32_t), std::addressof(meshCount));
 }
 }    // namespace odin::graphics::pass

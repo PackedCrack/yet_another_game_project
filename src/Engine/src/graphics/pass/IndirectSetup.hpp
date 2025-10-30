@@ -18,13 +18,13 @@ class IndirectSetup : public registry::pipeline::PipelineResolver<IndirectSetup>
 public:
     IndirectSetup(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry);
 public:
-    void execute(const FrameContext& frameContext, 
-                 const descriptors::Global& global, 
+    void execute(const FrameContext& frameContext,
+                 const descriptors::Global& global,
                  const descriptors::Indirect& indirect,
-                 std::int32_t invocationCount) const;
+                 std::int32_t meshCount) const;
 private:
     void bind_descriptors(const FrameContext& frameContext, const descriptors::Global& global, const descriptors::Indirect& indirect) const;
-    void push_invocation_count(vk::CommandBufferRef cmd, std::int32_t invocationCount) const;
+    void push_mesh_count(vk::CommandBufferRef cmd, std::int32_t meshCount) const;
 private:
     registry::pipeline::Request m_Request;
     registry::pipeline::ComputeHandle m_Pipeline;

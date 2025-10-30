@@ -1,0 +1,111 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#include "../../src/Engine/src/graphics/gpu_types.hpp"
+
+
+layout (local_size_x = INDIRECT_SET_LOCAL_SIZE_X) in;
+
+struct DrawIndexedIndirectCommand
+{
+	uint indexCount;
+    uint instanceCount;
+    uint firstIndex;
+    int vertexOffset;
+    uint firstInstance;
+};
+
+layout (push_constant) uniform PushConstants
+{
+	int meshCount;
+} constants;
+
+layout(std430, set = GLOBAL_SET_ID, binding = GLOBAL_SET_BIND_ID_MESH_INFO) readonly buffer MeshTable
+{
+	// Declared inside gpu_types.hpp
+	MeshInfo meshInfo[]
+};
+
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_COUNT) writeonly buffer DrawCount
+{
+	// Declared inside gpu_types.hpp
+	DrawVariables drawVars;
+};
+
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_ARGS) writeonly buffer DrawArguments
+{
+	DrawIndexedIndirectCommand drawArgs[];
+};
+
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BINDING_ID_INSTANCE_BASE) writeonly buffer InstanceBase
+{
+	uint instanceBase[];
+}
+
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_COUNTER) readonly buffer InstanceCounter
+{
+	uint instanceCounter[];
+};
+
+shared uint s_val[INDIRECT_SET_LOCAL_SIZE_X];
+shared uint s_scan[INDIRECT_SET_LOCAL_SIZE_X];
+shared uint s_groupOffset;
+
+void main()
+{
+	uint globalID = gl_GlobalInvocationID.x;
+	uint localID = gl_LocalInvocationID.x;
+	uint workgroupSize = gl_WorkGroupSize.x;
+
+	if (globalID >= constants.meshCount)
+	{
+		return;
+	}
+
+	// Store per lane count
+	uint instanceCount = instanceCounter[globalID];
+	s_val[localID] = instanceCount;
+	s_scan[localID] = instanceCount;
+	barrier();
+	
+	// Inclusive Hillis-Steele
+	for (uint off = 1u; off < workgroupSize; off <<= 1u)
+	{
+		uint t = (localID >= off) ? s_scan[localID - off] : 0u;
+        barrier();
+        s_scan[localID] += t;
+        barrier();
+	}
+
+	uint excl = s_scan[localID] - s_val[localID];   		// exclusive prefix for this lane
+    uint groupSum = s_scan[workgroupSize - 1];             	// WG total
+
+	// stitch WG scans with a single global atomic
+    if (localID == 0u)
+	{
+		s_groupOffset = atomicAdd(drawVars.instanceHead, groupSum);
+	}
+    barrier();
+    uint groupOffset = s_groupOffset;
+
+	if (globalID < uint(constants.meshCount)) 
+	{
+        uint firstInst = groupOffset + excl;
+        instanceBase[globalID] = firstInst;
+
+        if (instanceCount > 0u) 
+		{
+            uint slot = atomicAdd(drawVars.drawCount, 1u);
+            MeshInfo mesh = meshes[globalID];
+
+            DrawIndexedIndirectCommand cmd;
+            cmd.indexCount    = mesh.indexCount;
+            cmd.instanceCount = instanceCount;
+            cmd.firstIndex    = mesh.firstIndex;
+            cmd.vertexOffset  = mesh.vertexOffset;
+            cmd.firstInstance = firstInst;
+
+            drawArgs[slot] = cmd;
+        }
+    }
+}

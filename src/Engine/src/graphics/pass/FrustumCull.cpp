@@ -9,6 +9,8 @@
 #include "../registry/resource/shader/ShaderHandle.hpp"
 #include "../vk/pipeline/DescriptorWriter.hpp"
 #include "../vk/PhysicalDevice.hpp"
+// common
+#include <common.hpp>
 //
 //
 namespace
@@ -90,9 +92,7 @@ FrustumCull::FrustumCull(registry::pipeline::PipelineRegistry& pipelineRegistry,
     , m_Request{ make_request(resourceRegistry) }
     , m_Pipeline{ pipelineRegistry.compute_pipeline(m_Request) }
 {}
-void FrustumCull::execute(const FrameContext& frameContext,
-                          const descriptors::Indirect& indirect,
-                          std::int32_t instanceCount) const
+void FrustumCull::execute(const FrameContext& frameContext, const descriptors::Indirect& indirect, std::int32_t instanceCount) const
 {
     vk::CommandBufferRef cmdBuffer = frameContext.graphicsBuffer.get().handle();
 
@@ -103,9 +103,8 @@ void FrustumCull::execute(const FrameContext& frameContext,
 
     push_instance_count(cmdBuffer, instanceCount);
 
-    std::uint32_t maxWorkgroupCount = vk::PhysicalDevice::properties().max_compute_work_group_count_x();
-    vkCmdDispatch(cmdBuffer.handle, maxWorkgroupCount, 1, 1);
-
+    std::int32_t groupsX = common::ceil_divison(instanceCount, INDIRECT_SET_LOCAL_SIZE_X);
+    vkCmdDispatch(cmdBuffer.handle, groupsX, 1, 1);
 
     VkBufferMemoryBarrier2 barrier = make_instance_counter_barrier(frameContext.frame, indirect);
     VkDependencyInfo info{};
@@ -117,8 +116,7 @@ void FrustumCull::execute(const FrameContext& frameContext,
 
     vkCmdPipelineBarrier2(cmdBuffer.handle, std::addressof(info));
 }
-void FrustumCull::bind_descriptors(const FrameContext& frameContext,
-                                   const descriptors::Indirect& indirect) const
+void FrustumCull::bind_descriptors(const FrameContext& frameContext, const descriptors::Indirect& indirect) const
 {
     vk::pipeline::PipelineLayoutRef layout = resolve_layout(m_Pipeline);
 
