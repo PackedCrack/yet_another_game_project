@@ -18,6 +18,8 @@
 
 namespace odin::graphics
 {
+#else
+    #define quat vec4
 #endif
 //
 //
@@ -30,8 +32,8 @@ namespace odin::graphics
 #define GLOBAL_SET_BIND_ID_MATERIAL_TABLE 0
 #define GLOBAL_SET_BIND_ID_MESH_INFO 1
 
-
 #define INDIRECT_SET_LOCAL_SIZE_X 32
+#define INDIRECT_SET_BIND_ID_CAMERA_DATA 6
 #define INDIRECT_SET_ID 1
 #define INDIRECT_SET_BIND_ID_DRAW_COUNT 0
 #define INDIRECT_SET_BIND_ID_DRAW_ARGS 1
@@ -45,7 +47,7 @@ namespace odin::graphics
 struct DrawVariables
 {
     uint drawCount;
-    uint instanceHead;   // prefix head for instances
+    uint instanceHead;    // prefix head for instances
 };
 struct InstanceInfo
 {

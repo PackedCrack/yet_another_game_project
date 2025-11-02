@@ -3,6 +3,8 @@
 //
 #include "ShaderCompiler.hpp"
 
+
+#include "../../../../FilepathResolver.hpp"
 // debug
 #include <debug/debug_defines.hpp>
 #include <debug/Logger.hpp>
@@ -12,8 +14,22 @@
 //
 namespace
 {
+[[nodiscard]] bool contains_gpu_types(const char* requested_source)
+{
+    if (std::string_view{ requested_source }.contains("gpu_types.hpp"))
+    {
+        return true;
+    }
+
+    return false;
+}
 [[nodiscard]] std::filesystem::path resolve_included_file_path(const char* requested_source, const char* requesting_source)
 {
+    if (contains_gpu_types(requested_source))
+    {
+        return odin::FilepathResolver::get().get_gpu_types_header();
+    }
+
     std::filesystem::path fileToInclude{ requested_source };
     std::filesystem::path source{ requesting_source };
     std::filesystem::path rootDirectory = source.parent_path();

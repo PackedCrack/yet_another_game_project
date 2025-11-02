@@ -69,4 +69,9 @@ std::filesystem::path FilepathResolver::resolve_shader_path(std::string_view fil
 {
     return m_ShaderDir / filename;
 }
+std::filesystem::path FilepathResolver::get_gpu_types_header() const
+{
+    // Hard settings this.. not ideal but it will work for now.
+    return normalize(m_ShaderDir / "../../src/Engine/src/graphics/gpu_types.hpp");
+}
 }    // namespace odin
