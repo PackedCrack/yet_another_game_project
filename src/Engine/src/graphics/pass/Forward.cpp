@@ -8,6 +8,7 @@
 #include "../registry/pipeline/RequestBuilder.hpp"
 #include "../registry/resource/shader/ShaderHandle.hpp"
 #include "../vk/pipeline/DescriptorWriter.hpp"
+#include "../vk/ext/device/extended_dynamic_state3.hpp"
 //
 //
 namespace
@@ -77,6 +78,38 @@ using namespace odin::graphics::pass;
 
     return info;
 }
+void set_dynamic_state(vk::CommandBufferRef cmd, const ColorAttachment& colorAttachment)
+{
+    vkCmdSetCullMode(cmd.handle, VK_CULL_MODE_BACK_BIT);
+
+    vkCmdSetFrontFace(cmd.handle, VK_FRONT_FACE_CLOCKWISE);
+
+    // No depth pre pass yet
+    vkCmdSetDepthTestEnable(cmd.handle, VK_FALSE);
+    vkCmdSetStencilTestEnable(cmd.handle, VK_FALSE);
+
+    VkBool32 enable = VK_FALSE;
+    vk::ext::device::vkCmdSetColorBlendEnable(cmd.handle, 0, 1, std::addressof(enable));
+    VkColorBlendEquationEXT equation{};
+    vk::ext::device::vkCmdSetColorBlendEquation(cmd.handle, 0, 1, std::addressof(equation));
+
+    VkViewport vp{};
+    vp.width = colorAttachment.extent().width;
+    vp.height = colorAttachment.extent().height;
+    vp.maxDepth = 1.0f;
+    vp.minDepth = 0.0f;
+    vkCmdSetViewportWithCount(cmd.handle, 1, std::addressof(vp));
+    VkRect2D scissor{};
+    scissor.extent.width = vp.width;
+    scissor.extent.height = vp.height;
+    scissor.offset.x = 0;
+    scissor.offset.y = 0;
+    vkCmdSetScissorWithCount(cmd.handle, 1, std::addressof(scissor));
+
+    vkCmdSetPrimitiveTopology(cmd.handle, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+
+    vkCmdSetPrimitiveRestartEnable(cmd.handle, VK_FALSE);
+}
 }    // namespace
 namespace odin::graphics::pass
 {
@@ -112,8 +145,10 @@ void Forward::execute(const FrameContext& frameContext,
 
     bind_descriptors(frameContext, global, indirect);
 
+    set_dynamic_state(cmdBuffer, colorAttachment);
+
     auto drawArgs = indirect.view_draw_args(frameContext.frame);
-    auto drawCount = indirect.view_draw_count(frameContext.frame);
+    auto drawCount = indirect.view_draw_variables(frameContext.frame);
     std::uint32_t maxDraws = drawArgs.range / sizeof(VkDrawIndexedIndirectCommand);
     vkCmdDrawIndexedIndirectCount(cmdBuffer.handle,
                                   drawArgs.handle,

@@ -106,34 +106,13 @@ using BufferView = registry::resource::buffer::BindView;
 
     return barrier;
 }
-[[nodiscard]] VkBufferMemoryBarrier2 make_instance_counter_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
-{
-    // Is this barrier really needed?
-    VkBufferMemoryBarrier2 barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.pNext = nullptr;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
-    barrier.dstAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-    BufferView view = indirect.view_instance_counter(frame);
-    barrier.buffer = view.handle;
-    barrier.offset = view.offset;
-    barrier.size = view.range;
-
-    return barrier;
-}
-[[nodiscard]] std::tuple<VkDependencyInfo, std::array<VkBufferMemoryBarrier2, 4>>
+[[nodiscard]] std::tuple<VkDependencyInfo, std::array<VkBufferMemoryBarrier2, 3>>
 make_indirect_stage_barriers(FrameIndex frame, const descriptors::Indirect& indirect)
 {
-    std::array<VkBufferMemoryBarrier2, 4> barriers{};
+    std::array<VkBufferMemoryBarrier2, 3> barriers{};
     barriers[0] = make_draw_args_barrier(frame, indirect);
     barriers[1] = make_draw_variables_barrier(frame, indirect);
     barriers[2] = make_instance_base_barrier(frame, indirect);
-    barriers[3] = make_instance_counter_barrier(frame, indirect);
 
     VkDependencyInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
@@ -184,8 +163,19 @@ void IndirectSetup::execute(const FrameContext& frameContext,
     std::int32_t groupsX = common::ceil_divison(meshCount, INDIRECT_SET_LOCAL_SIZE_X);
     vkCmdDispatch(cmdBuffer.handle, groupsX, 1, 1);
 
-    auto [dependency, barriers] = make_indirect_stage_barriers(frameContext.frame, indirect);
-    vkCmdPipelineBarrier2(cmdBuffer.handle, std::addressof(dependency));
+    std::array<VkBufferMemoryBarrier2, 3> barriers{};
+    barriers[0] = make_draw_args_barrier(frameContext.frame, indirect);
+    barriers[1] = make_draw_variables_barrier(frameContext.frame, indirect);
+    barriers[2] = make_instance_base_barrier(frameContext.frame, indirect);
+
+    VkDependencyInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    info.pNext = nullptr;
+    info.dependencyFlags = VK_NO_FLAGS;
+    info.bufferMemoryBarrierCount = static_cast<std::uint32_t>(barriers.size());
+    info.pBufferMemoryBarriers = barriers.data();
+    //auto [dependency, barriers] = make_indirect_stage_barriers(frameContext.frame, indirect);
+    vkCmdPipelineBarrier2(cmdBuffer.handle, std::addressof(info));
 }
 void IndirectSetup::bind_descriptors(const FrameContext& frameContext,
                                      const descriptors::Global& global,

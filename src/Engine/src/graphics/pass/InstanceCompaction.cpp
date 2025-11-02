@@ -1,7 +1,7 @@
 //
 // Created by qwerty on 28/10/2025.
 //
-#include "FrustumCull.hpp"
+#include "InstanceCompaction.hpp"
 
 #include "../gpu_types.hpp"
 #include "../registry/pipeline/Request.hpp"
@@ -24,7 +24,7 @@ using BufferView = registry::resource::buffer::BindView;
 {
     using ShaderHandle = registry::resource::shader::ShaderHandle;
 
-    ShaderHandle comp = resourceRegistry.shader("frustum_cull.comp");
+    ShaderHandle comp = resourceRegistry.shader("instance_compaction.comp");
 
     registry::pipeline::RequestBuilder builder{};
     builder = descriptors::global_preset(builder);
@@ -51,19 +51,19 @@ using BufferView = registry::resource::buffer::BindView;
 
     return barrier;
 }
-[[nodiscard]] VkBufferMemoryBarrier2 make_instance_counter_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
+[[nodiscard]] VkBufferMemoryBarrier2 make_instance_index_barrier(FrameIndex frame, const descriptors::Indirect& indirect)
 {
     VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.pNext = nullptr;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
     barrier.srcAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
     barrier.dstAccessMask = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-    BufferView view = indirect.view_instance_counter(frame);
+    BufferView view = indirect.view_instance_index(frame);
     barrier.buffer = view.handle;
     barrier.offset = view.offset;
     barrier.size = view.range;
@@ -88,15 +88,16 @@ void reset_instance_counter(vk::CommandBufferRef cmd, FrameIndex frame, const de
 }    // namespace
 namespace odin::graphics::pass
 {
-FrustumCull::FrustumCull(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry)
-    : PipelineResolver<FrustumCull>{ pipelineRegistry }
+InstanceCompaction::InstanceCompaction(registry::pipeline::PipelineRegistry& pipelineRegistry,
+                                       registry::resource::ResourceRegistry& resourceRegistry)
+    : PipelineResolver<InstanceCompaction>{ pipelineRegistry }
     , m_Request{ make_request(resourceRegistry) }
     , m_Pipeline{ pipelineRegistry.compute_pipeline(m_Request) }
 {}
-void FrustumCull::execute(const FrameContext& frameContext,
-                          const descriptors::Global& global,
-                          const descriptors::Indirect& indirect,
-                          std::int32_t instanceCount) const
+void InstanceCompaction::execute(const FrameContext& frameContext,
+                                 const descriptors::Global& global,
+                                 const descriptors::Indirect& indirect,
+                                 std::int32_t instanceCount) const
 {
     vk::CommandBufferRef cmdBuffer = frameContext.graphicsBuffer.get().handle();
 
@@ -110,7 +111,7 @@ void FrustumCull::execute(const FrameContext& frameContext,
     std::int32_t groupsX = common::ceil_divison(instanceCount, INDIRECT_SET_LOCAL_SIZE_X);
     vkCmdDispatch(cmdBuffer.handle, groupsX, 1, 1);
 
-    VkBufferMemoryBarrier2 barrier = make_instance_counter_barrier(frameContext.frame, indirect);
+    VkBufferMemoryBarrier2 barrier = make_instance_index_barrier(frameContext.frame, indirect);
     VkDependencyInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
     info.pNext = nullptr;
@@ -120,9 +121,9 @@ void FrustumCull::execute(const FrameContext& frameContext,
 
     vkCmdPipelineBarrier2(cmdBuffer.handle, std::addressof(info));
 }
-void FrustumCull::bind_descriptors(const FrameContext& frameContext,
-                                   const descriptors::Global& global,
-                                   const descriptors::Indirect& indirect) const
+void InstanceCompaction::bind_descriptors(const FrameContext& frameContext,
+                                          const descriptors::Global& global,
+                                          const descriptors::Indirect& indirect) const
 {
     vk::pipeline::PipelineLayoutRef layout = resolve_layout(m_Pipeline);
 
@@ -130,7 +131,7 @@ void FrustumCull::bind_descriptors(const FrameContext& frameContext,
     global.bind(cmdBuffer, layout, VK_SHADER_STAGE_COMPUTE_BIT);
     indirect.bind(cmdBuffer, layout, VK_SHADER_STAGE_COMPUTE_BIT, frameContext.frame);
 }
-void FrustumCull::push_instance_count(vk::CommandBufferRef cmd, std::int32_t instanceCount) const
+void InstanceCompaction::push_instance_count(vk::CommandBufferRef cmd, std::int32_t instanceCount) const
 {
     vk::pipeline::PipelineLayoutRef layout = resolve_layout(m_Pipeline);
     vkCmdPushConstants(cmd.handle, layout.handle, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(std::int32_t), std::addressof(instanceCount));

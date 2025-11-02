@@ -13,10 +13,10 @@
 //
 namespace odin::graphics::pass
 {
-class FrustumCull : public registry::pipeline::PipelineResolver<FrustumCull>
+class InstanceCompaction : public registry::pipeline::PipelineResolver<InstanceCompaction>
 {
 public:
-    FrustumCull(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry);
+    InstanceCompaction(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry);
 public:
     void execute(const FrameContext& frameContext,
                  const descriptors::Global& global,

@@ -23,7 +23,7 @@ layout (push_constant) uniform PushConstants
 layout(std430, set = GLOBAL_SET_ID, binding = GLOBAL_SET_BIND_ID_MESH_INFO) readonly buffer MeshTable
 {
 	// Declared inside gpu_types.hpp
-	MeshInfo meshInfo[]
+	MeshInfo meshInfo[];
 };
 
 layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_COUNT) writeonly buffer DrawCount
@@ -37,10 +37,10 @@ layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_ARGS) 
 	DrawIndexedIndirectCommand drawArgs[];
 };
 
-layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BINDING_ID_INSTANCE_BASE) writeonly buffer InstanceBase
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_BASE) writeonly buffer InstanceBase
 {
 	uint instanceBase[];
-}
+};
 
 layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_COUNTER) readonly buffer InstanceCounter
 {
@@ -96,7 +96,7 @@ void main()
         if (instanceCount > 0u) 
 		{
             uint slot = atomicAdd(drawVars.drawCount, 1u);
-            MeshInfo mesh = meshes[globalID];
+            MeshInfo mesh = meshInfo[globalID];
 
             DrawIndexedIndirectCommand cmd;
             cmd.indexCount    = mesh.indexCount;

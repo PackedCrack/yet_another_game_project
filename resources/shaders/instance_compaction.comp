@@ -1,0 +1,59 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#include "../../src/Engine/src/graphics/gpu_types.hpp"
+
+
+layout (local_size_x = INDIRECT_SET_LOCAL_SIZE_X) in;
+layout (push_constant) uniform PushConstants
+{
+	int totalInstances;
+} constants;
+
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_INFO) readonly buffer Instances 
+{ 
+	InstanceInfo instances[]; 
+};
+
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_INSTANCE_BASE) readonly buffer Base 
+{ 
+	uint instanceBase[]; 
+};
+
+// reused as per-mesh write heads
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_INSTANCE_COUNTER) buffer Heads 
+{ 
+	uint writeHead[]; 
+};
+
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_INSTANCE_INDEX) writeonly buffer Index 
+{ 
+	uint instanceIndex[]; 
+};
+
+// placeholder cull: always true
+bool visible(uint id) 
+{ 
+	return true; 
+}
+
+void main() 
+{
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= uint(pc.instanceCount))
+	{
+		return;
+	}
+
+	if (!visible(id)) 
+	{
+		return;
+	}
+
+	int mesh = instances[id].meshID;
+
+    // Today: all visible. Later: insert the same frustum test used in Pass A.
+    uint local = atomicAdd(write_head[mesh], 1u);
+    uint dst   = instanceBase[mesh] + local;
+    instanceIndex[dst] = id;
+}
