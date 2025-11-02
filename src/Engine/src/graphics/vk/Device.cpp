@@ -6,6 +6,7 @@
 #include "QueueFamilies.hpp"
 #include "vulkan_defines.hpp"
 #include "vulkan_info.hpp"
+#include "ext/device_extensions.hpp"
 //
 //
 namespace
@@ -118,6 +119,8 @@ Device::Device(const PhysicalDevice& phyDevice, QueueFamilies& queueFamilies)
     VK_CHECK(vkCreateDevice(phyDev.handle, &info, nullptr, &m_Device), "Failed to create Vulkan Device.");
 
     queueFamilies.store_queue_handles(*this);
+
+    ext::load_device_extensions(handle());
 }
 Device::~Device()
 {

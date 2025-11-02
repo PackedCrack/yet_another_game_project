@@ -28,9 +28,12 @@ PhysicalDeviceProperties::PhysicalDeviceProperties(VkPhysicalDevice gpu)
     logMsg += "\nMinimum Uniform buffer offset alignment: " + std::to_string(min_uniform_buffer_offset_alignment());
     logMsg += "\nMinimum Storage buffer offset alignment: " + std::to_string(min_storage_buffer_offset_alignment());
     logMsg += "\nMaximum Compute Work Group Total Invocations: " + std::to_string(max_compute_work_group_invocations());
-    logMsg += "\nMaximum Compute Work Group Size - X: " + std::to_string(work_group_size_x());
-    logMsg += "\nMaximum Compute Work Group Size - Y: " + std::to_string(work_group_size_y());
-    logMsg += "\nMaximum Compute Work Group Size - Z: " + std::to_string(work_group_size_z());
+    logMsg += "\nMaximum Compute Work Group Size - X: " + std::to_string(max_work_group_size_x());
+    logMsg += "\nMaximum Compute Work Group Size - Y: " + std::to_string(max_work_group_size_y());
+    logMsg += "\nMaximum Compute Work Group Size - Z: " + std::to_string(max_work_group_size_z());
+    logMsg += "\nMaximum Compute Work Group Count - X: " + std::to_string(max_compute_work_group_count_x());
+    logMsg += "\nMaximum Compute Work Group Count - Y: " + std::to_string(max_compute_work_group_count_y());
+    logMsg += "\nMaximum Compute Work Group Count - Z: " + std::to_string(max_compute_work_group_count_z());
     LOG_INFO(logMsg);
 }
 PhysicalDeviceProperties::PhysicalDeviceProperties(const PhysicalDeviceProperties& other)

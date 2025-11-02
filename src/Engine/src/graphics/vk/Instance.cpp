@@ -3,9 +3,12 @@
 //
 #include "Instance.hpp"
 
-
 #include "vulkan_defines.hpp"
 #include "vulkan_info.hpp"
+
+#include "ext/instance_extensions.hpp"
+//
+//
 namespace
 {
 [[nodiscard]] std::vector<VkExtensionProperties> enum_extension_properties()
@@ -87,6 +90,10 @@ Instance::Instance(VkApplicationInfo appInfo, const std::vector<std::string_view
 
     VkInstanceCreateInfo createInfo = instance_create_info(&appInfo, layers, extensions);
     VK_CHECK(vkCreateInstance(&createInfo, nullptr, &m_Instance), "Failed to create Vulkan Instance.");
+
+    auto cmp = [](const char* pExt) { return std::string_view{ pExt } == VK_EXT_DEBUG_UTILS_EXTENSION_NAME; };
+    bool loadDebugUtils = std::find_if(std::begin(extensions), std::end(extensions), cmp) != std::end(extensions);
+    ext::load_instance_extensions(handle(), loadDebugUtils);
 }
 Instance::~Instance()
 {

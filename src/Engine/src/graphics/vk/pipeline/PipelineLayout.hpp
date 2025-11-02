@@ -20,7 +20,7 @@ class PipelineLayout
 public:
     PipelineLayout(DeviceRef device,
                    std::span<const DescriptorSetLayoutRef> descriptorLayouts,
-                   std::span<VkPushConstantRange> pushContantRanges);
+                   std::span<const VkPushConstantRange> pushContantRanges);
     ~PipelineLayout();
     PipelineLayout(const PipelineLayout& other) = delete;
     PipelineLayout(PipelineLayout&& other) noexcept;

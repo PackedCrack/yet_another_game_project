@@ -33,7 +33,7 @@ namespace odin::graphics::vk::pipeline
 {
 PipelineLayout::PipelineLayout(DeviceRef device,
                                std::span<const DescriptorSetLayoutRef> descriptorLayouts,
-                               std::span<VkPushConstantRange> pushContantRanges)
+                               std::span<const VkPushConstantRange> pushContantRanges)
     : m_Layout{ VK_NULL_HANDLE }
     , m_Device{ device }
 {

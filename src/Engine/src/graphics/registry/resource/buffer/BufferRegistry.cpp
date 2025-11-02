@@ -50,7 +50,7 @@ using namespace odin::graphics::registry::resource::buffer;
     return std::make_shared<vk::resource::StorageBuffer>(std::move(materialTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer> make_draw_variables_table(const std::shared_ptr<vk::Allocator>& pAllocator,
-                                                                                        std::int32_t numFramesInFlight)
+                                                                              std::int32_t numFramesInFlight)
 {
     VkDeviceSize partitionSize = sizeof(DrawVariables);
     VkDeviceSize numPartitions = numFramesInFlight;
@@ -93,7 +93,7 @@ make_instance_counter_table(const std::shared_ptr<vk::Allocator>& pAllocator, st
 {
     VkDeviceSize partitionSize = sizeof(std::uint32_t) * maxDraws;
     VkDeviceSize numPartitions = numFramesInFlight;
-    bool transferDestination = false;
+    bool transferDestination = true;    // This has to be transfer dst because the FrustumCull pass zeroes it with vkCmdFill
     bool indirectUsage = false;
 
     DynamicStorageBuffer instanceCounterTable =
@@ -128,7 +128,7 @@ make_instance_info_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::
     return std::make_shared<DynamicStorageBuffer>(std::move(instanceInfoTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicUniformBuffer> make_camera_data(const std::shared_ptr<vk::Allocator>& pAllocator,
-                                                                                   std::int32_t numFramesInFlight)
+                                                                     std::int32_t numFramesInFlight)
 {
     VkDeviceSize partitionSize = sizeof(CameraInfo);
     VkDeviceSize numPartitions = numFramesInFlight;

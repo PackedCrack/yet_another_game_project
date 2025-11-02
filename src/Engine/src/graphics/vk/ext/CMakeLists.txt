@@ -1,7 +1,11 @@
+add_subdirectory("device")
+add_subdirectory("instance")
+
 SET(SOURCES
-        InstanceProcLoader.hpp
-	DebugUtilsMessengerProcs.hpp
-	DebugUtilsMessengerProcs.cpp
+	device_extensions.hpp
+	device_extensions.cpp
+	instance_extensions.hpp
+	instance_extensions.cpp
 )
 
 

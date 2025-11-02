@@ -3,12 +3,23 @@
 //
 #include "DebugMessenger.hpp"
 
-#include "debug/Logger.hpp"
-#include "vulkan_info.hpp"
+#include "vulkan_defines.hpp"
+#include "ext/instance/debug_utils.hpp"
 //
 //
 namespace
 {
+[[nodiscard]] constexpr VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info(PFN_vkDebugUtilsMessengerCallbackEXT callback)
+{
+    return { .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+             .messageType =
+                 //VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+             .pfnUserCallback = callback,
+             .pUserData = nullptr };
+}
 [[nodiscard]] std::string format_debug_message(const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)
 {
     // Format the message to make it more readable..
@@ -99,27 +110,28 @@ namespace
 namespace odin::graphics::vk
 {
 DebugMessenger::DebugMessenger(const Instance& instance)
-    : m_Procedures{ instance }
+    : m_Instance{ instance.handle() }
     , m_Messenger{ create_debug_messenger() }
 {}
 DebugMessenger::~DebugMessenger()
 {
     if (m_Messenger != VK_NULL_HANDLE)
     {
-        m_Procedures.destroy_debug_utils_messenger(m_Messenger);
+        ext::instance::vkDestroyDebugUtilsMessenger(m_Instance.handle, m_Messenger, nullptr);
     }
 }
 DebugMessenger::DebugMessenger(DebugMessenger&& other) noexcept
-    : m_Procedures{ std::move(other.m_Procedures) }
+    : m_Instance{}
     , m_Messenger{ VK_NULL_HANDLE }
 {
+    std::swap(m_Instance, other.m_Instance);
     std::swap(m_Messenger, other.m_Messenger);
 }
 DebugMessenger& DebugMessenger::operator=(DebugMessenger&& other) noexcept
 {
     if (this != std::addressof(other))
     {
-        m_Procedures = std::move(other.m_Procedures);
+        m_Instance = std::exchange(other.m_Instance, m_Instance);
         m_Messenger = std::exchange(other.m_Messenger, m_Messenger);
     }
 
@@ -127,6 +139,11 @@ DebugMessenger& DebugMessenger::operator=(DebugMessenger&& other) noexcept
 }
 VkDebugUtilsMessengerEXT DebugMessenger::create_debug_messenger() const
 {
-    return m_Procedures.create_debug_utils_messenger(vk::debug_messenger_create_info(vulkan_debug_message_callback));
+    VkDebugUtilsMessengerCreateInfoEXT info = debug_messenger_create_info(vulkan_debug_message_callback);
+    VkDebugUtilsMessengerEXT messenger{};
+    VK_CHECK(ext::instance::vkCreateDebugUtilsMessenger(m_Instance.handle, std::addressof(info), nullptr, std::addressof(messenger)),
+             "Failed to create Debug Messenger.");
+
+    return messenger;
 }
 }    // namespace odin::graphics::vk

@@ -81,6 +81,8 @@ public:
         range.stageFlags = to_vk_shader_stage(std::forward<stage_t>(stage)...);
 
         m_Request.pushConstants->push_back(range);
+
+        return *this;
     }
     [[nodiscard]] Request build();
 private:
