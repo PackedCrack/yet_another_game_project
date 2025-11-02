@@ -9,7 +9,7 @@
 layout (location = 0) in vec3 in_Position;
 layout (location = 1) in vec3 in_Normal;
 
-layout (location = 1) out vec3 out_Normal;
+layout (location = 0) out vec3 out_Normal;
 
 layout(std140, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_CAMERA_DATA) uniform CameraData
 {
