@@ -32,7 +32,7 @@ using namespace odin::graphics::pass;
     builder = descriptors::global_preset(builder);
     builder = descriptors::indirect_preset(builder);
     builder
-        .add_color_format(VK_FORMAT_R8G8B8A8_SRGB)    // get this from swapchain's color attachment
+        .add_color_format(VK_FORMAT_B8G8R8A8_SRGB)    // TODO: get this from swapchain's color attachment
         .add_polygon_mode(VK_POLYGON_MODE_FILL);
 
     // Cppcheck thinks we're using using vert/frag after move if these calls are chained..

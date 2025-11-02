@@ -7,26 +7,27 @@
 layout (local_size_x = INDIRECT_SET_LOCAL_SIZE_X) in;
 layout (push_constant) uniform PushConstants
 {
-	int totalInstances;
+	int instanceCount;
 } constants;
 
 layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_INFO) readonly buffer Instances 
 { 
+	// InstanceInfo lives inside gpu_types.hpp
 	InstanceInfo instances[]; 
 };
 
-layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_INSTANCE_BASE) readonly buffer Base 
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_BASE) readonly buffer Base 
 { 
 	uint instanceBase[]; 
 };
 
 // reused as per-mesh write heads
-layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_INSTANCE_COUNTER) buffer Heads 
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_COUNTER) buffer Heads 
 { 
 	uint writeHead[]; 
 };
 
-layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_INSTANCE_INDEX) writeonly buffer Index 
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_INDEX) writeonly buffer Index 
 { 
 	uint instanceIndex[]; 
 };
@@ -40,7 +41,7 @@ bool visible(uint id)
 void main() 
 {
     uint id = gl_GlobalInvocationID.x;
-    if (id >= uint(pc.instanceCount))
+    if (id >= uint(constants.instanceCount))
 	{
 		return;
 	}
@@ -53,7 +54,7 @@ void main()
 	int mesh = instances[id].meshID;
 
     // Today: all visible. Later: insert the same frustum test used in Pass A.
-    uint local = atomicAdd(write_head[mesh], 1u);
+    uint local = atomicAdd(writeHead[mesh], 1u);
     uint dst   = instanceBase[mesh] + local;
     instanceIndex[dst] = id;
 }

@@ -11,6 +11,7 @@
 #include "pass/Forward.hpp"
 #include "pass/FrustumCull.hpp"
 #include "pass/IndirectSetup.hpp"
+#include "pass/InstanceCompaction.hpp"
 #include "registry/pipeline/PipelineRegistry.hpp"
 #include "registry/resource/ResourceRegistry.hpp"
 #include "vk/Allocator.hpp"
@@ -53,5 +54,6 @@ private:
     pass::Forward m_Forward;
     pass::FrustumCull m_FrustumCull;
     pass::IndirectSetup m_IndirectSetup;
+    pass::InstanceCompaction m_InstanceCompaction;
 };
 }    // namespace odin::graphics
