@@ -3,6 +3,8 @@
 //
 #include "Forward.hpp"
 
+#include <glm_headers.hpp>
+
 #include "../gpu_types.hpp"
 #include "../registry/pipeline/Request.hpp"
 #include "../registry/pipeline/RequestBuilder.hpp"
@@ -121,7 +123,8 @@ Forward::Forward(const Presenter& presenter,
 void Forward::execute(const FrameContext& frameContext,
                       const ColorAttachment& colorAttachment,
                       const descriptors::Global& global,
-                      const descriptors::Indirect& indirect) const
+                      const descriptors::Indirect& indirect,
+                      const registry::resource::ResourceRegistry& resourceRegistry) const
 {
     vk::CommandBufferRef cmdBuffer = frameContext.graphicsBuffer.get().handle();
 
@@ -146,6 +149,25 @@ void Forward::execute(const FrameContext& frameContext,
     bind_descriptors(frameContext, global, indirect);
 
     set_dynamic_state(cmdBuffer, colorAttachment);
+
+
+    // Upload camera data here temporarily
+    glm::vec3 position{ 0.0f, 0.0f, 3.0f };
+    glm::vec3 target{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 up{ 0.0f, 1.0f, 0.0f };
+    float fovY_deg = 60.0f;
+    float nearPlane = 0.1f;
+    float farPlane = 100.0f;
+    float aspect = 1600.0f / 900.0f;
+    std::array<CameraInfo, 1> cameraInfo{};
+    cameraInfo[0].view = glm::lookAt(position, target, up);
+    cameraInfo[0].proj = glm::perspective(glm::radians(fovY_deg), aspect, nearPlane, farPlane);
+    cameraInfo[0].proj[1][1] *= -1.0f;
+    cameraInfo[0].viewproj = cameraInfo[0].proj * cameraInfo[0].view;
+
+    auto camBuf = resourceRegistry.dynamic_uniform_buffer(registry::resource::ResourceRegistry::DYN_UBO_CAMERA_DATA);
+    camBuf->write<CameraInfo>(cameraInfo, frameContext.frame);
+
 
     auto drawArgs = indirect.view_draw_args(frameContext.frame);
     auto drawCount = indirect.view_draw_variables(frameContext.frame);

@@ -28,7 +28,8 @@ public:
     void execute(const FrameContext& frameContext,
                  const ColorAttachment& colorAttachment,
                  const descriptors::Global& global,
-                 const descriptors::Indirect& indirect) const;
+                 const descriptors::Indirect& indirect,
+                 const registry::resource::ResourceRegistry& resourceRegistry) const;
 private:
     void bind_descriptors(const FrameContext& frameContext, const descriptors::Global& global, const descriptors::Indirect& indirect) const;
 private:

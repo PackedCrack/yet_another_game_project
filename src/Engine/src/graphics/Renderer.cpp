@@ -135,7 +135,7 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
 
     m_InstanceCompaction.execute(frameContext, m_Global, m_Indirect, instanceCount);
 
-    m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect);
+    m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect, m_ResourceRegistry);
 
 
     // Should present be its own pass?
