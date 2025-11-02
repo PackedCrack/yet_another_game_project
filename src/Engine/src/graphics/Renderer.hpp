@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "Presenter.hpp"
 #include "ColorAttachment.hpp"
 #include "FrameHandler.hpp"
 #include "TransferManager.hpp"
@@ -36,7 +37,10 @@ class Renderer
     static constexpr std::int32_t maxInstances = 41'94304;
     static constexpr std::int32_t maxDraws = 2048;
 public:
-    Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceRef device, const FrameHandler& frameHandler);
+    Renderer(const std::shared_ptr<vk::Allocator>& pAllocator,
+             vk::DeviceRef device,
+             const FrameHandler& frameHandler,
+             const Presenter& presenter);
 public:
     void render_frame(const ColorAttachment& colorAttachment,
                       vk::QueueView graphicsQ,

@@ -62,6 +62,10 @@ bool Presenter::present(const vk::QueueView& present, vk::synchronization::Semap
     m_ColorAttachment = std::nullopt;
     return true;
 }
+VkFormat Presenter::color_format() const
+{
+    return m_Swapchain.color_format();
+}
 void Presenter::rebuild(VkSwapchainKHR oldSwapchain)
 {
     m_Swapchain = vk::Swapchain{ m_Device, m_PhysDevice, m_Surface, oldSwapchain, m_FramesInFlight };

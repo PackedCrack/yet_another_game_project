@@ -21,6 +21,7 @@ public:
 public:
     [[nodiscard]] std::optional<ColorAttachment> acquire_color_attachment(vk::synchronization::SemaphoreRef imageAvailable);
     [[nodiscard]] bool present(const vk::QueueView& present, vk::synchronization::SemaphoreRef renderingFinished);
+    [[nodiscard]] VkFormat color_format() const;
 private:
     void rebuild(VkSwapchainKHR oldSwapchain);
     [[nodiscard]] std::optional<ColorAttachment> rebuild_and_acquire(vk::synchronization::SemaphoreRef imageAvailable);

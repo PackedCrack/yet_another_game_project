@@ -17,7 +17,7 @@ using namespace odin::graphics;
 using namespace odin::graphics::pass;
 //
 //
-[[nodiscard]] registry::pipeline::Request make_request(registry::resource::ResourceRegistry& resourceRegistry)
+[[nodiscard]] registry::pipeline::Request make_request(const Presenter& presenter, registry::resource::ResourceRegistry& resourceRegistry)
 {
     using ShaderStage = registry::pipeline::ShaderStage;
     using ShaderHandle = registry::resource::shader::ShaderHandle;
@@ -31,9 +31,7 @@ using namespace odin::graphics::pass;
     registry::pipeline::RequestBuilder builder{};
     builder = descriptors::global_preset(builder);
     builder = descriptors::indirect_preset(builder);
-    builder
-        .add_color_format(VK_FORMAT_B8G8R8A8_SRGB)    // TODO: get this from swapchain's color attachment
-        .add_polygon_mode(VK_POLYGON_MODE_FILL);
+    builder.add_color_format(presenter.color_format()).add_polygon_mode(VK_POLYGON_MODE_FILL);
 
     // Cppcheck thinks we're using using vert/frag after move if these calls are chained..
     builder.add_vertex_shader(std::move(vert));
@@ -113,9 +111,11 @@ void set_dynamic_state(vk::CommandBufferRef cmd, const ColorAttachment& colorAtt
 }    // namespace
 namespace odin::graphics::pass
 {
-Forward::Forward(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry)
+Forward::Forward(const Presenter& presenter,
+                 registry::pipeline::PipelineRegistry& pipelineRegistry,
+                 registry::resource::ResourceRegistry& resourceRegistry)
     : registry::pipeline::PipelineResolver<Forward>{ pipelineRegistry }
-    , m_GraphicsRequest{ make_request(resourceRegistry) }
+    , m_GraphicsRequest{ make_request(presenter, resourceRegistry) }
     , m_Pipeline{ pipelineRegistry.graphics_pipeline(m_GraphicsRequest) }
 {}
 void Forward::execute(const FrameContext& frameContext,

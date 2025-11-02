@@ -6,6 +6,7 @@
 #include "../descriptors/Global.hpp"
 #include "../descriptors/Indirect.hpp"
 #include "../ColorAttachment.hpp"
+#include "../Presenter.hpp"
 #include "../registry/pipeline/PipelineRegistry.hpp"
 #include "../registry/pipeline/PipelineResolver.hpp"
 #include "../registry/pipeline/GraphicsHandle.hpp"
@@ -20,7 +21,9 @@ namespace odin::graphics::pass
 class Forward : public registry::pipeline::PipelineResolver<Forward>
 {
 public:
-    Forward(registry::pipeline::PipelineRegistry& pipelineRegistry, registry::resource::ResourceRegistry& resourceRegistry);
+    Forward(const Presenter& presenter,
+            registry::pipeline::PipelineRegistry& pipelineRegistry,
+            registry::resource::ResourceRegistry& resourceRegistry);
 public:
     void execute(const FrameContext& frameContext,
                  const ColorAttachment& colorAttachment,

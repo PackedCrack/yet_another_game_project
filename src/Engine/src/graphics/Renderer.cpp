@@ -95,12 +95,15 @@ void submit(QueueView queue,
 }    // namespace
 namespace odin::graphics
 {
-Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator, vk::DeviceRef device, const FrameHandler& frameHandler)
+Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator,
+                   vk::DeviceRef device,
+                   const FrameHandler& frameHandler,
+                   const Presenter& presenter)
     : m_ResourceRegistry{ device, pAllocator, frameHandler, maxDraws, maxInstances }
     , m_pPipelineRegistry{ registry::pipeline::PipelineRegistry::make(device) }
     , m_Global{ device, m_ResourceRegistry, *m_pPipelineRegistry }
     , m_Indirect{ device, m_ResourceRegistry, *m_pPipelineRegistry }
-    , m_Forward{ *m_pPipelineRegistry, m_ResourceRegistry }
+    , m_Forward{ presenter, *m_pPipelineRegistry, m_ResourceRegistry }
     , m_FrustumCull{ *m_pPipelineRegistry, m_ResourceRegistry }
     , m_IndirectSetup{ *m_pPipelineRegistry, m_ResourceRegistry }
     , m_InstanceCompaction{ *m_pPipelineRegistry, m_ResourceRegistry }
