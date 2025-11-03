@@ -27,6 +27,12 @@ target_include_directories(${ENGINE_TARGET} PRIVATE "external")
 target_compile_definitions(${ENGINE_TARGET} PRIVATE LOG_DIRECTORY="/logs/engine")
 target_compile_definitions(${ENGINE_TARGET} PRIVATE VK_NO_FLAGS=0)
 
+# Only define in non-Release configs (Debug, RelWithDebInfo, MinSizeRel, etc.)
+target_compile_definitions(${ENGINE_TARGET} PRIVATE $<$<NOT:$<CONFIG:Release>>:DEBUG_UTILS>)
+target_compile_definitions(${ENGINE_TARGET} PRIVATE $<$<NOT:$<CONFIG:Release>>:SHADER_NAMES>)
+
+
+
 include_glm(${ENGINE_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
 add_dependencies(${ENGINE_TARGET} ${DEBUG_TARGET})

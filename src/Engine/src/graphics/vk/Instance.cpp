@@ -56,17 +56,14 @@ namespace
     return std::vector<const char*>{ "VK_LAYER_KHRONOS_validation" };
 #endif
 }
-#ifndef NDEBUG
 [[nodiscard]] std::vector<const char*> required_extensions()
 {
-    return std::vector<const char*>{ VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME };
-}
-#else
-[[nodiscard]] std::vector<const char*> required_extensions()
-{
-    return std::vector<const char*>{ VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME };
-}
+    std::vector<const char*> extensions{ VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME };
+#ifdef DEBUG_UTILS
+    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
+    return extensions;
+}
 [[nodiscard]] std::vector<const char*> instance_extensions(const std::vector<std::string_view>& windowExtensions)
 {
     // TODO: Do something with this

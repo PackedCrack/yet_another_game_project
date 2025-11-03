@@ -3,7 +3,7 @@
 //
 #include "ShaderModule.hpp"
 
-
+#include "../ext/instance/debug_utils.hpp"
 #include "../vulkan_defines.hpp"
 // common
 #include <common.hpp>
@@ -66,6 +66,17 @@ ShaderModule::ShaderModule(DeviceRef device, std::filesystem::path filepath)
              "Failed to create Shader Module.");
 
     m_Hash = hash_file_content(common::to_span(fileContent));
+
+#ifdef SHADER_NAMES
+    std::string name = m_Filepath.filename().string();
+    VkDebugUtilsObjectNameInfoEXT nameInfo{};
+    nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    nameInfo.pNext = nullptr;
+    nameInfo.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
+    nameInfo.objectHandle = reinterpret_cast<std::uint64_t>(m_Module);
+    nameInfo.pObjectName = name.c_str();
+    ext::instance::vkSetDebugUtilsObjectName(m_Device.handle, std::addressof(nameInfo));
+#endif
 }
 ShaderModule::~ShaderModule()
 {

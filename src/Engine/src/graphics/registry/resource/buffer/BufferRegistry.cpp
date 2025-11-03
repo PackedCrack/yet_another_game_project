@@ -22,7 +22,7 @@ using namespace odin::graphics::registry::resource::buffer;
     static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million indices
 
     vk::resource::IndexBuffer indexBuffer = pAllocator->create_index_buffer(indexCapacity);
-    LOG_INFO("Creating Vertex Buffer with size: {} (bytes)", indexBuffer.byte_capacity());
+    LOG_INFO("Creating Index Buffer with size: {} (bytes)", indexBuffer.byte_capacity());
     return std::make_unique<vk::resource::IndexBuffer>(std::move(indexBuffer));
 }
 [[nodiscard]] std::unique_ptr<VertexBuffer> make_vertex_buffer(const std::shared_ptr<vk::Allocator>& pAllocator)

@@ -10,7 +10,7 @@ layout (push_constant) uniform PushConstants
 	int instanceCount;
 } constants;
 
-layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_COUNTER) writeonly buffer InstanceCounters
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_COUNTER) buffer InstanceCounters
 {
 	uint instanceCounter[];
 };

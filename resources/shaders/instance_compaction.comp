@@ -41,7 +41,7 @@ bool visible(uint id)
 void main() 
 {
     uint id = gl_GlobalInvocationID.x;
-    if (id >= uint(constants.instanceCount))
+    if (id >= constants.instanceCount)
 	{
 		return;
 	}
