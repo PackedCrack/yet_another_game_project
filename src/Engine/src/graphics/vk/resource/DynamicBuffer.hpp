@@ -33,7 +33,7 @@ public:
     template<typename data_t>
     void write(std::span<const data_t> content, std::uint64_t frameID)
     {
-        ODIN_ASSERT(content.size() * sizeof(data_t) < m_PartitionSize);
+        ODIN_ASSERT(content.size() * sizeof(data_t) <= m_PartitionSize);
         Buffer<dervied_t>::template write_to_buffer_with_offset(content, offset(frameID));
     }
 private:
