@@ -5,6 +5,7 @@
 
 #include "../OdinInfo.hpp"
 #include "../window/Window.hpp"
+#include "gpu_types.hpp"    // Leaking GPU types.. is this a problem?
 #include "registry/mesh/MeshID.hpp"
 // AssetLoader
 #include <assetloader/ModelHandle.hpp>
@@ -21,7 +22,7 @@ public:
     Graphics(Graphics&& other) noexcept;
     Graphics& operator=(Graphics&& other) noexcept;
 public:
-    void draw();
+    void draw(std::span<const InstanceInfo> instanceInfos);
     void register_model(const asl::ModelHandle& handle);
     [[nodiscard]] bool is_registered(const asl::ModelHandle& handle) const;
     [[nodiscard]] std::vector<registry::mesh::MeshID> mesh_ids(const asl::ModelHandle& handle) const;

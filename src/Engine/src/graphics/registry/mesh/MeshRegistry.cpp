@@ -9,16 +9,16 @@
 //
 namespace
 {
-using Vertex = odin::graphics::registry::mesh::MeshRegistry::vertex_t;
-using Index = odin::graphics::registry::mesh::MeshRegistry::index_t;
-using EntryAllocation = odin::graphics::registry::mesh::EntryAllocation;
-using MeshEntry = odin::graphics::registry::mesh::MeshEntry;
+using namespace odin::graphics;
+using namespace odin::graphics::registry;
+using namespace odin::graphics::registry::mesh;
+using Vertex = MeshRegistry::vertex_t;
+using Index = MeshRegistry::index_t;
 using MeshInfo = odin::graphics::MeshInfo;
 using MeshTableArena = odin::ArenaAllocator<MeshInfo>;
 using VertexArena = odin::ArenaAllocator<Vertex>;
 using IndexArena = odin::ArenaAllocator<Index>;
 using ArenaAllocation = odin::ArenaAllocation;
-using RenderResources = odin::graphics::RenderResources;
 using TransferManager = odin::graphics::TransferManager;
 using Allocator = odin::graphics::vk::Allocator;
 using QueueView = odin::graphics::vk::QueueView;
@@ -26,17 +26,17 @@ using BufferRef = odin::graphics::vk::resource::BufferRef;
 using StagingBuffer = odin::graphics::vk::resource::StagingBuffer;
 //
 //
-template<typename buffer_t>
-requires std::ranges::contiguous_range<buffer_t>
-[[nodiscard]] std::unique_ptr<StagingBuffer> to_staging_buffer(const std::shared_ptr<Allocator>& pAllocator, buffer_t&& data)
-{
-    using element_t = typename std::remove_cvref_t<buffer_t>::value_type;
-
-    auto pStaging = std::make_unique<StagingBuffer>(pAllocator->create_staging_buffer(data.size(), sizeof(element_t)));
-    pStaging->write(std::forward<buffer_t>(data));
-
-    return pStaging;
-}
+//template<typename buffer_t>
+//requires std::ranges::contiguous_range<buffer_t>
+//[[nodiscard]] std::unique_ptr<StagingBuffer> to_staging_buffer(const std::shared_ptr<Allocator>& pAllocator, buffer_t&& data)
+//{
+//    using element_t = typename std::remove_cvref_t<buffer_t>::value_type;
+//
+//    auto pStaging = std::make_unique<StagingBuffer>(pAllocator->create_staging_buffer(data.size(), sizeof(element_t)));
+//    pStaging->write(std::forward<buffer_t>(data));
+//
+//    return pStaging;
+//}
 template<typename buffer_t>
 requires std::ranges::contiguous_range<buffer_t>
 void upload_to_gpu(TransferManager& transferManager,
@@ -46,27 +46,32 @@ void upload_to_gpu(TransferManager& transferManager,
                    const ArenaAllocation& allocation,
                    buffer_t&& content)
 {
-    std::unique_ptr<StagingBuffer> pStaging = to_staging_buffer(pAllocator, std::forward<buffer_t>(content));
+    //std::unique_ptr<StagingBuffer> pStaging = to_staging_buffer(pAllocator, std::forward<buffer_t>(content));
+    auto pStaging = std::make_unique<StagingBuffer>(pAllocator->to_staging_buffer(std::forward<buffer_t>(content)));
     transferManager.enqueue_buffer_transfer(dst, std::move(pStaging), queue, allocation);
 }
-[[nodiscard]] std::unique_ptr<MeshTableArena> make_mesh_table_arena(const RenderResources& renderResources)
+[[nodiscard]] std::unique_ptr<MeshTableArena> make_mesh_table_arena(const resource::ResourceRegistry& registry)
 {
-    std::size_t elementCapacity = renderResources.meshTable->byte_capacity() / sizeof(MeshInfo);
-    VkDeviceSize minAlignment = renderResources.meshTable->min_alignment();
+    auto mtHandle = registry.storage_buffer(resource::ResourceRegistry::SSBO_MESH_TABLE);
+
+    std::size_t elementCapacity = mtHandle->byte_capacity() / sizeof(MeshInfo);
+    VkDeviceSize minAlignment = mtHandle->min_alignment();
 
     return MeshTableArena::make_arena_allocator(elementCapacity, minAlignment);
 }
-[[nodiscard]] std::unique_ptr<VertexArena> make_vertex_arena(const RenderResources& renderResources)
+[[nodiscard]] std::unique_ptr<VertexArena> make_vertex_arena(const resource::ResourceRegistry& registry)
 {
-    std::size_t elementCapacity = renderResources.vertexBuffer.get().capacity();
-    VkDeviceSize minAlignment = renderResources.vertexBuffer.get().min_alignment();
+    const vk::resource::VertexBuffer& vb = registry.vertex_buffer();
+    std::size_t elementCapacity = vb.capacity();
+    VkDeviceSize minAlignment = vb.min_alignment();
 
     return VertexArena::make_arena_allocator(elementCapacity, minAlignment);
 }
-[[nodiscard]] std::unique_ptr<IndexArena> make_index_arena(const RenderResources& renderResources)
+[[nodiscard]] std::unique_ptr<IndexArena> make_index_arena(const resource::ResourceRegistry& registry)
 {
-    std::size_t elementCapacity = renderResources.indexBuffer.get().capacity();
-    VkDeviceSize minAlignment = renderResources.indexBuffer.get().min_alignment();
+    const vk::resource::IndexBuffer& ib = registry.index_buffer();
+    std::size_t elementCapacity = ib.capacity();
+    VkDeviceSize minAlignment = ib.min_alignment();
 
     return IndexArena::make_arena_allocator(elementCapacity, minAlignment);
 }
@@ -130,15 +135,15 @@ void upload_to_gpu(TransferManager& transferManager,
 }
 [[nodiscard]] MeshEntry make_dummy_entry()
 {
-    return MeshEntry{ .id = MeshEntry::DUMMY_ID, .lastUsed = 0, .allocation = std::nullopt };
+    return MeshEntry{ .id = MESH_DUMMY_SENTINEL, .lastUsed = 0, .allocation = std::nullopt };
 }
 }    // namespace
 namespace odin::graphics::registry::mesh
 {
-MeshRegistry::MeshRegistry(const RenderResources& renderResources)
-    : m_pVertexArena{ make_vertex_arena(renderResources) }    //, m_IndexArena{ make_index_arena(renderResources) }
-    , m_pIndexArena{ make_index_arena(renderResources) }
-    , m_pMeshTableArena{ make_mesh_table_arena(renderResources) }
+MeshRegistry::MeshRegistry(const resource::ResourceRegistry& registry)
+    : m_pVertexArena{ make_vertex_arena(registry) }
+    , m_pIndexArena{ make_index_arena(registry) }
+    , m_pMeshTableArena{ make_mesh_table_arena(registry) }
     , m_Meshes{}
 {}
 void MeshRegistry::touch(const asl::ModelHandle& handle)
@@ -154,11 +159,14 @@ void MeshRegistry::touch(const asl::ModelHandle& handle)
     }
 }
 void MeshRegistry::register_model(TransferManager& transferManager,
-                                  const RenderResources& resources,
+                                  const resource::ResourceRegistry& registry,
                                   vk::QueueView graphicsQ,
                                   const std::shared_ptr<vk::Allocator>& pAllocator,
                                   const asl::ModelHandle& handle)
 {
+    const vk::resource::VertexBuffer& vb = registry.vertex_buffer();
+    const vk::resource::IndexBuffer& ib = registry.index_buffer();
+    auto meshTable = registry.storage_buffer(resource::ResourceRegistry::SSBO_MESH_TABLE);
     std::shared_ptr<const asl::SceneGraph> pGraph = handle.acquire();
 
     auto [kvPair, emplaced] = m_Meshes.try_emplace(pGraph->filename().string());
@@ -173,24 +181,24 @@ void MeshRegistry::register_model(TransferManager& transferManager,
             for (auto&& rv : views)
             {
                 std::vector<vertex_t> v = make_interleaved_vertices(rv);
-
                 std::span<vertex_t> vertices = common::to_span(v);
+
                 std::span<const index_t> indices = rv.indices;
                 MeshEntry entry = make_entry(vertices, indices);
 
                 const EntryAllocation& ea = entry.allocation.value();
 
-                BufferRef vertexBuffer = resources.vertexBuffer.get().handle();
+                BufferRef vertexBuffer = vb.handle();
                 upload_to_gpu(transferManager, pAllocator, vertexBuffer, graphicsQ, ea.vertices, vertices);
 
-                BufferRef indexBuffer = resources.indexBuffer.get().handle();
+                BufferRef indexBuffer = ib.handle();
                 upload_to_gpu(transferManager, pAllocator, indexBuffer, graphicsQ, ea.indices, indices);
 
                 // hack to get the .data() and .size() members..
                 std::array<MeshInfo, 1> meshInfo{};
                 meshInfo[0] = make_mesh_info(rv, indices, entry);
-                BufferRef meshTable = resources.meshTable->handle();
-                upload_to_gpu(transferManager, pAllocator, meshTable, graphicsQ, ea.meshTable, common::to_span(meshInfo));
+                BufferRef mt = meshTable->handle();
+                upload_to_gpu(transferManager, pAllocator, mt, graphicsQ, ea.meshTable, common::to_span(meshInfo));
 
 
                 newEntries.push_back(std::move(entry));

@@ -11,6 +11,7 @@
 #include "components/Parent.hpp"
 #include "components/WorldTRS.hpp"
 #include "graphics/Graphics.hpp"
+#include "graphics/gpu_types.hpp"
 #include "state/Input.hpp"
 #include "window/Window.hpp"
 // Debug
@@ -106,7 +107,8 @@ public:
         ODIN_ASSERT(m_State == State::begin);
         m_State = State::graphics;
 
-        m_Gfx.draw();
+        std::vector<graphics::InstanceInfo> infos = collect_instance_infos();
+        m_Gfx.draw(infos);
     }
     void end_frame()
     {
@@ -164,6 +166,23 @@ private:
         pGraph->dfs(visitor);
 
         return submeshes;
+    }
+    std::vector<graphics::InstanceInfo> collect_instance_infos()
+    {
+        ECS& ecs = m_ECS.value();
+
+        std::vector<graphics::InstanceInfo> infos{};
+        infos.reserve(2048);
+        ecs.for_each<component::Mesh, component::LocalTRS>(
+            [&infos]([[maybe_unused]] Entity e, const component::Mesh& mesh, const component::LocalTRS& trs)
+            {
+                if (mesh.id != MESH_DUMMY_SENTINEL)
+                {
+                    infos.emplace_back(trs.orientation, trs.translation, trs.scale, mesh.id);
+                }
+            });
+
+        return infos;
     }
     void assign_submesh_ids(const std::vector<Entity>& submeshes, const std::vector<graphics::registry::mesh::MeshID>& ids)
     {

@@ -3,13 +3,13 @@
 //
 #include "Graphics.hpp"
 
+#include "../components/Mesh.hpp"
 #include "FrameHandler.hpp"
-#include "registry/mesh/MeshRegistry.hpp"
 #include "Presenter.hpp"
 #include "Renderer.hpp"
 #include "TransferManager.hpp"
 #include "VulkanContext.hpp"
-#include "../components/Mesh.hpp"
+#include "registry/mesh/MeshRegistry.hpp"
 #include "vk/vulkan_defines.hpp"
 #include "vk/resource/VertexBuffer.hpp"
 // Debug
@@ -20,6 +20,9 @@
 //
 namespace
 {
+// TODO: I pulled these numbers from my ass
+static constexpr std::int32_t MAX_INSTANCES = 41'94304;
+static constexpr std::int32_t MAX_DRAWS = 2048;
 [[nodiscard]] VkApplicationInfo make_application_info(std::string_view name)
 {
     return VkApplicationInfo{ .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -38,6 +41,9 @@ class Graphics::Impl
 public:
     [[nodiscard]] static std::unique_ptr<Impl> make_graphics(const odin::OdinInfo& info, window::Window& window)
     {
+        using ResourceRegistry = registry::resource::ResourceRegistry;
+        using PipelineRegistry = registry::pipeline::PipelineRegistry;
+
         // The circular dependencies for initialization is nuts..
         // So keep this as a stand alone function for clarity and then move everything into place
 
@@ -55,15 +61,19 @@ public:
         auto pAllocator = std::make_shared<vk::Allocator>(instance, physicalDevice, device);
         // Make FrameHandler
         FrameHandler frameHandler{ device.handle(), queueFamilies.graphics(), queueFamilies.compute(), queueFamilies.transfer() };
-        // Make FrameResources
         // Make Presenter
         Presenter presenter{ device, physicalDevice, std::move(surface), frameHandler };
+        // Make ResourceRegistry
+        ResourceRegistry resourceRegistry{ device.handle(), pAllocator, frameHandler, MAX_DRAWS, MAX_INSTANCES };
+        // Make PipelineRegistry
+        auto pPipelineRegistry = PipelineRegistry::make(device.handle());
         // Make Renderer
-        Renderer renderer{ pAllocator, device.handle(), frameHandler, presenter };
+        Renderer renderer{ device.handle(), presenter, resourceRegistry, *pPipelineRegistry };
         // Make TransferManager
         TransferManager transferManager{ device.handle(), queueFamilies.transfer() };
         // Make MeshRegisrty
-        registry::mesh::MeshRegistry meshRegistry{ renderer.render_resources() };
+        registry::mesh::MeshRegistry meshRegistry{ resourceRegistry };
+
 
         // Make Vulkan Context
         VulkanContext context{ std::move(instance),
@@ -77,7 +87,9 @@ public:
                                       std::move(presenter),
                                       std::move(renderer),
                                       std::move(transferManager),
-                                      std::move(meshRegistry));
+                                      std::move(meshRegistry),
+                                      std::move(resourceRegistry),
+                                      std::move(pPipelineRegistry));
     }
 public:
     Impl(VulkanContext context,
@@ -85,13 +97,17 @@ public:
          Presenter presenter,
          Renderer renderer,
          TransferManager transferManager,
-         registry::mesh::MeshRegistry meshRegistry)
+         registry::mesh::MeshRegistry meshRegistry,
+         registry::resource::ResourceRegistry resourceRegistry,
+         std::unique_ptr<registry::pipeline::PipelineRegistry> pPipelineRegistry)
         : m_Context{ std::move(context) }
         , m_FrameHandler{ std::move(frameHandler) }
         , m_Presenter{ std::move(presenter) }
         , m_Renderer{ std::move(renderer) }
         , m_TransferManager{ std::move(transferManager) }
         , m_MeshRegistry{ std::move(meshRegistry) }
+        , m_ResourceRegistry{ std::move(resourceRegistry) }
+        , m_pPipelineRegistry{ std::move(pPipelineRegistry) }
     {}
     ~Impl()
     {
@@ -109,6 +125,8 @@ public:
         , m_Renderer{ std::move(other.m_Renderer) }
         , m_TransferManager{ std::move(other.m_TransferManager) }
         , m_MeshRegistry{ std::move(other.m_MeshRegistry) }
+        , m_ResourceRegistry{ std::move(other.m_ResourceRegistry) }
+        , m_pPipelineRegistry{ std::move(other.m_pPipelineRegistry) }
     {}
     Impl& operator=(Impl&& other) noexcept
     {
@@ -120,23 +138,31 @@ public:
             m_Renderer = std::move(other.m_Renderer);
             m_TransferManager = std::move(other.m_TransferManager);
             m_MeshRegistry = std::move(other.m_MeshRegistry);
+            m_ResourceRegistry = std::move(other.m_ResourceRegistry);
+            m_pPipelineRegistry = std::move(other.m_pPipelineRegistry);
         }
         return *this;
     }
 public:
-    void draw()
+    void draw(std::span<const InstanceInfo> instanceInfos)
     {
         FrameContext frame = m_FrameHandler.start_frame();
 
-        vk::CommandBuffer& transferBuffer = frame.transferBuffer.get();
-        m_TransferManager.submit_transfer(transferBuffer);
+        std::int32_t instanceCount = enqueue_instance_infos(instanceInfos, frame);
+
+
+        m_FrameHandler.wait();
+
+        vk::CommandBuffer& cmdBuf = frame.transferBuffer.get();
+        m_TransferManager.submit_transfers(cmdBuf);
 
         std::optional<ColorAttachment> colorAttach = m_Presenter.acquire_color_attachment(frame.colorAttachmentReady);
         if (colorAttach)
         {
             // Do rendering stuff
+            const ColorAttachment& ca = colorAttach.value();
             vk::QueueView graphicsQ = m_Context.queue_families().graphics();
-            m_Renderer.render_frame(colorAttach.value(), graphicsQ, frame, m_TransferManager);
+            m_Renderer.render_frame(ca, graphicsQ, frame, m_TransferManager, m_ResourceRegistry, instanceCount);
 
             const vk::QueueFamilies& queues = m_Context.queue_families();
             if (!m_Presenter.present(queues.present(), frame.graphicsFinished))
@@ -144,13 +170,34 @@ public:
                 LOG_WARN("Failed to present color attachment.");
             }
         }
+
+        m_FrameHandler.end_frame();
+    }
+    std::int32_t enqueue_instance_infos(std::span<const InstanceInfo> instanceInfos, const FrameContext& frame)
+    {
+        using ResourceRegistry = registry::resource::ResourceRegistry;
+        using StagingBuffer = vk::resource::StagingBuffer;
+
+        BufferTransfer transfer{};
+
+        vk::QueueView graphicsQ = m_Context.queue_families().graphics();
+        transfer.ownerQ = graphicsQ;
+        transfer.pSrcBuffer = std::make_unique<StagingBuffer>(m_Context.allocator()->to_staging_buffer(instanceInfos));
+
+        auto instanceInfo = m_ResourceRegistry.dynamic_storage_buffer(ResourceRegistry::DYN_SSBO_INSTANCE_INFO);
+        transfer.dstBuffer = instanceInfo->handle();
+        transfer.dstOffset = instanceInfo->offset(frame.frame);
+        transfer.size = instanceInfos.size() * sizeof(decltype(instanceInfos)::value_type);
+
+        m_TransferManager.enqueue_buffer_transfer(std::move(transfer));
+
+        return static_cast<std::int32_t>(instanceInfos.size());
     }
     void register_model(const asl::ModelHandle& handle)
     {
         vk::QueueView graphicsQ = m_Context.queue_families().graphics();
-        const RenderResources& resources = m_Renderer.render_resources();
         std::shared_ptr<vk::Allocator> pAllocator = m_Context.allocator();
-        m_MeshRegistry.register_model(m_TransferManager, resources, graphicsQ, pAllocator, handle);
+        m_MeshRegistry.register_model(m_TransferManager, m_ResourceRegistry, graphicsQ, pAllocator, handle);
     }
     // clang-format off
     bool is_registered(const asl::ModelHandle& handle) const 
@@ -180,6 +227,8 @@ private:
     Renderer m_Renderer;
     TransferManager m_TransferManager;
     registry::mesh::MeshRegistry m_MeshRegistry;
+    registry::resource::ResourceRegistry m_ResourceRegistry;
+    std::unique_ptr<registry::pipeline::PipelineRegistry> m_pPipelineRegistry;
 };
 //
 //
@@ -190,9 +239,9 @@ Graphics::Graphics(const OdinInfo& info, window::Window& window)
 Graphics::~Graphics() = default;
 Graphics::Graphics(Graphics&& other) noexcept = default;
 Graphics& Graphics::operator=(Graphics&& other) noexcept = default;
-void Graphics::draw()
+void Graphics::draw(std::span<const InstanceInfo> instanceInfos)
 {
-    m_pImpl->draw();
+    m_pImpl->draw(instanceInfos);
 }
 void Graphics::register_model(const asl::ModelHandle& handle)
 {

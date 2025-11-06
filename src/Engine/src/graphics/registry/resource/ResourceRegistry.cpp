@@ -39,4 +39,8 @@ buffer::DynamicBufferHandle<vk::resource::DynamicUniformBuffer> ResourceRegistry
 {
     return m_Buffers.get_dynamic_uniform_buffer(key);
 }
+const RenderResources ResourceRegistry::render_resources() const
+{
+    return RenderResources{ .indexBuffer = index_buffer(), .vertexBuffer = vertex_buffer(), .meshTable = storage_buffer(SSBO_MESH_TABLE) };
+}
 }    // namespace odin::graphics::registry::resource

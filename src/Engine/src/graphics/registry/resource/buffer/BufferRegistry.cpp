@@ -21,33 +21,37 @@ using namespace odin::graphics::registry::resource::buffer;
 {
     static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million indices
 
-    vk::resource::IndexBuffer indexBuffer = pAllocator->create_index_buffer(indexCapacity);
+    IndexBuffer indexBuffer = pAllocator->create_index_buffer(indexCapacity);
     LOG_INFO("Creating Index Buffer with size: {} (bytes)", indexBuffer.byte_capacity());
-    return std::make_unique<vk::resource::IndexBuffer>(std::move(indexBuffer));
+
+    return std::make_unique<IndexBuffer>(std::move(indexBuffer));
 }
 [[nodiscard]] std::unique_ptr<VertexBuffer> make_vertex_buffer(const std::shared_ptr<vk::Allocator>& pAllocator)
 {
     static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million vertices
 
-    vk::resource::VertexBuffer vertexBuffer = pAllocator->create_vertex_buffer(vertexCapacity);
+    VertexBuffer vertexBuffer = pAllocator->create_vertex_buffer(vertexCapacity);
     LOG_INFO("Creating Vertex Buffer with size: {} (bytes)", vertexBuffer.byte_capacity());
-    return std::make_unique<vk::resource::VertexBuffer>(std::move(vertexBuffer));
+
+    return std::make_unique<VertexBuffer>(std::move(vertexBuffer));
 }
 [[nodiscard]] std::shared_ptr<StorageBuffer> make_mesh_table(const std::shared_ptr<vk::Allocator>& pAllocator)
 {
     static constexpr std::uint64_t meshTableSize = 15000 * sizeof(odin::graphics::MeshInfo);
 
-    vk::resource::StorageBuffer meshTable = pAllocator->create_storage_buffer(meshTableSize);
+    StorageBuffer meshTable = pAllocator->create_storage_buffer(meshTableSize);
     LOG_INFO("Creating Storage Buffer (Mesh Table) with size: {} (bytes)", meshTable.byte_capacity());
-    return std::make_shared<vk::resource::StorageBuffer>(std::move(meshTable));
+
+    return std::make_shared<StorageBuffer>(std::move(meshTable));
 }
 [[nodiscard]] std::shared_ptr<StorageBuffer> make_material_table(const std::shared_ptr<vk::Allocator>& pAllocator)
 {
     static constexpr std::uint64_t materialTableSize = 1000 * sizeof(odin::graphics::Material);
 
-    vk::resource::StorageBuffer materialTable = pAllocator->create_storage_buffer(materialTableSize);
+    StorageBuffer materialTable = pAllocator->create_storage_buffer(materialTableSize);
     LOG_INFO("Creating Storage Buffer (Material Table) with size: {} (bytes)", materialTable.byte_capacity());
-    return std::make_shared<vk::resource::StorageBuffer>(std::move(materialTable));
+
+    return std::make_shared<StorageBuffer>(std::move(materialTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer> make_draw_variables_table(const std::shared_ptr<vk::Allocator>& pAllocator,
                                                                               std::int32_t numFramesInFlight)
@@ -60,6 +64,7 @@ using namespace odin::graphics::registry::resource::buffer;
     DynamicStorageBuffer drawCountTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Draw Variables Table) with size: {} (bytes)", drawCountTable.byte_capacity());
+
     return std::make_shared<DynamicStorageBuffer>(std::move(drawCountTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
@@ -73,6 +78,7 @@ make_draw_args_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::int3
     DynamicStorageBuffer drawArgsTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Draw Arguments Table) with size: {} (bytes)", drawArgsTable.byte_capacity());
+
     return std::make_shared<DynamicStorageBuffer>(std::move(drawArgsTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
@@ -86,6 +92,7 @@ make_instance_base_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::
     DynamicStorageBuffer instanceBaseTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Base Table) with size: {} (bytes)", instanceBaseTable.byte_capacity());
+
     return std::make_shared<DynamicStorageBuffer>(std::move(instanceBaseTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
@@ -99,6 +106,7 @@ make_instance_counter_table(const std::shared_ptr<vk::Allocator>& pAllocator, st
     DynamicStorageBuffer instanceCounterTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Counter Table) with size: {} (bytes)", instanceCounterTable.byte_capacity());
+
     return std::make_shared<DynamicStorageBuffer>(std::move(instanceCounterTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
@@ -112,6 +120,7 @@ make_instance_index_table(const std::shared_ptr<vk::Allocator>& pAllocator, std:
     DynamicStorageBuffer instanceIndexTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Index Table) with size: {} (bytes)", instanceIndexTable.byte_capacity());
+
     return std::make_shared<DynamicStorageBuffer>(std::move(instanceIndexTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer>
@@ -125,6 +134,7 @@ make_instance_info_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::
     DynamicStorageBuffer instanceInfoTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
     LOG_INFO("Creating Dynamic Storage Buffer (Instance Info Table) with size: {} (bytes)", instanceInfoTable.byte_capacity());
+
     return std::make_shared<DynamicStorageBuffer>(std::move(instanceInfoTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicUniformBuffer> make_camera_data(const std::shared_ptr<vk::Allocator>& pAllocator,
@@ -135,6 +145,7 @@ make_instance_info_table(const std::shared_ptr<vk::Allocator>& pAllocator, std::
 
     DynamicUniformBuffer cameraBuffer = pAllocator->create_dynamic_uniform_buffer(partitionSize, numPartitions);
     LOG_INFO("Creating Dynamic Uniform Buffer (Camera Buffer) with size: {} (bytes)", cameraBuffer.byte_capacity());
+
     return std::make_shared<DynamicUniformBuffer>(std::move(cameraBuffer));
 }
 }    // namespace

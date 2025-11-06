@@ -19,6 +19,7 @@ struct BufferTransfer
     std::unique_ptr<vk::resource::StagingBuffer> pSrcBuffer;
     vk::resource::BufferRef dstBuffer;
     VkDeviceSize dstOffset;
+    // Size in bytes
     VkDeviceSize size;
 };
 struct ImageTransfer

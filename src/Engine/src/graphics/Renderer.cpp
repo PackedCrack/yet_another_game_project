@@ -5,11 +5,12 @@
 
 #include "gpu_types.hpp"
 #include "vk/vulkan_defines.hpp"
+#include "vk/resource/IndexBuffer.hpp"
+#include "vk/resource/VertexBuffer.hpp"
 //
 //
 namespace
 {
-using RenderResources = odin::graphics::RenderResources;
 using TransferEpoch = odin::graphics::TransferEpoch;
 using Allocator = odin::graphics::vk::Allocator;
 using CommandBuffer = odin::graphics::vk::CommandBuffer;
@@ -72,7 +73,11 @@ void submit(QueueView queue,
     {
         TimelineSemaphoreRef transferSem = transferEpoch->semaphore;
         std::uint64_t waitValue = transferEpoch->waitValue;
-        waitSemaphores.push_back(submit_info_timeline_semaphore(transferSem, waitValue, VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT));
+        waitSemaphores.push_back(submit_info_timeline_semaphore(transferSem,
+                                                                waitValue,
+                                                                VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT,
+                                                                VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT,
+                                                                VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT));
     }
     VkSemaphoreSubmitInfo colorAttachReadyInfo =
         submit_info_binary_semaphore(colorAttachmentReady, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT);
@@ -95,23 +100,23 @@ void submit(QueueView queue,
 }    // namespace
 namespace odin::graphics
 {
-Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator,
-                   vk::DeviceRef device,
-                   const FrameHandler& frameHandler,
-                   const Presenter& presenter)
-    : m_ResourceRegistry{ device, pAllocator, frameHandler, maxDraws, maxInstances }
-    , m_pPipelineRegistry{ registry::pipeline::PipelineRegistry::make(device) }
-    , m_Global{ device, m_ResourceRegistry, *m_pPipelineRegistry }
-    , m_Indirect{ device, m_ResourceRegistry, *m_pPipelineRegistry }
-    , m_Forward{ presenter, *m_pPipelineRegistry, m_ResourceRegistry }
-    , m_FrustumCull{ *m_pPipelineRegistry, m_ResourceRegistry }
-    , m_IndirectSetup{ *m_pPipelineRegistry, m_ResourceRegistry }
-    , m_InstanceCompaction{ *m_pPipelineRegistry, m_ResourceRegistry }
+Renderer::Renderer(vk::DeviceRef device,
+                   const Presenter& presenter,
+                   registry::resource::ResourceRegistry& resourceRegistry,
+                   registry::pipeline::PipelineRegistry& pipelineRegistry)
+    : m_Global{ device, resourceRegistry, pipelineRegistry }
+    , m_Indirect{ device, resourceRegistry, pipelineRegistry }
+    , m_Forward{ presenter, pipelineRegistry, resourceRegistry }
+    , m_FrustumCull{ pipelineRegistry, resourceRegistry }
+    , m_IndirectSetup{ pipelineRegistry, resourceRegistry }
+    , m_InstanceCompaction{ pipelineRegistry, resourceRegistry }
 {}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
                             vk::QueueView graphicsQ,
                             const FrameContext& frameContext,
-                            const TransferManager& transferManager)
+                            const TransferManager& transferManager,
+                            registry::resource::ResourceRegistry& resourceRegistry,
+                            std::int32_t instanceCount)
 {
     vk::CommandBuffer& gfxCmdBuffer = frameContext.graphicsBuffer.get();
     // Reset cmdBuffer and prepare it for commands
@@ -123,19 +128,18 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
 
     // Bind Geometry buffers
     vk::CommandBufferRef cb = gfxCmdBuffer.handle();
-    bind_vertex_buffer(cb);
-    bind_index_buffer(cb);
+    bind_vertex_buffer(cb, resourceRegistry);
+    bind_index_buffer(cb, resourceRegistry);
 
 
     // execute all passes - todo render graph in the future
-    std::int32_t instanceCount = 512;    // TODO: Get this from total entities..?
     m_FrustumCull.execute(frameContext, m_Global, m_Indirect, instanceCount);
 
-    m_IndirectSetup.execute(frameContext, m_Global, m_Indirect, instanceCount);
+    m_IndirectSetup.execute(frameContext, m_Global, m_Indirect, 32);
 
     m_InstanceCompaction.execute(frameContext, m_Global, m_Indirect, instanceCount);
 
-    m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect, m_ResourceRegistry);
+    m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect, resourceRegistry);
 
 
     // Should present be its own pass?
@@ -160,17 +164,11 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     std::optional<TransferEpoch> transferEpoch = transferManager.epoch();
     submit(graphicsQ, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight, transferEpoch);
 }
-const RenderResources Renderer::render_resources() const
-{
-    return RenderResources{ .indexBuffer = m_ResourceRegistry.index_buffer(),
-                            .vertexBuffer = m_ResourceRegistry.vertex_buffer(),
-                            .meshTable = m_ResourceRegistry.storage_buffer(m_ResourceRegistry.SSBO_MESH_TABLE) };
-}
-void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb) const
+void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb, const registry::resource::ResourceRegistry& resourceRegistry) const
 {
     using namespace vk::resource;
 
-    const VertexBuffer& vb = m_ResourceRegistry.vertex_buffer();
+    const VertexBuffer& vb = resourceRegistry.vertex_buffer();
     BufferRef vbRef = vb.handle();
     VkDeviceSize offset = 0;
     VkDeviceSize size = vb.byte_capacity();
@@ -183,11 +181,11 @@ void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb) const
                             std::addressof(size),
                             std::addressof(stride));
 }
-void Renderer::bind_index_buffer(vk::CommandBufferRef cb) const
+void Renderer::bind_index_buffer(vk::CommandBufferRef cb, const registry::resource::ResourceRegistry& resourceRegistry) const
 {
     using namespace vk::resource;
 
-    const IndexBuffer& ib = m_ResourceRegistry.index_buffer();
+    const IndexBuffer& ib = resourceRegistry.index_buffer();
     BufferRef ibRef = ib.handle();
     vkCmdBindIndexBuffer2(cb.handle, ibRef.handle, 0, VK_WHOLE_SIZE, VK_INDEX_TYPE_UINT16);
 }

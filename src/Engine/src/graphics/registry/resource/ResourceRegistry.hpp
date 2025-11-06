@@ -11,6 +11,12 @@
 //
 namespace odin::graphics::registry::resource
 {
+struct RenderResources
+{
+    std::reference_wrapper<const vk::resource::IndexBuffer> indexBuffer;
+    std::reference_wrapper<const vk::resource::VertexBuffer> vertexBuffer;
+    buffer::BufferHandle<vk::resource::StorageBuffer> meshTable;
+};
 class ResourceRegistry
 {
     using mutex_t = std::mutex;
@@ -39,6 +45,7 @@ public:
     [[nodiscard]] buffer::BufferHandle<vk::resource::StorageBuffer> storage_buffer(std::string_view key) const;
     [[nodiscard]] buffer::DynamicBufferHandle<vk::resource::DynamicStorageBuffer> dynamic_storage_buffer(std::string_view key) const;
     [[nodiscard]] buffer::DynamicBufferHandle<vk::resource::DynamicUniformBuffer> dynamic_uniform_buffer(std::string_view key) const;
+    [[nodiscard]] const RenderResources render_resources() const;
 private:
     std::unique_ptr<shader::ShaderRegistry> m_pShaders;
     buffer::BufferRegistry m_Buffers;

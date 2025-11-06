@@ -36,8 +36,9 @@ public:
 public:
     [[nodiscard]] FrameContext start_frame();
     [[nodiscard]] std::uint32_t in_flight_count() const;
-private:
     [[nodiscard]] FrameIndex frame_index() const;
+    void end_frame();
+    void wait();
 private:
     std::uint32_t m_NumInFlight;
     FrameIndex m_Frame;

@@ -4,8 +4,8 @@
 #pragma once
 
 #include "MeshID.hpp"
+#include "../resource/ResourceRegistry.hpp"
 #include "../../gpu_types.hpp"
-#include "../../Renderer.hpp"
 #include "../../TransferManager.hpp"
 #include "../../vk/Allocator.hpp"
 #include "../../vk/QueueFamilies.hpp"
@@ -24,7 +24,6 @@ struct EntryAllocation
 };
 struct MeshEntry
 {
-    static constexpr MeshID DUMMY_ID = std::numeric_limits<MeshID>::max();
     MeshID id;
     std::uint64_t lastUsed;
     std::optional<EntryAllocation> allocation;
@@ -37,11 +36,11 @@ public:
     using vertex_t = vk::resource::Vertex;
     using index_t = vk::resource::IndexBuffer::index_t;
 
-    MeshRegistry(const RenderResources& renderResources);
+    MeshRegistry(const resource::ResourceRegistry& registry);
 public:
     void touch(const asl::ModelHandle& handle);
     void register_model(TransferManager& transferManager,
-                        const RenderResources& renderResources,
+                        const resource::ResourceRegistry& registry,
                         vk::QueueView graphicsQ,
                         const std::shared_ptr<vk::Allocator>& pAllocator,
                         const asl::ModelHandle& handle);
