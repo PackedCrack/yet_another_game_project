@@ -28,8 +28,8 @@ namespace odin::graphics::descriptors
 {
 Indirect::Indirect(vk::DeviceRef device, registry::resource::ResourceRegistry& resources, registry::pipeline::PipelineRegistry& pipelines)
     : DescriptorSet<Indirect>{ make_request(), pipelines }
-    , m_DrawCount{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_VARIABLES) }
-    , m_DrawArgs{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_ARGS) }
+    , m_DrawVariables{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_VARIABLES) }
+    , m_DrawCommands{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_COMMANDS) }
     , m_InstanceBase{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_BASE) }
     , m_InstanceCounter{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_COUNTER) }
     , m_InstanceIndex{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_INDEX) }
@@ -40,8 +40,8 @@ Indirect::Indirect(vk::DeviceRef device, registry::resource::ResourceRegistry& r
 
     std::uint64_t frameID = 0;
     writer.add_buffer(INDIRECT_SET_BIND_ID_CAMERA_DATA, m_CameraData.to_view(frameID));
-    writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_ARGS, m_DrawArgs.to_view(frameID));
-    writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_COUNT, m_DrawCount.to_view(frameID));
+    writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_COMMANDS, m_DrawCommands.to_view(frameID));
+    writer.add_buffer(INDIRECT_SET_BIND_ID_DRAW_VARIABLES, m_DrawVariables.to_view(frameID));
     writer.add_buffer(INDIRECT_SET_BIND_ID_INSTANCE_BASE, m_InstanceBase.to_view(frameID));
     writer.add_buffer(INDIRECT_SET_BIND_ID_INSTANCE_COUNTER, m_InstanceCounter.to_view(frameID));
     writer.add_buffer(INDIRECT_SET_BIND_ID_INSTANCE_INDEX, m_InstanceIndex.to_view(frameID));
@@ -59,11 +59,11 @@ void Indirect::bind(vk::CommandBufferRef cmdBuffer,
 }
 registry::resource::buffer::BindView Indirect::view_draw_variables(std::uint64_t frameID) const
 {
-    return m_DrawCount.to_view(frameID);
+    return m_DrawVariables.to_view(frameID);
 }
-registry::resource::buffer::BindView Indirect::view_draw_args(std::uint64_t frameID) const
+registry::resource::buffer::BindView Indirect::view_draw_commands(std::uint64_t frameID) const
 {
-    return m_DrawArgs.to_view(frameID);
+    return m_DrawCommands.to_view(frameID);
 }
 registry::resource::buffer::BindView Indirect::view_instance_base(std::uint64_t frameID) const
 {
@@ -87,7 +87,7 @@ registry::resource::buffer::BindView Indirect::view_camera_data(std::uint64_t fr
 }
 std::array<std::uint32_t, 7> Indirect::dynamic_offsets(std::uint64_t frameID) const
 {
-    return { static_cast<std::uint32_t>(m_DrawCount->offset(frameID)),     static_cast<std::uint32_t>(m_DrawArgs->offset(frameID)),
+    return { static_cast<std::uint32_t>(m_DrawVariables->offset(frameID)), static_cast<std::uint32_t>(m_DrawCommands->offset(frameID)),
              static_cast<std::uint32_t>(m_InstanceBase->offset(frameID)),  static_cast<std::uint32_t>(m_InstanceCounter->offset(frameID)),
              static_cast<std::uint32_t>(m_InstanceIndex->offset(frameID)), static_cast<std::uint32_t>(m_InstanceInfo->offset(frameID)),
              static_cast<std::uint32_t>(m_CameraData->offset(frameID)) };
@@ -101,12 +101,12 @@ registry::pipeline::RequestBuilder& indirect_preset(registry::pipeline::RequestB
 
     // clang-format off
     builder.add_descriptor_layout(INDIRECT_SET_ID,
-                                  INDIRECT_SET_BIND_ID_DRAW_COUNT,
+                                  INDIRECT_SET_BIND_ID_DRAW_VARIABLES,
                                   Descriptor::dynamicStorageBuffer,
                                   Stage::compute);
 
     builder.add_descriptor_layout(INDIRECT_SET_ID,
-                                  INDIRECT_SET_BIND_ID_DRAW_ARGS,
+                                  INDIRECT_SET_BIND_ID_DRAW_COMMANDS,
                                   Descriptor::dynamicStorageBuffer,
                                   Stage::compute);
 

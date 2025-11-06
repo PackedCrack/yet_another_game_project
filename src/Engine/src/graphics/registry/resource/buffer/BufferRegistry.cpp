@@ -99,25 +99,25 @@ make_draw_variables_table(vk::DeviceRef device, const std::shared_ptr<vk::Alloca
 
     return std::make_shared<DynamicStorageBuffer>(std::move(drawVariablesTable));
 }
-[[nodiscard]] std::shared_ptr<DynamicStorageBuffer> make_draw_args_table(vk::DeviceRef device,
-                                                                         const std::shared_ptr<vk::Allocator>& pAllocator,
-                                                                         std::int32_t numFramesInFlight,
-                                                                         std::uint32_t maxDraws)
+[[nodiscard]] std::shared_ptr<DynamicStorageBuffer> make_draw_commands_table(vk::DeviceRef device,
+                                                                             const std::shared_ptr<vk::Allocator>& pAllocator,
+                                                                             std::int32_t numFramesInFlight,
+                                                                             std::uint32_t maxDraws)
 {
     VkDeviceSize partitionSize = sizeof(VkDrawIndexedIndirectCommand) * maxDraws;
     VkDeviceSize numPartitions = numFramesInFlight;
     bool transferDestination = false;
     bool indirectUsage = true;
 
-    DynamicStorageBuffer drawArgsTable =
+    DynamicStorageBuffer drawCommandsTable =
         pAllocator->create_dynamic_storage_buffer(partitionSize, numPartitions, transferDestination, indirectUsage);
-    LOG_INFO("Creating Dynamic Storage Buffer (Draw Arguments Table) with size: {} (bytes)", drawArgsTable.byte_capacity());
+    LOG_INFO("Creating Dynamic Storage Buffer (Draw Commands Table) with size: {} (bytes)", drawCommandsTable.byte_capacity());
 
 #ifdef BUFFER_NAMES
-    assign_debug_name(device, drawArgsTable.handle(), "draw_args");
+    assign_debug_name(device, drawCommandsTable.handle(), "draw_commands");
 #endif
 
-    return std::make_shared<DynamicStorageBuffer>(std::move(drawArgsTable));
+    return std::make_shared<DynamicStorageBuffer>(std::move(drawCommandsTable));
 }
 [[nodiscard]] std::shared_ptr<DynamicStorageBuffer> make_instance_base_table(vk::DeviceRef device,
                                                                              const std::shared_ptr<vk::Allocator>& pAllocator,
@@ -268,7 +268,7 @@ void BufferRegistry::make_buffers(vk::DeviceRef device,
     m_SSBO.emplace(ResourceRegistry::SSBO_MATERIAL_TABLE, make_material_table(device, pAllocator));
 
     m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_VARIABLES, make_draw_variables_table(device, pAllocator, numFramesInFlight));
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_ARGS, make_draw_args_table(device, pAllocator, numFramesInFlight, maxDraws));
+    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_COMMANDS, make_draw_commands_table(device, pAllocator, numFramesInFlight, maxDraws));
     m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_BASE, make_instance_base_table(device, pAllocator, numFramesInFlight, maxDraws));
     m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_COUNTER,
                       make_instance_counter_table(device, pAllocator, numFramesInFlight, maxDraws));

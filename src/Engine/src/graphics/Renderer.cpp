@@ -135,7 +135,7 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     // execute all passes - todo render graph in the future
     m_FrustumCull.execute(frameContext, m_Global, m_Indirect, instanceCount);
 
-    m_IndirectSetup.execute(frameContext, m_Global, m_Indirect, 32);
+    m_IndirectSetup.execute(frameContext, m_Global, m_Indirect, 3);
 
     m_InstanceCompaction.execute(frameContext, m_Global, m_Indirect, instanceCount);
 

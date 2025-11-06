@@ -61,7 +61,7 @@ using BufferView = registry::resource::buffer::BindView;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-    BufferView view = indirect.view_draw_args(frame);
+    BufferView view = indirect.view_draw_commands(frame);
     barrier.buffer = view.handle;
     barrier.offset = view.offset;
     barrier.size = view.range;

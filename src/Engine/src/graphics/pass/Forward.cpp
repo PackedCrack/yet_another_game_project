@@ -169,14 +169,14 @@ void Forward::execute(const FrameContext& frameContext,
     camBuf->write<CameraInfo>(cameraInfo, frameContext.frame);
 
 
-    auto drawArgs = indirect.view_draw_args(frameContext.frame);
-    auto drawCount = indirect.view_draw_variables(frameContext.frame);
-    std::uint32_t maxDraws = drawArgs.range / sizeof(VkDrawIndexedIndirectCommand);
+    auto drawCommands = indirect.view_draw_commands(frameContext.frame);
+    auto drawVariables = indirect.view_draw_variables(frameContext.frame);
+    std::uint32_t maxDraws = drawCommands.range / sizeof(VkDrawIndexedIndirectCommand);
     vkCmdDrawIndexedIndirectCount(cmdBuffer.handle,
-                                  drawArgs.handle,
-                                  drawArgs.offset,
-                                  drawCount.handle,
-                                  drawCount.offset,
+                                  drawCommands.handle,
+                                  drawCommands.offset,
+                                  drawVariables.handle,
+                                  drawVariables.offset,
                                   maxDraws,
                                   sizeof(VkDrawIndexedIndirectCommand));
 

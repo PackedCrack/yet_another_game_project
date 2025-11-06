@@ -35,8 +35,8 @@ namespace odin::graphics
 #define INDIRECT_SET_LOCAL_SIZE_X 32
 #define INDIRECT_SET_BIND_ID_CAMERA_DATA 6
 #define INDIRECT_SET_ID 1
-#define INDIRECT_SET_BIND_ID_DRAW_COUNT 0
-#define INDIRECT_SET_BIND_ID_DRAW_ARGS 1
+#define INDIRECT_SET_BIND_ID_DRAW_VARIABLES 0
+#define INDIRECT_SET_BIND_ID_DRAW_COMMANDS 1
 #define INDIRECT_SET_BIND_ID_INSTANCE_BASE 2
 #define INDIRECT_SET_BIND_ID_INSTANCE_COUNTER 3
 #define INDIRECT_SET_BIND_ID_INSTANCE_INDEX 4
@@ -48,6 +48,8 @@ struct DrawVariables
 {
     uint drawCount;
     uint instanceHead;    // prefix head for instances
+    uint pad0;
+    uint pad1;
 };
 #define MESH_DUMMY_SENTINEL -1
 struct InstanceInfo
@@ -56,6 +58,9 @@ struct InstanceInfo
     vec3 translation;
     float scale;
     int meshID;
+    uint pad0;
+    uint pad1;
+    uint pad2;
 };
 struct MeshInfo
 {
@@ -64,6 +69,9 @@ struct MeshInfo
     int vertexOffset;
     uint materialID;
     uint drawFlags;
+    uint pad0;
+    uint pad1;
+    uint pad2;
 };
 struct Material
 {
@@ -74,6 +82,7 @@ struct Material
     int emissiveID;
     float rougness;
     float metallic;
+    uint pad0;
 };
 struct CameraInfo
 {
@@ -87,6 +96,14 @@ struct SceneInfo
     vec4 sunlight;
 };
 #ifdef __cplusplus
+// Make sure types are properly aligned for STD430/STD140 on the GPU
+static_assert(sizeof(DrawVariables) % 16 == 0);
+static_assert(sizeof(DrawCommand) % 16 == 0);
+static_assert(sizeof(InstanceInfo) % 16 == 0);
+static_assert(sizeof(MeshInfo) % 16 == 0);
+static_assert(sizeof(Material) % 16 == 0);
+static_assert(sizeof(CameraInfo) % 16 == 0);
+static_assert(sizeof(SceneInfo) % 16 == 0);
 }    // namespace odin::graphics
 #endif
 #undef int

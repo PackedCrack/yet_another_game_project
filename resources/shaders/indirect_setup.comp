@@ -4,6 +4,16 @@
 #include "../../src/Engine/src/graphics/gpu_types.hpp"
 
 
+struct VkDrawIndexedIndirectCommand 
+{
+    uint    indexCount;
+    uint    instanceCount;
+    uint    firstIndex;
+    int     vertexOffset;
+    uint    firstInstance;
+};
+
+
 layout (local_size_x = INDIRECT_SET_LOCAL_SIZE_X) in;
 
 struct DrawIndexedIndirectCommand
@@ -26,15 +36,15 @@ layout(std430, set = GLOBAL_SET_ID, binding = GLOBAL_SET_BIND_ID_MESH_INFO) read
 	MeshInfo meshInfo[];
 };
 
-layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_COUNT) writeonly buffer DrawCount
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_VARIABLES) writeonly buffer DrawCount
 {
 	// Declared inside gpu_types.hpp
 	DrawVariables drawVars;
 };
 
-layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_ARGS) writeonly buffer DrawArguments
+layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_DRAW_COMMANDS) writeonly buffer DrawArguments
 {
-	DrawIndexedIndirectCommand drawArgs[];
+	VkDrawIndexedIndirectCommand drawCommands[];
 };
 
 layout(std430, set = INDIRECT_SET_ID, binding = INDIRECT_SET_BIND_ID_INSTANCE_BASE) writeonly buffer InstanceBase
@@ -98,14 +108,14 @@ void main()
             uint slot = atomicAdd(drawVars.drawCount, 1u);
             MeshInfo mesh = meshInfo[globalID];
 
-            DrawIndexedIndirectCommand cmd;
+            VkDrawIndexedIndirectCommand cmd;
             cmd.indexCount    = mesh.indexCount;
             cmd.instanceCount = instanceCount;
             cmd.firstIndex    = mesh.firstIndex;
             cmd.vertexOffset  = mesh.vertexOffset;
             cmd.firstInstance = firstInst;
 
-            drawArgs[slot] = cmd;
+            drawCommands[slot] = cmd;
         }
     }
 }

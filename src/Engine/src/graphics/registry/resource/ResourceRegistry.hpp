@@ -26,7 +26,7 @@ public:
     static constexpr std::string_view SSBO_MESH_TABLE = "meshtable";
     static constexpr std::string_view SSBO_MATERIAL_TABLE = "materialtable";
     static constexpr std::string_view DYN_SSBO_DRAW_VARIABLES = "drawvariables";
-    static constexpr std::string_view DYN_SSBO_DRAW_ARGS = "drawargs";
+    static constexpr std::string_view DYN_SSBO_DRAW_COMMANDS = "drawcommands";
     static constexpr std::string_view DYN_SSBO_INSTANCE_BASE = "instancebase";
     static constexpr std::string_view DYN_SSBO_INSTANCE_COUNTER = "instancecounter";
     static constexpr std::string_view DYN_SSBO_INSTANCE_INDEX = "instanceindex";

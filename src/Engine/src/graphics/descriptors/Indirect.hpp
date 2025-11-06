@@ -27,7 +27,7 @@ public:
               VkShaderStageFlags stages,
               std::uint64_t frameID) const;
     [[nodiscard]] registry::resource::buffer::BindView view_draw_variables(std::uint64_t frameID) const;
-    [[nodiscard]] registry::resource::buffer::BindView view_draw_args(std::uint64_t frameID) const;
+    [[nodiscard]] registry::resource::buffer::BindView view_draw_commands(std::uint64_t frameID) const;
     [[nodiscard]] registry::resource::buffer::BindView view_instance_base(std::uint64_t frameID) const;
     [[nodiscard]] registry::resource::buffer::BindView view_instance_counter(std::uint64_t frameID) const;
     [[nodiscard]] registry::resource::buffer::BindView view_instance_index(std::uint64_t frameID) const;
@@ -36,8 +36,8 @@ public:
 private:
     std::array<std::uint32_t, 7> dynamic_offsets(std::uint64_t frameID) const;
 private:
-    DynamicSSBOHandle m_DrawCount;
-    DynamicSSBOHandle m_DrawArgs;
+    DynamicSSBOHandle m_DrawVariables;
+    DynamicSSBOHandle m_DrawCommands;
     DynamicSSBOHandle m_InstanceBase;
     DynamicSSBOHandle m_InstanceCounter;
     DynamicSSBOHandle m_InstanceIndex;
