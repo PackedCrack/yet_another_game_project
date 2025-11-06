@@ -32,6 +32,17 @@ public:
     Allocator& operator=(const Allocator& other) = delete;
     Allocator& operator=(Allocator&& other) noexcept;
 public:
+    template<typename buffer_t>
+    requires std::ranges::contiguous_range<buffer_t>
+    [[nodiscard]] StagingBuffer to_staging_buffer(buffer_t&& data)
+    {
+        using element_t = typename std::remove_cvref_t<buffer_t>::value_type;
+
+        StagingBuffer buf = create_staging_buffer(data.size(), sizeof(element_t));
+        buf.write(std::forward<buffer_t>(data));
+
+        return buf;
+    }
     // TODO: all of these functions should be called make_*
     [[nodiscard]] StagingBuffer create_staging_buffer(std::uint64_t numElements, std::uint64_t elementSize);
     [[nodiscard]] resource::UniformBuffer create_uniform_buffer(const VkBufferCreateInfo& info);

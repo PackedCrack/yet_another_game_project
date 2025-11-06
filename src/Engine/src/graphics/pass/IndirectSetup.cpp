@@ -106,23 +106,23 @@ using BufferView = registry::resource::buffer::BindView;
 
     return barrier;
 }
-[[nodiscard]] std::tuple<VkDependencyInfo, std::array<VkBufferMemoryBarrier2, 3>>
-make_indirect_stage_barriers(FrameIndex frame, const descriptors::Indirect& indirect)
-{
-    std::array<VkBufferMemoryBarrier2, 3> barriers{};
-    barriers[0] = make_draw_args_barrier(frame, indirect);
-    barriers[1] = make_draw_variables_barrier(frame, indirect);
-    barriers[2] = make_instance_base_barrier(frame, indirect);
-
-    VkDependencyInfo info{};
-    info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-    info.pNext = nullptr;
-    info.dependencyFlags = VK_NO_FLAGS;
-    info.bufferMemoryBarrierCount = static_cast<std::uint32_t>(barriers.size());
-    info.pBufferMemoryBarriers = barriers.data();
-
-    return { info, barriers };
-}
+//[[nodiscard]] std::tuple<VkDependencyInfo, std::array<VkBufferMemoryBarrier2, 3>>
+//make_indirect_stage_barriers(FrameIndex frame, const descriptors::Indirect& indirect)
+//{
+//    std::array<VkBufferMemoryBarrier2, 3> barriers{};
+//    barriers[0] = make_draw_args_barrier(frame, indirect);
+//    barriers[1] = make_draw_variables_barrier(frame, indirect);
+//    barriers[2] = make_instance_base_barrier(frame, indirect);
+//
+//    VkDependencyInfo info{};
+//    info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+//    info.pNext = nullptr;
+//    info.dependencyFlags = VK_NO_FLAGS;
+//    info.bufferMemoryBarrierCount = static_cast<std::uint32_t>(barriers.size());
+//    info.pBufferMemoryBarriers = barriers.data();
+//
+//    return { info, barriers };
+//}
 void reset_draw_variables(vk::CommandBufferRef cmd, FrameIndex frame, const descriptors::Indirect& indirect)
 {
     BufferView view = indirect.view_draw_variables(frame);

@@ -72,10 +72,10 @@ protected:
     template<typename data_t>
     void write_to_buffer(std::span<const data_t> content)
     {
-        write_to_buffer_with_offset(content, 0);
+        write_to_buffer_at_offset(content, 0);
     }
     template<typename data_t>
-    void write_to_buffer_with_offset(std::span<const data_t> content, std::size_t offset)
+    void write_to_buffer_at_offset(std::span<const data_t> content, std::size_t offset)
     {
         ODIN_ASSERT(m_Buffer.pData != nullptr);
         std::byte* pData = static_cast<std::byte*>(m_Buffer.pData) + offset;

@@ -34,7 +34,7 @@ public:
     void write(std::span<const data_t> content, std::uint64_t frameID)
     {
         ODIN_ASSERT(content.size() * sizeof(data_t) <= m_PartitionSize);
-        Buffer<dervied_t>::template write_to_buffer_with_offset(content, offset(frameID));
+        Buffer<dervied_t>::template write_to_buffer_at_offset(content, offset(frameID));
     }
 private:
     VkDeviceSize m_PartitionSize;

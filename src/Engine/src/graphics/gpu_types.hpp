@@ -49,11 +49,12 @@ struct DrawVariables
     uint drawCount;
     uint instanceHead;    // prefix head for instances
 };
+#define MESH_DUMMY_SENTINEL -1
 struct InstanceInfo
 {
+    quat orientation;
     vec3 translation;
     float scale;
-    quat orientation;
     int meshID;
 };
 struct MeshInfo
