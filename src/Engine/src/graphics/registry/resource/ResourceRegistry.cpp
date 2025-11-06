@@ -12,7 +12,7 @@ ResourceRegistry::ResourceRegistry(vk::DeviceRef device,
                                    std::int32_t maxDraws,
                                    std::int32_t maxInstances)
     : m_pShaders{ shader::ShaderRegistry::make(device) }
-    , m_Buffers{ std::move(pAllocator), frameHandler, maxDraws, maxInstances }
+    , m_Buffers{ device, std::move(pAllocator), frameHandler, maxDraws, maxInstances }
     , m_pMutex{ std::make_unique<mutex_t>() }
 {}
 shader::ShaderHandle ResourceRegistry::shader(std::string_view filename)

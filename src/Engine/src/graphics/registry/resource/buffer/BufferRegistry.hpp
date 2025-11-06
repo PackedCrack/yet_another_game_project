@@ -7,6 +7,7 @@
 #include "DynamicBufferHandle.hpp"
 #include "../../../FrameHandler.hpp"
 #include "../../../vk/Allocator.hpp"
+#include "../../../vk/Device.hpp"
 #include "../../../vk/resource/DynamicStorageBuffer.hpp"
 #include "../../../vk/resource/DynamicUniformBuffer.hpp"
 #include "../../../vk/resource/IndexBuffer.hpp"
@@ -19,7 +20,8 @@ namespace odin::graphics::registry::resource::buffer
 class BufferRegistry
 {
 public:
-    BufferRegistry(const std::shared_ptr<vk::Allocator>& pAllocator,
+    BufferRegistry(vk::DeviceRef device,
+                   const std::shared_ptr<vk::Allocator>& pAllocator,
                    const FrameHandler& frameHandler,
                    std::int32_t maxDraws,
                    std::int32_t maxInstances);
@@ -30,7 +32,8 @@ public:
     [[nodiscard]] DynamicBufferHandle<vk::resource::DynamicStorageBuffer> get_dynamic_storage_buffer(std::string_view key) const;
     [[nodiscard]] DynamicBufferHandle<vk::resource::DynamicUniformBuffer> get_dynamic_uniform_buffer(std::string_view key) const;
 private:
-    void make_buffers(const std::shared_ptr<vk::Allocator>& pAllocator,
+    void make_buffers(vk::DeviceRef device,
+                      const std::shared_ptr<vk::Allocator>& pAllocator,
                       std::int32_t numFramesInFlight,
                       std::int32_t maxDraws,
                       std::int32_t maxInstances);
