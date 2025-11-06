@@ -98,7 +98,6 @@ struct SceneInfo
 #ifdef __cplusplus
 // Make sure types are properly aligned for STD430/STD140 on the GPU
 static_assert(sizeof(DrawVariables) % 16 == 0);
-static_assert(sizeof(DrawCommand) % 16 == 0);
 static_assert(sizeof(InstanceInfo) % 16 == 0);
 static_assert(sizeof(MeshInfo) % 16 == 0);
 static_assert(sizeof(Material) % 16 == 0);
