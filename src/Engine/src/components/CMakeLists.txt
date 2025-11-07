@@ -5,6 +5,8 @@ SET(SOURCES
 	Parent.hpp
 	Model.hpp
 	Model.cpp
+	DirtyFlag.hpp
+	Children.hpp
 )
 
 set(EXPORT_HEADERS
@@ -13,6 +15,8 @@ set(EXPORT_HEADERS
 	Mesh.hpp
 	Parent.hpp
 	Model.hpp
+	DirtyFlag.hpp
+	Children.hpp
 )
 
 target_sources(${ENGINE_TARGET} PRIVATE ${SOURCES})
