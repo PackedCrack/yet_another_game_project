@@ -75,6 +75,7 @@ void submit(QueueView queue,
         std::uint64_t waitValue = transferEpoch->waitValue;
         waitSemaphores.push_back(submit_info_timeline_semaphore(transferSem,
                                                                 waitValue,
+                                                                VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
                                                                 VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT,
                                                                 VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT,
                                                                 VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT));

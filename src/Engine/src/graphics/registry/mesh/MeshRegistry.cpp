@@ -158,11 +158,11 @@ void MeshRegistry::touch(const asl::ModelHandle& handle)
         mesh.lastUsed++;
     }
 }
-void MeshRegistry::register_model(TransferManager& transferManager,
-                                  const resource::ResourceRegistry& registry,
-                                  vk::QueueView graphicsQ,
-                                  const std::shared_ptr<vk::Allocator>& pAllocator,
-                                  const asl::ModelHandle& handle)
+const std::vector<MeshEntry>& MeshRegistry::register_model(TransferManager& transferManager,
+                                                           const resource::ResourceRegistry& registry,
+                                                           vk::QueueView graphicsQ,
+                                                           const std::shared_ptr<vk::Allocator>& pAllocator,
+                                                           const asl::ModelHandle& handle)
 {
     const vk::resource::VertexBuffer& vb = registry.vertex_buffer();
     const vk::resource::IndexBuffer& ib = registry.index_buffer();
@@ -210,6 +210,8 @@ void MeshRegistry::register_model(TransferManager& transferManager,
         }
     };
     pGraph->dfs(std::move(visitor));
+
+    return newEntries;
 }
 const std::vector<MeshEntry>& MeshRegistry::entries(const asl::ModelHandle& handle) const
 {

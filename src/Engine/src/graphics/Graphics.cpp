@@ -193,11 +193,28 @@ public:
 
         return static_cast<std::int32_t>(instanceInfos.size());
     }
-    void register_model(const asl::ModelHandle& handle)
+    std::vector<std::int32_t> register_model(const asl::ModelHandle& handle)
     {
         vk::QueueView graphicsQ = m_Context.queue_families().graphics();
         std::shared_ptr<vk::Allocator> pAllocator = m_Context.allocator();
-        m_MeshRegistry.register_model(m_TransferManager, m_ResourceRegistry, graphicsQ, pAllocator, handle);
+        const std::vector<registry::mesh::MeshEntry>& meshEntries =
+            m_MeshRegistry.register_model(m_TransferManager, m_ResourceRegistry, graphicsQ, pAllocator, handle);
+
+
+        // This is done to make sure MeshEntry does not leak across pimpl boundary
+        // And to make sure ECS is not required in Graphics
+        // There is probably a better way of doing this than copying the IDS..
+        std::vector<std::int32_t> ids{};
+        std::transform(std::begin(meshEntries),
+                       std::end(meshEntries),
+                       std::back_inserter(ids),
+                       [](const registry::mesh::MeshEntry& entry)
+                       {
+                           static_assert(std::convertible_to<registry::mesh::MeshID, std::int32_t>);
+                           return static_cast<std::int32_t>(entry.id);
+                       });
+
+        return ids;
     }
     // clang-format off
     bool is_registered(const asl::ModelHandle& handle) const 
@@ -205,21 +222,6 @@ public:
         return m_MeshRegistry.contains(handle); 
     }
     // clang-format on
-    std::vector<registry::mesh::MeshID> mesh_ids(const asl::ModelHandle& handle) const
-    {
-        // This is done to make sure MeshEntry does not leak across pimpl boundary
-        // And to make sure ECS is not required in Graphics
-        // There is probably a better way of doing this than copying the IDS..
-        const std::vector<registry::mesh::MeshEntry>& meshEntries = m_MeshRegistry.entries(handle);
-        std::vector<registry::mesh::MeshID> ids{};
-
-        std::transform(std::begin(meshEntries),
-                       std::end(meshEntries),
-                       std::back_inserter(ids),
-                       [](const registry::mesh::MeshEntry& entry) { return entry.id; });
-
-        return ids;
-    }
 private:
     VulkanContext m_Context;
     FrameHandler m_FrameHandler;
@@ -243,16 +245,12 @@ void Graphics::draw(std::span<const InstanceInfo> instanceInfos)
 {
     m_pImpl->draw(instanceInfos);
 }
-void Graphics::register_model(const asl::ModelHandle& handle)
+std::vector<std::int32_t> Graphics::register_model(const asl::ModelHandle& handle)
 {
-    m_pImpl->register_model(handle);
+    return m_pImpl->register_model(handle);
 }
 bool Graphics::is_registered(const asl::ModelHandle& handle) const
 {
     return m_pImpl->is_registered(handle);
-}
-std::vector<registry::mesh::MeshID> Graphics::mesh_ids(const asl::ModelHandle& handle) const
-{
-    return m_pImpl->mesh_ids(handle);
 }
 }    // namespace odin::graphics

@@ -39,11 +39,11 @@ public:
     MeshRegistry(const resource::ResourceRegistry& registry);
 public:
     void touch(const asl::ModelHandle& handle);
-    void register_model(TransferManager& transferManager,
-                        const resource::ResourceRegistry& registry,
-                        vk::QueueView graphicsQ,
-                        const std::shared_ptr<vk::Allocator>& pAllocator,
-                        const asl::ModelHandle& handle);
+    [[nodiscard]] const std::vector<MeshEntry>& register_model(TransferManager& transferManager,
+                                                               const resource::ResourceRegistry& registry,
+                                                               vk::QueueView graphicsQ,
+                                                               const std::shared_ptr<vk::Allocator>& pAllocator,
+                                                               const asl::ModelHandle& handle);
     [[nodiscard]] const std::vector<MeshEntry>& entries(const asl::ModelHandle& handle) const;
     [[nodiscard]] bool contains(const asl::ModelHandle& handle) const;
 private:

@@ -35,13 +35,22 @@ vec3 rotate(vec4 quat, vec3 pos)
 
 void main() 
 {
-    uint instanceID = instanceIndex[gl_BaseInstanceARB + gl_InstanceIndex];
+    //uint instanceID = instanceIndex[gl_BaseInstanceARB + gl_InstanceIndex];   // gl_BaseInstanceARB + gl_InstanceIndex - Gives the wrong index
+    //uint instanceID = instanceIndex[gl_DrawIDARB];  // Works - but probably not for instancing
+    uint instanceID = instanceIndex[gl_InstanceIndex];  // Works
     InstanceInfo instance = instances[instanceID];
 
     vec4 orientation = normalize(instance.orientation);
-    vec3 pos = rotate(orientation, in_Position * instance.scale) + instance.translation;;
+    vec3 pos = rotate(orientation, in_Position * instance.scale) + instance.translation;
     vec3 normals = normalize(rotate(orientation, in_Normal));
     
-    out_Normal = normals;
+    //if (instance.meshID == 1)
+    //{
+    //    pos.x = pos.x + 100.0;
+    //}
+
+    //out_Normal = normals;
+    out_Normal = vec3(float(instanceID) / 2.0);
     gl_Position = camera.viewproj * vec4(pos.x, pos.y, pos.z - 50.0, 1.0);
 }
+

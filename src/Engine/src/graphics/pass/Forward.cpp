@@ -86,6 +86,8 @@ void set_dynamic_state(vk::CommandBufferRef cmd, const ColorAttachment& colorAtt
 
     // No depth pre pass yet
     vkCmdSetDepthTestEnable(cmd.handle, VK_FALSE);
+    //vkCmdSetDepthWriteEnable(cmd.handle, VK_FALSE);
+    //vkCmdSetDepthCompareOp(cmd.handle, VK_COMPARE_OP_LESS);
     vkCmdSetStencilTestEnable(cmd.handle, VK_FALSE);
 
     VkBool32 enable = VK_FALSE;
