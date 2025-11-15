@@ -20,6 +20,8 @@ int main()
 {
     try
     {
+        // add db path to odininfo
+        // Thenh give that oath to engine constructor, and the to AssetRegister
         odin::WindowInfo wndInfo{ .resolution = odin::window::HDPlus{}, .borderless = false, .fullscreen = false, .mouseGrab = false };
         odin::OdinInfo info{ .applicationName = "Odin Application", .windowInfo = std::move(wndInfo) };
         odin::Odin engine{ info };

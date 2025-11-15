@@ -2,19 +2,39 @@
 // Created by qwerty on 24/07/2025.
 //
 #include "AssetRegistry.hpp"
-
 #include "SceneGraph.hpp"
 //
 //
+
+#include <iostream>
+#include <filesystem>
 namespace asl
 {
-AssetRegistry::AssetRegistry()
+std::unordered_map<UUID, std::filesystem::path, UUIDHasher> make_asset_map(const std::filesystem::path& path)
+{
+    std::unordered_map<UUID, std::filesystem::path, UUIDHasher> tmpAssetMap{};
+    //std::ifstream file(pat.string());
+    // Check error
+    // process file
+    //std::string line{};
+    //while (std::getline(file, line))
+    //{
+    //  Retreive UUID entry
+    //  Convert to byte hex array
+    //  Retrieve filepath
+    //  insert into hashmap
+    //}
+    return tmpAssetMap;
+}
+AssetRegistry::AssetRegistry(const std::filesystem::path& path)
     : m_SceneGraphs{}
+    , m_AssetMap{ std::move(make_asset_map(path)) }
     , m_pMutex{ std::make_unique<mutex_t>() }
 {}
 void AssetRegistry::reload(const std::filesystem::path& filepath)
 {
     std::shared_ptr<ModelSlot> pSlot = slot(filepath);
+
     auto pNew = std::make_shared<SceneGraph>(filepath);
     std::atomic_store(std::addressof(pSlot->pGraph), std::move(pNew));
 }

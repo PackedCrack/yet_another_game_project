@@ -16,14 +16,19 @@ SET(SOURCES
         ModelHandle.hpp
         ModelHandle.cpp
         asl_defines.hpp
-	common_types.hpp
+	    common_types.hpp
+        UUID.hpp
+        UUID.cpp
+        UUIDDefines.hpp
 )
 
 set(EXPORT_HEADERS
 	common_types.hpp
-        AssetRegistry.hpp
-        ModelHandle.hpp
+    AssetRegistry.hpp
+    ModelHandle.hpp
 	SceneGraph.hpp
+    UUID.hpp
+    UUIDDefines.hpp # TODO move to who sohuld have this :)
 )
 
 target_sources(${ASSET_LOADER_PROJECT} PRIVATE ${SOURCES})

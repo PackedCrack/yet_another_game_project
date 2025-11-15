@@ -28,10 +28,6 @@ target_compile_definitions(${ASSET_LOADER_PROJECT} PRIVATE LOG_DIRECTORY="/logs/
 
 include_glm(${ASSET_LOADER_PROJECT} "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
-file(REMOVE_RECURSE "${CMAKE_CURRENT_SOURCE_DIR}/external/spdlog")
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/spdlog")
-file(COPY "${PROJECT_SOURCE_DIR}/external/spdlog/include/spdlog" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/external")
-
 file(REMOVE_RECURSE "${CMAKE_CURRENT_SOURCE_DIR}/external/tinygltf")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/tinygltf")
 file(COPY "${PROJECT_SOURCE_DIR}/external/tinygltf/json.hpp" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/external/tinygltf")
@@ -43,3 +39,13 @@ file(COPY "${PROJECT_SOURCE_DIR}/external/tinygltf/tiny_gltf.h" DESTINATION "${C
 add_dependencies(${ASSET_LOADER_PROJECT} ${DEBUGGING_PROJECT})
 target_link_libraries(${ASSET_LOADER_PROJECT} PRIVATE ${DEBUGGING_PROJECT})
 target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
+
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_custom_command(
+    TARGET ${ASSET_LOADER_PROJECT}
+    PRE_BUILD   # run before compiling sources so we can add the generated HPP file.
+    COMMAND ${CMAKE_COMMAND} -E echo "Running asset-check.py script- ${ASSET_LOADER_PROJECT}"
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/asset-check.py
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    VERBATIM
+)
