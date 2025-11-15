@@ -3,6 +3,7 @@
 //
 // AssetLoader
 #include <assetloader/ModelHandle.hpp>
+#include <assetloader/UUIDDefines.hpp>
 // Enginge
 #include <engine/Odin.hpp>
 #include <engine/components/Model.hpp>
@@ -20,16 +21,13 @@ int main()
 {
     try
     {
-        // add db path to odininfo
-        // Thenh give that oath to engine constructor, and the to AssetRegister
         odin::WindowInfo wndInfo{ .resolution = odin::window::HDPlus{}, .borderless = false, .fullscreen = false, .mouseGrab = false };
         odin::OdinInfo info{ .applicationName = "Odin Application", .windowInfo = std::move(wndInfo) };
         odin::Odin engine{ info };
 
         std::unique_ptr<odin::ECS> ecs = engine.make_ecs();
         odin::Entity e = ecs->make_entity();
-        std::filesystem::path filepath{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
-        e.emplace<odin::component::Model>(filepath);
+        e.emplace<odin::component::Model>(asl::Models::Lantern);
 
 
         while (engine.running())

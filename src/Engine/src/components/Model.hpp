@@ -9,14 +9,15 @@
 #include <vector>
 // assetloader
 #include <assetloader/ModelHandle.hpp>
+#include <assetloader/UUID.hpp>
 //
 //
 namespace odin::component
 {
 struct Model
 {
-    Model(std::filesystem::path path);
-    std::filesystem::path filepath;
+    Model(asl::UUID uuid);
+    asl::UUID uuid;
     asl::ModelHandle handle;
     std::vector<Entity> submeshes;
 };

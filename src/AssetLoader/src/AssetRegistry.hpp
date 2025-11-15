@@ -22,17 +22,14 @@ class AssetRegistry
 public:
     AssetRegistry(const std::filesystem::path& path);
 public:
-    void reload(const std::filesystem::path& filepath);
-    [[nodiscard]] ModelHandle model_handle(const std::filesystem::path& filepath);
+    void reload(const UUID& uuid);
+    [[nodiscard]] ModelHandle model_handle(const UUID& uuid);
+    [[nodiscard]] std::filesystem::path& uuid_to_path(const UUID& uuid);
 private:
-    [[nodiscard]] std::shared_ptr<ModelSlot> slot(const std::filesystem::path& filepath);
+    [[nodiscard]] std::shared_ptr<ModelSlot> slot(const UUID& uuid);
 private:
     Registry m_SceneGraphs;
     AssetMap m_AssetMap;
     Mutex m_pMutex;
-
-    // hashmap tha stores uuid:filepath
-    // then in model_handle that calls slot() that retrieves filepath and try and emplace into SceneGraph
-    // lägg till kod i reload och model_handle
 };
 }    // namespace asl

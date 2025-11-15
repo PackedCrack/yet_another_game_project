@@ -1,5 +1,9 @@
 #pragma once
 #include <array>
+#include <string>
+//
+//
+
 namespace asl
 {
 class UUID
@@ -8,6 +12,7 @@ public:
     constexpr UUID(const std::array<std::uint8_t, 16>& bytes)
         : m_Bytes{ bytes }
     {}
+    UUID(const std::string& uuid);
     ~UUID() = default;
     UUID(const UUID& other) = default;
     UUID& operator=(const UUID& other) = default;

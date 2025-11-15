@@ -131,7 +131,7 @@ def build_cpp_code(fileType: str) -> list[str]:
                 assetName = move_numbers_to_end(assetName)
             #uuidAsByteArray = ", ".join(str(byte) for byte in uuid.UUID(UUID).bytes)
             uuidAsHexArray = ", ".join(f"0x{byte:02x}" for byte in uuid.UUID(UUID).bytes)
-            content.append(f"\tstatic constexpr UUID {assetName} {{std::array<std::uint8_t, 16>{{{uuidAsHexArray}}} }};")
+            content.append(f"\tstatic constexpr UUID {assetName} {{std::array<std::uint8_t, 16> {{{uuidAsHexArray}}} }};")
     return content
 
 def generate_hpp() -> list[str]:

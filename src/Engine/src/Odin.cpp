@@ -82,7 +82,7 @@ class Odin::Impl
 public:
     Impl(OdinInfo info)
         : m_State{ State::end }
-        , m_Assets{}
+        , m_Assets{ R"(C:\repositories\cpp\yet_another_game_project\resources\assets\asset-db.txt)" }    //TODO dont use hardcoded string.
         , m_Wnd{ info.applicationName, info.windowInfo }
         , m_Gfx{ info, m_Wnd }
         , m_ECS{ std::nullopt }
@@ -181,7 +181,7 @@ private:
         {
             if (!model.handle)
             {
-                model.handle = m_Assets.model_handle(model.filepath);
+                model.handle = m_Assets.model_handle(model.uuid);
             }
 
             const asl::ModelHandle& handle = model.handle;
