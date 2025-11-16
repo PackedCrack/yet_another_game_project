@@ -1,7 +1,6 @@
 SET(SOURCES
 	LocalTRS.hpp
 	WorldTRS.hpp
-	Mesh.hpp
 	Geometry.hpp
 	Parent.hpp
 	Model.hpp
@@ -13,7 +12,6 @@ SET(SOURCES
 set(EXPORT_HEADERS
 	LocalTRS.hpp
 	WorldTRS.hpp
-	Mesh.hpp
 	Geometry.hpp
 	Parent.hpp
 	Model.hpp

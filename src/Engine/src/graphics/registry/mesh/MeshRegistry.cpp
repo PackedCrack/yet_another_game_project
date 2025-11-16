@@ -26,17 +26,6 @@ using BufferRef = odin::graphics::vk::resource::BufferRef;
 using StagingBuffer = odin::graphics::vk::resource::StagingBuffer;
 //
 //
-//template<typename buffer_t>
-//requires std::ranges::contiguous_range<buffer_t>
-//[[nodiscard]] std::unique_ptr<StagingBuffer> to_staging_buffer(const std::shared_ptr<Allocator>& pAllocator, buffer_t&& data)
-//{
-//    using element_t = typename std::remove_cvref_t<buffer_t>::value_type;
-//
-//    auto pStaging = std::make_unique<StagingBuffer>(pAllocator->create_staging_buffer(data.size(), sizeof(element_t)));
-//    pStaging->write(std::forward<buffer_t>(data));
-//
-//    return pStaging;
-//}
 template<typename buffer_t>
 requires std::ranges::contiguous_range<buffer_t>
 void upload_to_gpu(TransferManager& transferManager,
@@ -203,10 +192,6 @@ const std::vector<MeshEntry>& MeshRegistry::register_model(TransferManager& tran
 
                 newEntries.push_back(std::move(entry));
             }
-        }
-        else
-        {
-            newEntries.push_back(make_dummy_entry());
         }
     };
     pGraph->dfs(std::move(visitor));

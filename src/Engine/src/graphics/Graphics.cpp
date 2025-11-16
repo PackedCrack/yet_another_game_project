@@ -3,7 +3,6 @@
 //
 #include "Graphics.hpp"
 
-#include "../components/Mesh.hpp"
 #include "FrameHandler.hpp"
 #include "Presenter.hpp"
 #include "Renderer.hpp"
