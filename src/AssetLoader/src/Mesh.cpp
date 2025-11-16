@@ -377,12 +377,10 @@ std::optional<Mesh> make_mesh(const tinygltf::Model& model, const tinygltf::Node
     // TODO: weights goes here
     // gltfMesh.weights;
 
-    // TODO: GLTF provides an optional name identifier for meshes.
-    // We should enforce this, so it can be used to identify specific branches of a scenegraph. E.g. an arm
-    // This would make it possible to remove specific sub trees of entities for dismemberment
-    // gltfMesh.name
-
     std::optional<Mesh> mesh{ std::in_place, Mesh{} };
+    // Enforce that each mesh has a name to identify it with
+    ODIN_ASSERT(!gltfMesh.name.empty());
+    mesh->name = gltfMesh.name;
     std::vector<Renderable>& renderables = mesh->renderables;
 
     const std::vector<tinygltf::Primitive>& primitives = gltfMesh.primitives;
@@ -427,6 +425,7 @@ std::optional<Mesh> make_mesh(const tinygltf::Model& model, const tinygltf::Node
 MeshView Mesh::view() const
 {
     MeshView meshView{};
+    meshView.name = name;
 
     for (auto&& renderable : renderables)
     {
