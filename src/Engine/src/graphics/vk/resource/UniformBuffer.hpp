@@ -16,7 +16,7 @@ public:
     template<typename data_t>
     void write(std::span<const data_t> content)
     {
-        write_to_buffer(content);
+        write_to_buffer<data_t>(content);
     }
 };
 }    // namespace odin::graphics::vk::resource

@@ -19,6 +19,7 @@ struct BufferTransfer
     std::unique_ptr<vk::resource::StagingBuffer> pSrcBuffer;
     vk::resource::BufferRef dstBuffer;
     VkDeviceSize dstOffset;
+    // Size in bytes
     VkDeviceSize size;
 };
 struct ImageTransfer
@@ -44,7 +45,7 @@ public:
     void enqueue_buffer_transfer(BufferTransfer params);
     void enqueue_image_transfer(ImageTransfer params);
     void record_buffer_acquisition(vk::QueueView newOwner, vk::CommandBufferRef commandBuffer) const;
-    void submit_transfer(vk::CommandBuffer& commandBuffer);
+    void submit_transfers(vk::CommandBuffer& commandBuffer);
     [[nodiscard]] std::optional<TransferEpoch> epoch() const;
 private:
     void record_buffer_releases(vk::CommandBufferRef commandBuffer, const std::vector<BufferTransfer>& transfers);

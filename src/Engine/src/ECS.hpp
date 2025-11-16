@@ -6,14 +6,14 @@
 #include "Entity.hpp"
 //
 //
-namespace odin
+namespace odin::details
 {
 //
 //
 class ECS
 {
 public:
-    using underlying_registry_t = Entity::underlying_registry_t;
+    using underlying_registry_t = entt::registry;
 public:
     template<typename... component_t, typename buffer_t, typename invocable_t>
     requires std::ranges::contiguous_range<buffer_t> && std::invocable<invocable_t, Entity, component_t&...>
@@ -34,7 +34,7 @@ public:
         auto view = m_Registry.template view<component_t...>();
         for (auto e : view)
         {
-            Entity entity{ e, std::addressof(m_Registry) };
+            Entity entity{ e };
             std::invoke(std::forward<invocable_t>(action), entity, view.template get<component_t>(e)...);
         }
     }
@@ -44,12 +44,41 @@ public:
         m_Registry.ctx().emplace<state_t>();
     }
     template<typename state_t>
-    state_t& global_state()
+    [[nodiscard]] state_t& global_state()
     {
         return m_Registry.ctx().get<state_t>();
     }
     [[nodiscard]] Entity make_entity();
+    template<typename... component_t>
+    [[nodiscard]] decltype(auto) get(Entity e)
+    {
+        return m_Registry.template get<component_t...>(e.to_underlying());
+    }
+    template<typename component_t, typename... component_arg_t>
+    component_t& emplace(Entity entity, component_arg_t&&... args)
+    {
+        return m_Registry.emplace<component_t>(entity.to_underlying(), std::forward<component_arg_t>(args)...);
+    }
 private:
     underlying_registry_t m_Registry;
 };
+[[nodiscard]] ECS& get_ecs();
+}    // namespace odin::details
+//
+//
+namespace odin
+{
+template<typename component_t, typename... component_arg_t>
+component_t& emplace_component(Entity entity, component_arg_t&&... args)
+{
+    details::ECS& ecs = details::get_ecs();
+    return ecs.emplace<component_t>(entity, std::forward<component_arg_t>(args)...);
+}
+template<typename... component_t>
+[[nodiscard]] decltype(auto) get_components(Entity e)
+{
+    details::ECS& ecs = details::get_ecs();
+    return ecs.get<component_t...>(e);
+}
+[[nodiscard]] Entity make_entity();
 }    // namespace odin

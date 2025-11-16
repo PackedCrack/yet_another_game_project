@@ -1,12 +1,16 @@
+//
+// Created by qwerty on 17/08/2025.
+//
 #include "Renderer.hpp"
 
 #include "gpu_types.hpp"
 #include "vk/vulkan_defines.hpp"
+#include "vk/resource/IndexBuffer.hpp"
+#include "vk/resource/VertexBuffer.hpp"
 //
 //
 namespace
 {
-using RenderResources = odin::graphics::RenderResources;
 using TransferEpoch = odin::graphics::TransferEpoch;
 using Allocator = odin::graphics::vk::Allocator;
 using CommandBuffer = odin::graphics::vk::CommandBuffer;
@@ -26,10 +30,11 @@ VkSemaphoreSubmitInfo submit_info_semaphore(VkSemaphore semaphore, std::uint64_t
                                   .stageMask = flags,
                                   .deviceIndex = 0 };
 }
+// clang-format off
 template<typename... stage_mask_t>
 requires(std::same_as<VkPipelineStageFlags2, std::remove_cvref_t<stage_mask_t>> && ...)
-[[nodiscard]] VkSemaphoreSubmitInfo
-submit_info_timeline_semaphore(TimelineSemaphoreRef semaphore, std::uint64_t value, stage_mask_t&&... masks)
+[[nodiscard]] 
+VkSemaphoreSubmitInfo submit_info_timeline_semaphore(TimelineSemaphoreRef semaphore, std::uint64_t value, stage_mask_t&&... masks)
 {
     static_assert((sizeof(masks) + ...) > 0);
 
@@ -38,12 +43,13 @@ submit_info_timeline_semaphore(TimelineSemaphoreRef semaphore, std::uint64_t val
 }
 template<typename... stage_mask_t>
 requires(std::same_as<VkPipelineStageFlags2, std::remove_cvref_t<stage_mask_t>> && ...)
-[[nodiscard]] VkSemaphoreSubmitInfo
-submit_info_binary_semaphore(SemaphoreRef semaphore, VkPipelineStageFlags2 mask, stage_mask_t&&... masks)
+[[nodiscard]] 
+VkSemaphoreSubmitInfo submit_info_binary_semaphore(SemaphoreRef semaphore, VkPipelineStageFlags2 mask, stage_mask_t&&... masks)
 {
     VkPipelineStageFlags2 flags = (mask | ... | masks);
     return submit_info_semaphore(semaphore.handle, 0, flags);
 }
+// clang-format on
 VkCommandBufferSubmitInfo submit_info_cmd_buffer(CommandBufferRef cmdBuffer)
 {
     return VkCommandBufferSubmitInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
@@ -67,7 +73,12 @@ void submit(QueueView queue,
     {
         TimelineSemaphoreRef transferSem = transferEpoch->semaphore;
         std::uint64_t waitValue = transferEpoch->waitValue;
-        waitSemaphores.push_back(submit_info_timeline_semaphore(transferSem, waitValue, VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT));
+        waitSemaphores.push_back(submit_info_timeline_semaphore(transferSem,
+                                                                waitValue,
+                                                                VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                                                                VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT,
+                                                                VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT,
+                                                                VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT));
     }
     VkSemaphoreSubmitInfo colorAttachReadyInfo =
         submit_info_binary_semaphore(colorAttachmentReady, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT);
@@ -87,26 +98,26 @@ void submit(QueueView queue,
 
     VK_CHECK(vkQueueSubmit2(queue.handle, 1, std::addressof(submitInfo), inFlight.handle), "Failed to submit to Graphics Queue!");
 }
-[[nodiscard]] RenderResources make_render_resources(const std::shared_ptr<Allocator>& pAllocator)
-{
-    static constexpr std::uint64_t vertexCapacity = 512 * 128 * 128;    // Aproximately 8,3 million vertices
-    static constexpr std::uint64_t indexCapacity = 512 * 128 * 128;     // Aproximately 8,3 million indices
-    static constexpr std::uint64_t meshTableSize = 15000 * sizeof(odin::graphics::MeshInfo);
-
-    return RenderResources{ .meshTable = pAllocator->create_storage_buffer(meshTableSize),
-                            .indexBuffer = pAllocator->create_index_buffer(indexCapacity),
-                            .vertexBuffer = pAllocator->create_vertex_buffer(vertexCapacity) };
-}
 }    // namespace
 namespace odin::graphics
 {
-Renderer::Renderer(const std::shared_ptr<vk::Allocator>& pAllocator)
-    : m_RenderResources{ make_render_resources(pAllocator) }
+Renderer::Renderer(vk::DeviceRef device,
+                   const Presenter& presenter,
+                   registry::resource::ResourceRegistry& resourceRegistry,
+                   registry::pipeline::PipelineRegistry& pipelineRegistry)
+    : m_Global{ device, resourceRegistry, pipelineRegistry }
+    , m_Indirect{ device, resourceRegistry, pipelineRegistry }
+    , m_Forward{ presenter, pipelineRegistry, resourceRegistry }
+    , m_FrustumCull{ pipelineRegistry, resourceRegistry }
+    , m_IndirectSetup{ pipelineRegistry, resourceRegistry }
+    , m_InstanceCompaction{ pipelineRegistry, resourceRegistry }
 {}
 void Renderer::render_frame(const ColorAttachment& colorAttachment,
                             vk::QueueView graphicsQ,
                             const FrameContext& frameContext,
-                            const TransferManager& transferManager)
+                            const TransferManager& transferManager,
+                            registry::resource::ResourceRegistry& resourceRegistry,
+                            std::int32_t instanceCount)
 {
     vk::CommandBuffer& gfxCmdBuffer = frameContext.graphicsBuffer.get();
     // Reset cmdBuffer and prepare it for commands
@@ -116,55 +127,23 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     // Acquire Transfer buffers
     transferManager.record_buffer_acquisition(graphicsQ, gfxCmdBuffer.handle());
 
-    // Bind Global buffers
-
-    // Bind descriptors
-
-    // Bind pipelines
-    //m_Pipeline.bind(cmdBuffer.handle());
+    // Bind Geometry buffers
+    vk::CommandBufferRef cb = gfxCmdBuffer.handle();
+    bind_vertex_buffer(cb, resourceRegistry);
+    bind_index_buffer(cb, resourceRegistry);
 
 
-    // Should be handled by the forward pass?
-    VkImageMemoryBarrier2 renderBarrier = colorAttachment.barrier_to_render();
-    const VkDependencyInfo dep{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                                .pNext = nullptr,
-                                .dependencyFlags = 0,
-                                .memoryBarrierCount = 0,
-                                .pMemoryBarriers = nullptr,
-                                .bufferMemoryBarrierCount = 0,
-                                .pBufferMemoryBarriers = nullptr,
-                                .imageMemoryBarrierCount = 1,
-                                .pImageMemoryBarriers = std::addressof(renderBarrier) };
-    vkCmdPipelineBarrier2(gfxCmdBuffer.handle().handle, std::addressof(dep));
+    // execute all passes - todo render graph in the future
+    m_FrustumCull.execute(frameContext, m_Global, m_Indirect, instanceCount);
+
+    m_IndirectSetup.execute(frameContext, m_Global, m_Indirect, 3);
+
+    m_InstanceCompaction.execute(frameContext, m_Global, m_Indirect, instanceCount);
+
+    m_Forward.execute(frameContext, colorAttachment, m_Global, m_Indirect, resourceRegistry);
 
 
-    // Dynamic rendering
-    vk::resource::ImageViewRef colorView = colorAttachment.view();
-    VkRenderingAttachmentInfo colorAtt{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-                                        .pNext = nullptr,
-                                        .imageView = colorView.handle,
-                                        .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                        .resolveMode = VK_RESOLVE_MODE_NONE,
-                                        .resolveImageView = VK_NULL_HANDLE,
-                                        .resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,    // or LOAD if you preserved previous
-                                        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                        .clearValue = { .color = { { 1.0f, 0.0f, 1.0f, 1.0f } } } };
-    VkRenderingInfo ri{
-        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .renderArea = { { 0, 0 }, colorAttachment.extent() },
-        .layerCount = 1,
-        .viewMask = 0,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAtt,
-        .pDepthAttachment = nullptr,
-        .pStencilAttachment = nullptr
-    };
-    vkCmdBeginRendering(gfxCmdBuffer.handle().handle, std::addressof(ri));
-    vkCmdEndRendering(gfxCmdBuffer.handle().handle);
-
+    // Should present be its own pass?
     VkImageMemoryBarrier2 presentBarrier = colorAttachment.barrier_to_present();
     const VkDependencyInfo dep2{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
                                  .pNext = nullptr,
@@ -186,8 +165,29 @@ void Renderer::render_frame(const ColorAttachment& colorAttachment,
     std::optional<TransferEpoch> transferEpoch = transferManager.epoch();
     submit(graphicsQ, gfxCmdBuffer, frameContext.colorAttachmentReady, frameContext.graphicsFinished, frameContext.inFlight, transferEpoch);
 }
-const RenderResources& Renderer::render_resources() const
+void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb, const registry::resource::ResourceRegistry& resourceRegistry) const
 {
-    return m_RenderResources;
+    using namespace vk::resource;
+
+    const VertexBuffer& vb = resourceRegistry.vertex_buffer();
+    BufferRef vbRef = vb.handle();
+    VkDeviceSize offset = 0;
+    VkDeviceSize size = vb.byte_capacity();
+    VkDeviceSize stride = sizeof(VertexBuffer::vertex_t);
+    vkCmdBindVertexBuffers2(cb.handle,
+                            0,
+                            1,
+                            std::addressof(vbRef.handle),
+                            std::addressof(offset),
+                            std::addressof(size),
+                            std::addressof(stride));
+}
+void Renderer::bind_index_buffer(vk::CommandBufferRef cb, const registry::resource::ResourceRegistry& resourceRegistry) const
+{
+    using namespace vk::resource;
+
+    const IndexBuffer& ib = resourceRegistry.index_buffer();
+    BufferRef ibRef = ib.handle();
+    vkCmdBindIndexBuffer2(cb.handle, ibRef.handle, 0, VK_WHOLE_SIZE, VK_INDEX_TYPE_UINT16);
 }
 }    // namespace odin::graphics

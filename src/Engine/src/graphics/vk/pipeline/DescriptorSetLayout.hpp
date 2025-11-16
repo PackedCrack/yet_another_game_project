@@ -15,7 +15,7 @@ struct DescriptorSetLayoutRef
 class DescriptorSetLayout
 {
 public:
-    DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& createInfo);
+    DescriptorSetLayout(DeviceRef device, const VkDescriptorSetLayoutCreateInfo& info);
     ~DescriptorSetLayout();
     DescriptorSetLayout(const DescriptorSetLayout& other) = delete;
     DescriptorSetLayout(DescriptorSetLayout&& other) noexcept;
@@ -23,8 +23,10 @@ public:
     DescriptorSetLayout& operator=(DescriptorSetLayout&& other) noexcept;
 public:
     [[nodiscard]] DescriptorSetLayoutRef handle() const;
+    [[nodiscard]] bool requires_update_after_bind() const;
 private:
     VkDescriptorSetLayout m_DescriptorSetLayout = VK_NULL_HANDLE;
     DeviceRef m_Device;
+    bool m_UpdateAfterBind;
 };
 }    // namespace odin::graphics::vk::pipeline

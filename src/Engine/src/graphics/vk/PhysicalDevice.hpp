@@ -18,21 +18,20 @@ struct PhysicalDeviceRef
 class PhysicalDevice
 {
 public:
+    [[nodiscard]] static const PhysicalDeviceProperties& properties();
+    [[nodiscard]] static const PhysicalDeviceFeatures& features();
+public:
     PhysicalDevice(const Instance& instance, const Surface& surface);
     ~PhysicalDevice() = default;
     PhysicalDevice(const PhysicalDevice& other);
     PhysicalDevice(PhysicalDevice&& other) noexcept;
     PhysicalDevice& operator=(const PhysicalDevice& other);
     PhysicalDevice& operator=(PhysicalDevice&& other) noexcept;
-
+public:
     [[nodiscard]] PhysicalDeviceRef handle() const;
-    [[nodiscard]] const PhysicalDeviceProperties& properties() const;
-    [[nodiscard]] const PhysicalDeviceFeatures& features() const;
     [[nodiscard]] const std::vector<VkQueueFamilyProperties>& queue_families_properties() const;
 private:
     VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
-    PhysicalDeviceProperties m_Properties;
-    PhysicalDeviceFeatures m_Features;
     std::vector<VkQueueFamilyProperties> m_QueueProperties;
 };
 }    // namespace odin::graphics::vk

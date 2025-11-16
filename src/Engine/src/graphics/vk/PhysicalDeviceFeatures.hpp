@@ -21,6 +21,7 @@ public:
 public:
     [[nodiscard]] VkBool32 timeline_semaphore() const;
     [[nodiscard]] VkBool32 descriptor_binding_partially_bound() const;
+    [[nodiscard]] VkBool32 descriptor_update_after_bind() const;
     [[nodiscard]] VkBool32 descriptor_indexing() const;
     [[nodiscard]] VkBool32 draw_indirect_count() const;
     [[nodiscard]] VkBool32 dynamic_rendering() const;

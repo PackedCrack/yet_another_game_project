@@ -6,9 +6,9 @@
 //
 namespace odin
 {
-Entity::Entity(Entity::underlying_t id, underlying_registry_t* pRegistry)
+Entity::Entity(Entity::underlying_t id /*, underlying_registry_t* pRegistry*/)
     : m_ID{ id }
-    , m_pRegistry{ pRegistry }
+//, m_pRegistry{ pRegistry }
 {}
 Entity::underlying_t Entity::to_underlying() const
 {

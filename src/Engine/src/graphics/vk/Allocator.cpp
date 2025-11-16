@@ -122,8 +122,6 @@ class Allocator::Impl
 public:
     Impl(const Instance& instance, const PhysicalDevice& gpu, const Device& device)
         : m_Allocator{ make_allocator(instance, gpu, device) }
-        , m_MinUniformAlignment{ gpu.properties().min_uniform_buffer_offset_alignment() }
-        , m_MinStorageAlignment{ gpu.properties().min_storage_buffer_offset_alignment() }
     {}
     ~Impl()
     {
@@ -135,8 +133,6 @@ public:
     Impl(const Impl& other) = delete;
     Impl(Impl&& other) noexcept
         : m_Allocator{ nullptr }
-        , m_MinUniformAlignment{ other.m_MinUniformAlignment }
-        , m_MinStorageAlignment{ other.m_MinStorageAlignment }
     {
         std::swap(m_Allocator, other.m_Allocator);
     }
@@ -146,8 +142,6 @@ public:
         if (this != std::addressof(other))
         {
             m_Allocator = std::exchange(other.m_Allocator, m_Allocator);
-            m_MinUniformAlignment = other.m_MinUniformAlignment;
-            m_MinStorageAlignment = other.m_MinStorageAlignment;
         }
         return *this;
     }
@@ -181,8 +175,38 @@ public:
         VmaAllocationCreateInfo allocInfo = uniform_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        return { make_allocated_buffer(handle, allocation, m_MinUniformAlignment, info, allocInfo),
-                 make_buffer_deleter(std::move(pAllocator)) };
+        VkDeviceSize minAlignment = PhysicalDevice::properties().min_uniform_buffer_offset_alignment();
+        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
+    }
+    resource::DynamicUniformBuffer create_dynamic_uniform_buffer(std::shared_ptr<Allocator> pAllocator,
+                                                                 VkBufferCreateInfo& info,
+                                                                 VkDeviceSize partitionSize,
+                                                                 std::uint64_t numPartitions)
+    {
+        VkDeviceSize realPartitionSize = make_uniform_aligned(partitionSize);
+        info.size = realPartitionSize * numPartitions;
+
+        VmaAllocationCreateInfo allocInfo = uniform_buffer_alloc_info();
+        auto [handle, allocation] = create_buffer(info, allocInfo);
+
+        VkDeviceSize minAlignment = PhysicalDevice::properties().min_uniform_buffer_offset_alignment();
+        resource::AllocatedBuffer buffer = make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo);
+        return { buffer, make_buffer_deleter(std::move(pAllocator)), realPartitionSize, numPartitions };
+    }
+    resource::DynamicStorageBuffer create_dynamic_storage_buffer(std::shared_ptr<Allocator> pAllocator,
+                                                                 VkBufferCreateInfo& info,
+                                                                 VkDeviceSize partitionSize,
+                                                                 std::uint64_t numPartitions)
+    {
+        VkDeviceSize realPartitionSize = make_storage_aligned(partitionSize);
+        info.size = realPartitionSize * numPartitions;
+
+        VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
+        auto [handle, allocation] = create_buffer(info, allocInfo);
+
+        VkDeviceSize minAlignment = PhysicalDevice::properties().min_storage_buffer_offset_alignment();
+        resource::AllocatedBuffer buffer = make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo);
+        return { buffer, make_buffer_deleter(std::move(pAllocator)), realPartitionSize, numPartitions };
     }
     resource::IndexBuffer create_index_buffer(std::shared_ptr<Allocator> pAllocator, const VkBufferCreateInfo& info)
     {
@@ -207,8 +231,8 @@ public:
         VmaAllocationCreateInfo allocInfo = storage_buffer_alloc_info();
         auto [handle, allocation] = create_buffer(info, allocInfo);
 
-        return { make_allocated_buffer(handle, allocation, m_MinStorageAlignment, info, allocInfo),
-                 make_buffer_deleter(std::move(pAllocator)) };
+        VkDeviceSize minAlignment = PhysicalDevice::properties().min_storage_buffer_offset_alignment();
+        return { make_allocated_buffer(handle, allocation, minAlignment, info, allocInfo), make_buffer_deleter(std::move(pAllocator)) };
     }
     void destroy_buffer(VkBuffer buffer, VmaAllocation allocation, const void* pData) const
     {
@@ -253,10 +277,24 @@ private:
         VK_CHECK(vmaMapMemory(m_Allocator, allocation, std::addressof(pData)), "Failed to obtain pointer to mapped memory.");
         return pData;
     }
+    VkDeviceSize make_aligned(VkDeviceSize size, VkDeviceSize alignment) const
+    {
+        // Black magic
+        // https://stackoverflow.com/questions/45213511/formula-for-memory-alignment
+        return ((size + (alignment - 1)) & ~(alignment - 1));
+    }
+    VkDeviceSize make_uniform_aligned(VkDeviceSize size) const
+    {
+        VkDeviceSize minAlignment = PhysicalDevice::properties().min_uniform_buffer_offset_alignment();
+        return make_aligned(size, minAlignment);
+    }
+    VkDeviceSize make_storage_aligned(VkDeviceSize size) const
+    {
+        VkDeviceSize minAlignment = PhysicalDevice::properties().min_storage_buffer_offset_alignment();
+        return make_aligned(size, minAlignment);
+    }
 private:
     VmaAllocator m_Allocator = nullptr;
-    VkDeviceSize m_MinUniformAlignment;
-    VkDeviceSize m_MinStorageAlignment;
 };
 //
 //
@@ -284,6 +322,20 @@ resource::UniformBuffer Allocator::create_uniform_buffer(const VkBufferCreateInf
 {
     return m_pImpl->create_uniform_buffer(shared_from_this(), info);
 }
+resource::DynamicUniformBuffer Allocator::create_dynamic_uniform_buffer(VkDeviceSize partitionSize, std::uint64_t numPartitions)
+{
+    VkBufferCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = VK_NO_FLAGS;
+    info.size = 0;
+    info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = nullptr;
+
+    return m_pImpl->create_dynamic_uniform_buffer(shared_from_this(), info, partitionSize, numPartitions);
+}
 resource::StorageBuffer Allocator::create_storage_buffer(VkDeviceSize size)
 {
     VkBufferCreateInfo info{};
@@ -296,6 +348,32 @@ resource::StorageBuffer Allocator::create_storage_buffer(VkDeviceSize size)
     info.queueFamilyIndexCount = 0;
     info.pQueueFamilyIndices = nullptr;
     return m_pImpl->create_storage_buffer(shared_from_this(), info);
+}
+resource::DynamicStorageBuffer Allocator::create_dynamic_storage_buffer(VkDeviceSize partitionSize,
+                                                                        std::uint64_t numPartitions,
+                                                                        bool transferDestination,
+                                                                        bool indirectDrawUsage)
+{
+    VkBufferCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = VK_NO_FLAGS;
+    info.size = 0;
+    info.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = nullptr;
+
+    if (transferDestination)
+    {
+        info.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    }
+    if (indirectDrawUsage)
+    {
+        info.usage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+    }
+
+    return m_pImpl->create_dynamic_storage_buffer(shared_from_this(), info, partitionSize, numPartitions);
 }
 resource::Image Allocator::create_image_attachment(const VkImageCreateInfo& info)
 {

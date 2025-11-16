@@ -69,13 +69,9 @@ FrameHandler::FrameHandler(vk::DeviceRef device, const vk::QueueView& graphics, 
 FrameContext FrameHandler::start_frame()
 {
     FrameIndex index = frame_index();
-    vk::synchronization::FenceRef frameFence = m_InFlight[index].handle();
-
-    wait_for_frame_in_flight(m_Device, frameFence);
-    ++m_Frame;
 
     return FrameContext{ .frame = index,
-                         .inFlight = frameFence,
+                         .inFlight = m_InFlight[index].handle(),
                          .colorAttachmentReady = m_ColorAttachmentReady[index].handle(),
                          .graphicsFinished = m_GraphicsFinished[index].handle(),
                          .graphicsBuffer = m_GraphicsBuffers[index],
@@ -89,5 +85,15 @@ std::uint32_t FrameHandler::in_flight_count() const
 FrameIndex FrameHandler::frame_index() const
 {
     return m_Frame % m_NumInFlight;
+}
+void FrameHandler::end_frame()
+{
+    ++m_Frame;
+}
+void FrameHandler::wait()
+{
+    FrameIndex index = frame_index();
+    vk::synchronization::FenceRef frameFence = m_InFlight[index].handle();
+    wait_for_frame_in_flight(m_Device, frameFence);
 }
 }    // namespace odin::graphics

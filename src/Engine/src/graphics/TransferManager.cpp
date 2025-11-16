@@ -67,6 +67,11 @@ void TransferManager::enqueue_buffer_transfer(vk::resource::BufferRef dst,
                                               const vk::QueueView& graphicsQ,
                                               const ArenaAllocation& allocation)
 {
+    ODIN_ASSERT(graphicsQ.handle != VK_NULL_HANDLE);
+    ODIN_ASSERT(dst.handle != VK_NULL_HANDLE);
+    ODIN_ASSERT(pStagingBuffer != nullptr);
+    ODIN_ASSERT(allocation.size() != 0);
+
     BufferTransfer params{};
     params.ownerQ = graphicsQ;
     params.dstBuffer = dst;
@@ -78,6 +83,11 @@ void TransferManager::enqueue_buffer_transfer(vk::resource::BufferRef dst,
 }
 void TransferManager::enqueue_buffer_transfer(BufferTransfer params)
 {
+    ODIN_ASSERT(params.ownerQ.handle != VK_NULL_HANDLE);
+    ODIN_ASSERT(params.dstBuffer.handle != VK_NULL_HANDLE);
+    ODIN_ASSERT(params.pSrcBuffer != nullptr);
+    ODIN_ASSERT(params.size != 0);
+
     std::vector<BufferTransfer>& q = m_BufferQueue.front();
     q.push_back(std::move(params));
 }
@@ -102,7 +112,7 @@ void TransferManager::record_buffer_acquisition(vk::QueueView newOwner, vk::Comm
 
     vkCmdPipelineBarrier2(commandBuffer.handle, std::addressof(depAcq));
 }
-void TransferManager::submit_transfer(vk::CommandBuffer& commandBuffer)
+void TransferManager::submit_transfers(vk::CommandBuffer& commandBuffer)
 {
     cycle_transfer_lists();
 

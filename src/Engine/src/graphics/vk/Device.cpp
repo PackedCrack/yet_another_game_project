@@ -6,6 +6,7 @@
 #include "QueueFamilies.hpp"
 #include "vulkan_defines.hpp"
 #include "vulkan_info.hpp"
+#include "ext/device_extensions.hpp"
 //
 //
 namespace
@@ -15,11 +16,31 @@ namespace
 // VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME
 // VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
 //
-[[nodiscard]] VkPhysicalDeviceVulkan14Features required_v14_features()
+[[nodiscard]] VkPhysicalDeviceExtendedDynamicState3FeaturesEXT required_dynamic_state3_features()
+{
+    VkPhysicalDeviceExtendedDynamicState3FeaturesEXT features{};
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
+    features.pNext = nullptr;
+    features.extendedDynamicState3ColorBlendEnable = VK_TRUE;
+    features.extendedDynamicState3ColorBlendEquation = VK_TRUE;
+
+    return features;
+}
+[[nodiscard]] VkPhysicalDeviceExtendedDynamicState2FeaturesEXT
+required_dynamic_state2_features(VkPhysicalDeviceExtendedDynamicState3FeaturesEXT* pDynamicState3)
+{
+    VkPhysicalDeviceExtendedDynamicState2FeaturesEXT features{};
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT;
+    features.pNext = pDynamicState3;
+    features.extendedDynamicState2 = VK_TRUE;
+
+    return features;
+}
+[[nodiscard]] VkPhysicalDeviceVulkan14Features required_v14_features(VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* pDynamicState2)
 {
     VkPhysicalDeviceVulkan14Features v14features{};
     v14features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
-    v14features.pNext = nullptr;
+    v14features.pNext = pDynamicState2;
     // This is for tiled gpus
     //v14features.dynamicRenderingLocalRead = VK_TRUE;
 
@@ -43,6 +64,7 @@ namespace
     v12features.drawIndirectCount = VK_TRUE;
     v12features.descriptorIndexing = VK_TRUE;
     v12features.descriptorBindingPartiallyBound = VK_TRUE;
+    v12features.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
     v12features.runtimeDescriptorArray = VK_TRUE;
     v12features.timelineSemaphore = VK_TRUE;
 
@@ -81,7 +103,10 @@ Device::Device(const PhysicalDevice& phyDevice, QueueFamilies& queueFamilies)
                                                                      VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME,
                                                                      VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME };
 
-    VkPhysicalDeviceVulkan14Features v14features = required_v14_features();
+    VkPhysicalDeviceExtendedDynamicState3FeaturesEXT extDynamicState3features = required_dynamic_state3_features();
+    VkPhysicalDeviceExtendedDynamicState2FeaturesEXT extDynamicState2features =
+        required_dynamic_state2_features(std::addressof(extDynamicState3features));
+    VkPhysicalDeviceVulkan14Features v14features = required_v14_features(std::addressof(extDynamicState2features));
     VkPhysicalDeviceVulkan13Features v13features = required_v13_features(std::addressof(v14features));
     VkPhysicalDeviceVulkan12Features v12features = required_v12_features(std::addressof(v13features));
     VkPhysicalDeviceVulkan11Features v11features = required_v11_features(std::addressof(v12features));
@@ -94,6 +119,8 @@ Device::Device(const PhysicalDevice& phyDevice, QueueFamilies& queueFamilies)
     VK_CHECK(vkCreateDevice(phyDev.handle, &info, nullptr, &m_Device), "Failed to create Vulkan Device.");
 
     queueFamilies.store_queue_handles(*this);
+
+    ext::load_device_extensions(handle());
 }
 Device::~Device()
 {

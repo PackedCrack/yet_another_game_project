@@ -71,7 +71,7 @@ public:
     {
         // Black magic
         // https://stackoverflow.com/questions/45213511/formula-for-memory-alignment
-        return (value + (m_Alignment - 1) & ~(m_Alignment - 1));
+        return ((value + (m_Alignment - 1)) & ~(m_Alignment - 1));
     }
 private:
     std::uint64_t m_Capacity;

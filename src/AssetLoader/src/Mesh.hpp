@@ -60,6 +60,7 @@ struct Renderable
 struct Mesh
 {
     [[nodiscard]] MeshView view() const;
+    std::string name;
     std::vector<Renderable> renderables;
 };
 [[nodiscard]] std::optional<Mesh> make_mesh(const tinygltf::Model& model, const tinygltf::Node& node);

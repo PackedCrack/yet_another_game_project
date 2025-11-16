@@ -49,7 +49,7 @@ public:
 public:
     void bind(CommandBufferRef cmdBuffer) const
     {
-        VkPipelineBindPoint bindPoints = static_cast<derived_t*>(this)->bind_point();
+        VkPipelineBindPoint bindPoints = static_cast<const derived_t*>(this)->bind_point();
         vkCmdBindPipeline(cmdBuffer.handle, bindPoints, m_Pipeline);
     }
 protected:
