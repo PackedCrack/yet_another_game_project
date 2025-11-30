@@ -38,6 +38,8 @@
 # static libraries
 /src/Debugging/external
 /src/Debugging/include
+/src/Debug/external
+/src/Debug/include
 /src/AssetLoader/external
 /src/AssetLoader/include
 /src/Engine/external
@@ -60,3 +62,5 @@
 .vs
 /out
 CMakeSettings.json
+
+*.spv

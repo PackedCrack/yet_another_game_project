@@ -5,6 +5,7 @@
 
 #include "OdinInfo.hpp"
 #include "ECS.hpp"
+#include "Core.hpp"
 //
 //
 namespace odin
@@ -21,7 +22,6 @@ public:
     void begin_frame();
     void render();
     void end_frame();
-    [[nodiscard]] std::unique_ptr<ECS> make_ecs();
     [[nodiscard]] bool running() const;
 private:
     std::unique_ptr<Impl> m_pImpl;

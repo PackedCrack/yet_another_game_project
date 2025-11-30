@@ -28,9 +28,12 @@ public:
     [[nodiscard]] VkDeviceSize min_uniform_buffer_offset_alignment() const;
     [[nodiscard]] VkDeviceSize min_storage_buffer_offset_alignment() const;
     [[nodiscard]] std::uint32_t max_compute_work_group_invocations() const;
-    [[nodiscard]] std::uint32_t work_group_size_x() const;
-    [[nodiscard]] std::uint32_t work_group_size_y() const;
-    [[nodiscard]] std::uint32_t work_group_size_z() const;
+    [[nodiscard]] std::uint32_t max_compute_work_group_count_x() const;
+    [[nodiscard]] std::uint32_t max_compute_work_group_count_y() const;
+    [[nodiscard]] std::uint32_t max_compute_work_group_count_z() const;
+    [[nodiscard]] std::uint32_t max_work_group_size_x() const;
+    [[nodiscard]] std::uint32_t max_work_group_size_y() const;
+    [[nodiscard]] std::uint32_t max_work_group_size_z() const;
 private:
     void update_linked_list();
 private:

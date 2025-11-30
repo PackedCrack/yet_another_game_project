@@ -19,6 +19,8 @@ struct Model
     Model(asl::UUID uuid);
     asl::UUID uuid;
     asl::ModelHandle handle;
-    std::vector<Entity> submeshes;
+    Entity root;
+    using Name = std::string;
+    std::vector<std::pair<Name, Entity>> nodes;
 };
 }    // namespace odin::component

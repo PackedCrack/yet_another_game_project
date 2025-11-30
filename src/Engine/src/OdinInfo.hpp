@@ -17,6 +17,8 @@ struct WindowInfo
 };
 struct OdinInfo
 {
+    int argc;
+    char** argv;
     std::string applicationName;
     WindowInfo windowInfo;
 };

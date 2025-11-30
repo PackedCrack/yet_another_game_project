@@ -106,6 +106,7 @@ struct RenderableView
 };
 struct MeshView
 {
+    std::string_view name;
     std::vector<RenderableView> renderables;
 };
 struct TRS

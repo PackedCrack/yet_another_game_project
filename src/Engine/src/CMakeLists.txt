@@ -9,6 +9,8 @@ SET(SOURCES
         OdinInfo.hpp
         Odin.hpp
         Odin.cpp
+	FilepathResolver.hpp
+	FilepathResolver.cpp
 	ArenaAllocator.hpp
 	BumpAllocator.hpp
 	ECS.hpp
@@ -17,6 +19,10 @@ SET(SOURCES
 	Entity.cpp
         ICamera.hpp
 	InputEvent.hpp
+	Core.hpp
+	Core.cpp
+	Input.hpp
+	Input.cpp
 )
 
 set(EXPORT_HEADERS
@@ -26,6 +32,7 @@ set(EXPORT_HEADERS
 	Entity.hpp
 	ICamera.hpp
 	InputEvent.hpp
+	Core.hpp
 )
 
 target_sources(${ENGINE_TARGET} PRIVATE ${SOURCES})

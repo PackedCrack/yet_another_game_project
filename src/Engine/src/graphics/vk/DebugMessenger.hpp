@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Instance.hpp"
-#include "ext/DebugUtilsMessengerProcs.hpp"
+#include "ext/instance/debug_utils.hpp"
 // vulkan
 #include <vulkan/vulkan.h>
 //
@@ -25,7 +25,7 @@ public:
 private:
     [[nodiscard]] VkDebugUtilsMessengerEXT create_debug_messenger() const;
 private:
-    ext::DebugUtilsMessengerProcs m_Procedures;
+    InstanceRef m_Instance;
     VkDebugUtilsMessengerEXT m_Messenger = VK_NULL_HANDLE;
 };
 }    // namespace odin::graphics::vk

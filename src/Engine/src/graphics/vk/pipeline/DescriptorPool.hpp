@@ -15,7 +15,7 @@ struct DescriptorPoolRef
 class DescriptorPool
 {
 public:
-    DescriptorPool(DeviceRef device);
+    DescriptorPool(DeviceRef device, bool updatedAfterBind = false);
     ~DescriptorPool();
     DescriptorPool(const DescriptorPool& other) = delete;
     DescriptorPool(DescriptorPool&& other) noexcept;

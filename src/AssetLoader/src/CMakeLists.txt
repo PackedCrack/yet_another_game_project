@@ -31,5 +31,5 @@ set(EXPORT_HEADERS
     UUIDDefines.hpp # TODO move to who sohuld have this :)
 )
 
-target_sources(${ASSET_LOADER_PROJECT} PRIVATE ${SOURCES})
+target_sources(${ASSET_LOADER_TARGET} PRIVATE ${SOURCES})
 copy_export_headers("${EXPORT_HEADERS}" ${INCLUDE_DIR})

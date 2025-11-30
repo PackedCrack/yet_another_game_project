@@ -25,7 +25,11 @@ constexpr std::int64_t NONE = -1;
     static constexpr std::size_t z = 2;
     static constexpr std::size_t w = 3;
 
-    asl::TRS trs{ .orientation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f), .translation = glm::vec3(0.0f, 0.0f, 0.0f), .scale = 1.0f };
+    asl::TRS trs{};
+    trs.orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);    // Retard GLM uses WXYZ for quaterions
+    trs.translation = glm::vec3(0.0f, 0.0f, 0.0f);
+    trs.scale = 1.0f;
+
     if (has_local_matrix(node))
     {
         [[maybe_unused]] glm::vec3 skew{};
@@ -56,11 +60,10 @@ constexpr std::int64_t NONE = -1;
         if (!node.rotation.empty())
         {
             ODIN_ASSERT(node.rotation.size() == 4);
-            glm::vec4 asFloat{ static_cast<float>(node.rotation[x]),
-                               static_cast<float>(node.rotation[y]),
-                               static_cast<float>(node.rotation[z]),
-                               static_cast<float>(node.rotation[w]) };
-            trs.orientation = glm::make_quat(std::addressof(asFloat[x]));
+            trs.orientation = glm::quat{ static_cast<float>(node.rotation[w]),
+                                         static_cast<float>(node.rotation[x]),
+                                         static_cast<float>(node.rotation[y]),
+                                         static_cast<float>(node.rotation[z]) };
         }
         if (!node.scale.empty())
         {
