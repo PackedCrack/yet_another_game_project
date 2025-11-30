@@ -9,40 +9,51 @@
 #include <filesystem>
 namespace
 {
-std::unordered_map<asl::UUID, std::filesystem::path, asl::UUIDHasher> make_asset_map(const std::filesystem::path& path)
+[[nodiscard]] std::filesystem::path parent_of_resource_directory(const std::filesystem::path& assetdb)
+{
+    std::filesystem::path parent = assetdb.parent_path();
+    while (parent.filename() != "resources")
+    {
+        parent = parent.parent_path();
+    }
+
+    return parent.parent_path();
+}
+std::unordered_map<asl::UUID, std::filesystem::path, asl::UUIDHasher> make_asset_map(const std::filesystem::path& assetdb)
 {
     std::unordered_map<asl::UUID, std::filesystem::path, asl::UUIDHasher> tmpAssetMap{};
 
-    std::ifstream file(path, std::ios::binary);
+    std::ifstream file(assetdb, std::ios::binary);
     if (!file.is_open())
     {
         assert(false);
         // FATAL ERROR
     }
 
+    std::filesystem::path parent = parent_of_resource_directory(assetdb);
     const char delimiter{ '\r' };
-    std::string uuidLine{};
-    std::string pathLine{};
-    while (std::getline(file, uuidLine))
+    std::string uuid{};
+    std::string relativePath{};
+    while (std::getline(file, uuid))
     {
-        if (!uuidLine.empty())
+        if (!uuid.empty())
         {
-            if (uuidLine.back() == delimiter)
+            if (uuid.back() == delimiter)
             {
-                uuidLine.pop_back();
+                uuid.pop_back();
             }
 
-            if (!std::getline(file, pathLine))
+            if (!std::getline(file, relativePath))
             {
                 assert(false);
                 // TODO handle error gracefully
                 // assign UUID to debug model
             }
-            if (pathLine.back() == delimiter)
+            if (relativePath.back() == delimiter)
             {
-                pathLine.pop_back();
+                relativePath.pop_back();
             }
-            tmpAssetMap.emplace(asl::UUID{ uuidLine }, std::filesystem::path(pathLine));
+            tmpAssetMap.emplace(asl::UUID{ uuid }, std::filesystem::path(parent / relativePath));
         }
     }
     return tmpAssetMap;
@@ -50,9 +61,9 @@ std::unordered_map<asl::UUID, std::filesystem::path, asl::UUIDHasher> make_asset
 }    // namespace
 namespace asl
 {
-AssetRegistry::AssetRegistry(const std::filesystem::path& path)
+AssetRegistry::AssetRegistry(const std::filesystem::path& assetdb)
     : m_SceneGraphs{}
-    , m_AssetMap{ make_asset_map(path) }
+    , m_AssetMap{ make_asset_map(assetdb) }
     , m_pMutex{ std::make_unique<mutex_t>() }
 {}
 void AssetRegistry::reload(const UUID& uuid)

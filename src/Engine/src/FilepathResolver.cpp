@@ -53,6 +53,10 @@ resolve_subdirectory_upwards(std::filesystem::path cwd, std::filesystem::path un
 {
     return resolve_subdirectory_upwards(std::move(cwd), "resources/shaders");
 }
+[[nodiscard]] std::filesystem::path get_resource_directory_location(std::filesystem::path cwd)
+{
+    return resolve_subdirectory_upwards(std::move(cwd), "resources");
+}
 }    // namespace
 namespace odin
 {
@@ -63,15 +67,19 @@ FilepathResolver& FilepathResolver::get(int argc, char** argv)
 }
 FilepathResolver::FilepathResolver(int argc, char** argv)
     : m_Cwd{ make_cwd(argc, argv) }
-    , m_ShaderDir{ make_shader_directory(m_Cwd) }
+    , m_ResourceDir{ get_resource_directory_location(m_Cwd) }
 {}
 std::filesystem::path FilepathResolver::resolve_shader_path(std::string_view filename) const
 {
-    return m_ShaderDir / filename;
+    return m_ResourceDir / "shaders" / filename;
 }
 std::filesystem::path FilepathResolver::get_gpu_types_header() const
 {
     // Hard settings this.. not ideal but it will work for now.
-    return normalize(m_ShaderDir / "../../src/Engine/src/graphics/gpu_types.hpp");
+    return normalize(m_ResourceDir / "../src/Engine/src/graphics/gpu_types.hpp");
+}
+std::filesystem::path FilepathResolver::get_asset_db() const
+{
+    return normalize(m_ResourceDir / "assets" / "asset-db.txt");
 }
 }    // namespace odin

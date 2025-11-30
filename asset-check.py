@@ -141,15 +141,15 @@ def generate_hpp() -> list[str]:
 
     hppFileContent.append("namespace asl {")
 
-    hppFileContent.append("namespace Models {")
+    hppFileContent.append("namespace model {")
     hppFileContent.extend(build_cpp_code(".glb"))
-    hppFileContent.append("} // Models")
+    hppFileContent.append("} // namespace model")
 
-    hppFileContent.append("namespace Sounds {")
+    hppFileContent.append("namespace sound {")
     hppFileContent.extend(build_cpp_code(".wav"))
-    hppFileContent.append("} // Sounds")
+    hppFileContent.append("} // namespace sound")
 
-    hppFileContent.append("} // asl")
+    hppFileContent.append("} // namespace asl")
 
     return hppFileContent
 

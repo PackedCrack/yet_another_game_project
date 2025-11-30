@@ -36,15 +36,15 @@ file(COPY "${PROJECT_SOURCE_DIR}/external/tinygltf/stb_image_write.h" DESTINATIO
 file(COPY "${PROJECT_SOURCE_DIR}/external/tinygltf/tiny_gltf.cc" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/external/tinygltf")
 file(COPY "${PROJECT_SOURCE_DIR}/external/tinygltf/tiny_gltf.h" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/external/tinygltf")
 
-add_dependencies(${ASSET_LOADER_PROJECT} ${DEBUGGING_PROJECT})
-target_link_libraries(${ASSET_LOADER_PROJECT} PRIVATE ${DEBUGGING_PROJECT})
-target_include_directories(${ASSET_LOADER_PROJECT} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../Debugging/include")
+add_dependencies(${ASSET_LOADER_TARGET} ${DEBUG_TARGET})
+target_link_libraries(${ASSET_LOADER_TARGET} PRIVATE ${DEBUG_TARGET})
+target_include_directories(${ASSET_LOADER_TARGET} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../debug/include")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_custom_command(
-    TARGET ${ASSET_LOADER_PROJECT}
+    TARGET ${ASSET_LOADER_TARGET}
     PRE_BUILD   # run before compiling sources so we can add the generated HPP file.
-    COMMAND ${CMAKE_COMMAND} -E echo "Running asset-check.py script- ${ASSET_LOADER_PROJECT}"
+    COMMAND ${CMAKE_COMMAND} -E echo "Running asset-check.py script- ${ASSET_LOADER_TARGET}"
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/asset-check.py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     VERBATIM
