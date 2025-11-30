@@ -3,6 +3,7 @@
 //
 // AssetLoader
 #include <assetloader/ModelHandle.hpp>
+#include <assetloader/UUIDDefines.hpp>
 // Enginge
 #include <engine/Odin.hpp>
 #include <engine/components/Model.hpp>
@@ -27,9 +28,12 @@ int main(int argc, char** argv)
         odin::Odin engine{ info };
 
 
+
         odin::Entity e = odin::make_entity();
         std::filesystem::path filepath{ R"(C:\Users\qwerty\Documents\repos\game\resources\assets\meshes\Lantern.glb)" };
         odin::emplace_component<odin::component::Model>(e, filepath);
+      
+        e.emplace<odin::component::Model>(asl::Models::Lantern);
 
         auto move = [&e]()
         {

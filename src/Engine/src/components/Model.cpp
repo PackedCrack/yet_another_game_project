@@ -3,8 +3,8 @@
 //
 namespace odin::component
 {
-Model::Model(std::filesystem::path path)
-    : filepath{ std::move(path) }
+Model::Model(asl::UUID uuid)
+    : uuid{ uuid }
     , handle{ nullptr }
     , root{}
     , nodes{}
