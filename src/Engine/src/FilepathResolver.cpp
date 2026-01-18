@@ -10,7 +10,7 @@ namespace
 {
     return std::filesystem::weakly_canonical(p);
 }
-[[nodiscard]] std::filesystem::path make_cwd(int argc, char** argv)
+[[nodiscard]] std::filesystem::path make_cwd(char** argv)
 {
     auto cwd = std::filesystem::path{ argv[0] }.parent_path();
     std::filesystem::current_path(cwd);
@@ -60,13 +60,13 @@ resolve_subdirectory_upwards(std::filesystem::path cwd, std::filesystem::path un
 }    // namespace
 namespace odin
 {
-FilepathResolver& FilepathResolver::get(int argc, char** argv)
+FilepathResolver& FilepathResolver::get(char** argv)
 {
-    static FilepathResolver resolver{ argc, argv };
+    static FilepathResolver resolver{ argv };
     return resolver;
 }
-FilepathResolver::FilepathResolver(int argc, char** argv)
-    : m_Cwd{ make_cwd(argc, argv) }
+FilepathResolver::FilepathResolver(char** argv)
+    : m_Cwd{ make_cwd(argv) }
     , m_ResourceDir{ get_resource_directory_location(m_Cwd) }
 {}
 std::filesystem::path FilepathResolver::resolve_shader_path(std::string_view filename) const

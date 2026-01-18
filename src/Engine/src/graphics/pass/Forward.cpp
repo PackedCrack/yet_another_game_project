@@ -96,14 +96,14 @@ void set_dynamic_state(vk::CommandBufferRef cmd, const ColorAttachment& colorAtt
     vk::ext::device::vkCmdSetColorBlendEquation(cmd.handle, 0, 1, std::addressof(equation));
 
     VkViewport vp{};
-    vp.width = colorAttachment.extent().width;
-    vp.height = colorAttachment.extent().height;
+    vp.width = static_cast<float>(colorAttachment.extent().width);
+    vp.height = static_cast<float>(colorAttachment.extent().height);
     vp.maxDepth = 1.0f;
     vp.minDepth = 0.0f;
     vkCmdSetViewportWithCount(cmd.handle, 1, std::addressof(vp));
     VkRect2D scissor{};
-    scissor.extent.width = vp.width;
-    scissor.extent.height = vp.height;
+    scissor.extent.width = static_cast<std::uint32_t>(vp.width);
+    scissor.extent.height = static_cast<std::uint32_t>(vp.height);
     scissor.offset.x = 0;
     scissor.offset.y = 0;
     vkCmdSetScissorWithCount(cmd.handle, 1, std::addressof(scissor));
@@ -173,7 +173,7 @@ void Forward::execute(const FrameContext& frameContext,
 
     auto drawCommands = indirect.view_draw_commands(frameContext.frame);
     auto drawVariables = indirect.view_draw_variables(frameContext.frame);
-    std::uint32_t maxDraws = drawCommands.range / sizeof(VkDrawIndexedIndirectCommand);
+    auto maxDraws = static_cast<std::uint32_t>(drawCommands.range / sizeof(VkDrawIndexedIndirectCommand));
     vkCmdDrawIndexedIndirectCount(cmdBuffer.handle,
                                   drawCommands.handle,
                                   drawCommands.offset,

@@ -9,9 +9,9 @@ namespace odin
 class FilepathResolver
 {
 public:
-    [[nodiscard]] static FilepathResolver& get(int argc = 0, char** argv = nullptr);
+    [[nodiscard]] static FilepathResolver& get(char** argv = nullptr);
 private:
-    FilepathResolver(int argc, char** argv);
+    FilepathResolver(char** argv);
 public:
     [[nodiscard]] std::filesystem::path resolve_shader_path(std::string_view filename) const;
     [[nodiscard]] std::filesystem::path get_gpu_types_header() const;
