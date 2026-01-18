@@ -27,48 +27,105 @@ struct PipelineKey
     std::optional<VkSampleCountFlagBits> samples;
     [[nodiscard]] bool operator==(const PipelineKey& key) const
     {
-        auto path = [](const auto& opt) -> std::optional<std::filesystem::path>
+        if (pipelineLayoutHash != key.pipelineLayoutHash)
         {
-            if (!opt)
-            {
-                return std::nullopt;
-            }
-            return opt->acquire()->filepath();
-        };
-
-        if (path(vs) == path(key.vs))
+            return false;
+        }
+        if (colorFormats != key.colorFormats)
         {
-            if (path(fs) == path(key.fs))
-            {
-                if (path(cs) == path(key.cs))
-                {
-                    return true;
-                }
-            }
+            return false;
+        }
+        if (depthFormat != key.depthFormat)
+        {
+            return false;
+        }
+        if (stencilFormat != key.stencilFormat)
+        {
+            return false;
+        }
+        if (polygon != key.polygon)
+        {
+            return false;
+        }
+        if (samples != key.samples)
+        {
+            return false;
         }
 
-        return false;
+        using ShaderHandle = resource::shader::ShaderHandle;
+        auto same_id = [](const std::optional<ShaderHandle>& lhs, const std::optional<ShaderHandle>& rhs) -> bool
+        {
+            if (lhs.has_value() && rhs.has_value())
+            {
+                return lhs->id() == rhs->id();
+            }
+
+            return false;
+        };
+
+        if (!same_id(vs, key.vs))
+        {
+            return false;
+        }
+        if (!same_id(fs, key.fs))
+        {
+            return false;
+        }
+        if (!same_id(cs, key.cs))
+        {
+            return false;
+        }
+
+        return true;
     }
     [[nodiscard]] bool operator!=(const PipelineKey& key) const
     {
-        auto path = [](const auto& opt) -> std::optional<std::filesystem::path>
+        if (pipelineLayoutHash != key.pipelineLayoutHash)
         {
-            if (!opt)
+            return true;
+        }
+        if (colorFormats != key.colorFormats)
+        {
+            return true;
+        }
+        if (depthFormat != key.depthFormat)
+        {
+            return true;
+        }
+        if (stencilFormat != key.stencilFormat)
+        {
+            return true;
+        }
+        if (polygon != key.polygon)
+        {
+            return true;
+        }
+        if (samples != key.samples)
+        {
+            return true;
+        }
+
+
+        using ShaderHandle = resource::shader::ShaderHandle;
+        auto same_id = [](const std::optional<ShaderHandle>& lhs, const std::optional<ShaderHandle>& rhs) -> bool
+        {
+            if (lhs.has_value() && rhs.has_value())
             {
-                return std::nullopt;
+                return lhs->id() == rhs->id();
             }
-            return opt->acquire()->filepath();
+
+            return false;
         };
 
-        if (path(vs) != path(key.vs))
+        if (!same_id(vs, key.vs))
         {
             return true;
         }
-        if (path(fs) != path(key.fs))
+        if (!same_id(fs, key.fs))
         {
             return true;
         }
-        if (path(cs) != path(key.cs))
+        if (!same_id(cs, key.cs))
         {
             return true;
         }
