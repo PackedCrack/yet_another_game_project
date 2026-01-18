@@ -9,6 +9,7 @@
     #pragma clang diagnostic ignored "-Wold-style-cast"
 #elif _MSC_VER
     #pragma warning(push)
+    #pragma warning(disable: 4127)     // conditional expression is constant
     #pragma warning(disable: 4201)     // nameless struct/union
     #pragma warning(disable: 26495)    // Variable is uninitialized
 #endif

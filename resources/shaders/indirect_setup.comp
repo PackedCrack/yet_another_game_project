@@ -63,59 +63,60 @@ shared uint s_groupOffset;
 
 void main()
 {
-	uint globalID = gl_GlobalInvocationID.x;
-	uint localID = gl_LocalInvocationID.x;
-	uint workgroupSize = gl_WorkGroupSize.x;
+    uint globalID = gl_GlobalInvocationID.x;
+    uint localID  = gl_LocalInvocationID.x;
+    uint workgroupSize = gl_WorkGroupSize.x;
 
-	if (globalID >= constants.meshCount)
-	{
-		return;
-	}
+    // Load value or 0 for inactive lanes
+    uint instanceCount = 0u;
+    bool isActive = globalID < uint(constants.meshCount);
+    if (isActive)
+    {
+        instanceCount = instanceCounter[globalID];
+    }
 
-	// Store per lane count
-	uint instanceCount = instanceCounter[globalID];
-	s_val[localID] = instanceCount;
-	s_scan[localID] = instanceCount;
-	barrier();
-	
-	// Inclusive Hillis-Steele
-	for (uint off = 1u; off < workgroupSize; off <<= 1u)
-	{
-		uint t = (localID >= off) ? s_scan[localID - off] : 0u;
+    // Everyone participates in the scan
+    s_val[localID]  = instanceCount;
+    s_scan[localID] = instanceCount;
+    barrier();
+
+    for (uint off = 1u; off < workgroupSize; off <<= 1u)
+    {
+        uint t = (localID >= off) ? s_scan[localID - off] : 0u;
         barrier();
         s_scan[localID] += t;
         barrier();
-	}
+    }
 
-	uint excl = s_scan[localID] - s_val[localID];   		// exclusive prefix for this lane
-    uint groupSum = s_scan[workgroupSize - 1];             	// WG total
+    uint excl     = s_scan[localID] - s_val[localID];
+    uint groupSum = s_scan[workgroupSize - 1];
 
-	// stitch WG scans with a single global atomic
     if (localID == 0u)
-	{
-		s_groupOffset = atomicAdd(drawVars.instanceHead, groupSum);
-	}
+    {
+        s_groupOffset = atomicAdd(drawVars.instanceHead, groupSum);
+    }
     barrier();
     uint groupOffset = s_groupOffset;
 
-	if (globalID < uint(constants.meshCount)) 
-	{
-        uint firstInst = groupOffset + excl;
-        instanceBase[globalID] = firstInst;
+    // Only active lanes write outputs / issue draws
+    if (!isActive) 
+        return;
 
-        if (instanceCount > 0u) 
-		{
-            uint slot = atomicAdd(drawVars.drawCount, 1u);
-            MeshInfo mesh = meshInfo[globalID];
+    uint firstInst = groupOffset + excl;
+    instanceBase[globalID] = firstInst;
 
-            VkDrawIndexedIndirectCommand cmd;
-            cmd.indexCount    = mesh.indexCount;
-            cmd.instanceCount = instanceCount;
-            cmd.firstIndex    = mesh.firstIndex;
-            cmd.vertexOffset  = mesh.vertexOffset;
-            cmd.firstInstance = firstInst;
+    if (instanceCount > 0u)
+    {
+        uint slot = atomicAdd(drawVars.drawCount, 1u);
+        MeshInfo mesh = meshInfo[globalID];
 
-            drawCommands[slot] = cmd;
-        }
+        VkDrawIndexedIndirectCommand cmd;
+        cmd.indexCount    = mesh.indexCount;
+        cmd.instanceCount = instanceCount;
+        cmd.firstIndex    = mesh.firstIndex;
+        cmd.vertexOffset  = mesh.vertexOffset;
+        cmd.firstInstance = firstInst;
+
+        drawCommands[slot] = cmd;
     }
 }

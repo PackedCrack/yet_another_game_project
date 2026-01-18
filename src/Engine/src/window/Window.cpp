@@ -230,7 +230,7 @@ using namespace odin::window;
 
     return InputEvent{ .type = EventType::keyboard, .event = event };
 }
-[[nodiscard]] InputEvent make_quit_event(const SDL_QuitEvent& quit)
+[[nodiscard]] InputEvent make_quit_event([[maybe_unused]] const SDL_QuitEvent& quit)
 {
     QuitEvent event{};
     event.quit = true;

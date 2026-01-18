@@ -114,7 +114,10 @@ public:
         VkDevice device = m_Context.device().handle().handle;
         if (device != VK_NULL_HANDLE)
         {
-            VK_CHECK(vkDeviceWaitIdle(device), "Failed to await for GPU to idle when exiting.");
+            if (vkDeviceWaitIdle(device) != VK_SUCCESS)
+            {
+                LOG_ERR("Failed to await for GPU to idle when exiting.");
+            }
         }
     }
     Impl(Impl&& other) noexcept

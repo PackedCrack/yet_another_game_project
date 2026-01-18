@@ -275,7 +275,7 @@ class Odin::Impl
 public:
     Impl(OdinInfo info)
         : m_State{ State::end }
-        , m_FilepathResolver{ FilepathResolver::get(info.argc, info.argv) }
+        , m_FilepathResolver{ FilepathResolver::get(info.argv) }
         , m_Assets{ m_FilepathResolver.get_asset_db() }
         , m_Wnd{ info.applicationName, info.windowInfo }
         , m_Gfx{ info, m_Wnd }

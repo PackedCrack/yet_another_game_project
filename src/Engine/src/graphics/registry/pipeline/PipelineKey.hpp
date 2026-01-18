@@ -25,9 +25,113 @@ struct PipelineKey
     std::optional<VkFormat> stencilFormat;
     std::optional<VkPolygonMode> polygon;
     std::optional<VkSampleCountFlagBits> samples;
+    [[nodiscard]] bool operator==(const PipelineKey& key) const
+    {
+        if (pipelineLayoutHash != key.pipelineLayoutHash)
+        {
+            return false;
+        }
+        if (colorFormats != key.colorFormats)
+        {
+            return false;
+        }
+        if (depthFormat != key.depthFormat)
+        {
+            return false;
+        }
+        if (stencilFormat != key.stencilFormat)
+        {
+            return false;
+        }
+        if (polygon != key.polygon)
+        {
+            return false;
+        }
+        if (samples != key.samples)
+        {
+            return false;
+        }
 
-    [[nodiscard]] bool operator==(const PipelineKey& key) const = default;
-    [[nodiscard]] bool operator!=(const PipelineKey& key) const = default;
+        using ShaderHandle = resource::shader::ShaderHandle;
+        auto same_id = [](const std::optional<ShaderHandle>& lhs, const std::optional<ShaderHandle>& rhs) -> bool
+        {
+            if (lhs.has_value() && rhs.has_value())
+            {
+                return lhs->id() == rhs->id();
+            }
+
+            return false;
+        };
+
+        if (!same_id(vs, key.vs))
+        {
+            return false;
+        }
+        if (!same_id(fs, key.fs))
+        {
+            return false;
+        }
+        if (!same_id(cs, key.cs))
+        {
+            return false;
+        }
+
+        return true;
+    }
+    [[nodiscard]] bool operator!=(const PipelineKey& key) const
+    {
+        if (pipelineLayoutHash != key.pipelineLayoutHash)
+        {
+            return true;
+        }
+        if (colorFormats != key.colorFormats)
+        {
+            return true;
+        }
+        if (depthFormat != key.depthFormat)
+        {
+            return true;
+        }
+        if (stencilFormat != key.stencilFormat)
+        {
+            return true;
+        }
+        if (polygon != key.polygon)
+        {
+            return true;
+        }
+        if (samples != key.samples)
+        {
+            return true;
+        }
+
+
+        using ShaderHandle = resource::shader::ShaderHandle;
+        auto same_id = [](const std::optional<ShaderHandle>& lhs, const std::optional<ShaderHandle>& rhs) -> bool
+        {
+            if (lhs.has_value() && rhs.has_value())
+            {
+                return lhs->id() == rhs->id();
+            }
+
+            return false;
+        };
+
+        if (!same_id(vs, key.vs))
+        {
+            return true;
+        }
+        if (!same_id(fs, key.fs))
+        {
+            return true;
+        }
+        if (!same_id(cs, key.cs))
+        {
+            return true;
+        }
+
+        return false;
+    }
 };
 struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
 {
@@ -63,6 +167,7 @@ struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
         hash ^= splitmix64(static_cast<std::uint64_t>(key.polygon.value_or(VK_POLYGON_MODE_MAX_ENUM)));
         hash ^= splitmix64(static_cast<std::uint64_t>(key.samples.value_or(VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM)));
 
+        LOG_INFO("Created pipeline hash: 0x{:X}", hash);
         return hash;
     }
 };

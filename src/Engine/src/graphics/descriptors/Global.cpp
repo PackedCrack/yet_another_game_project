@@ -36,11 +36,11 @@ void Global::bind(vk::CommandBufferRef cmdBuffer, const vk::pipeline::PipelineLa
     std::uint32_t offset{};
     DescriptorSet<Global>::bind(cmdBuffer, layout, stages, GLOBAL_SET_ID, std::addressof(offset), 0);
 }
-registry::resource::buffer::BindView Global::view_mesh_table(std::uint64_t frameID) const
+registry::resource::buffer::BindView Global::view_mesh_table() const
 {
     return m_MeshTable.to_view();
 }
-registry::resource::buffer::BindView Global::view_material_table(std::uint64_t frameID) const
+registry::resource::buffer::BindView Global::view_material_table() const
 {
     return m_MaterialTable.to_view();
 }
