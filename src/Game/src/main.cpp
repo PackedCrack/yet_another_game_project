@@ -37,7 +37,7 @@ int main(int argc, char** argv)
             static bool a = true;
             if (a)
             {
-                odin::rotate(model.root, 90.0f, { 1.0f, 0.0f, 1.0f });
+                odin::rotate(model.root, 275.0f, { 0.0f, 1.0f, 0.0f });
                 a = false;
             }
 
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
                 //delta.x = std::sin(time) / 10;
 
                 const odin::Entity& n = node.second;
-                odin::translate(n, delta);
+                //odin::translate(n, delta);
             }
         };
 

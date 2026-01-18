@@ -25,9 +25,56 @@ struct PipelineKey
     std::optional<VkFormat> stencilFormat;
     std::optional<VkPolygonMode> polygon;
     std::optional<VkSampleCountFlagBits> samples;
+    [[nodiscard]] bool operator==(const PipelineKey& key) const
+    {
+        auto path = [](const auto& opt) -> std::optional<std::filesystem::path>
+        {
+            if (!opt)
+            {
+                return std::nullopt;
+            }
+            return opt->acquire()->filepath();
+        };
 
-    [[nodiscard]] bool operator==(const PipelineKey& key) const = default;
-    [[nodiscard]] bool operator!=(const PipelineKey& key) const = default;
+        if (path(vs) == path(key.vs))
+        {
+            if (path(fs) == path(key.fs))
+            {
+                if (path(cs) == path(key.cs))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    [[nodiscard]] bool operator!=(const PipelineKey& key) const
+    {
+        auto path = [](const auto& opt) -> std::optional<std::filesystem::path>
+        {
+            if (!opt)
+            {
+                return std::nullopt;
+            }
+            return opt->acquire()->filepath();
+        };
+
+        if (path(vs) != path(key.vs))
+        {
+            return true;
+        }
+        if (path(fs) != path(key.fs))
+        {
+            return true;
+        }
+        if (path(cs) != path(key.cs))
+        {
+            return true;
+        }
+
+        return false;
+    }
 };
 struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
 {
@@ -63,6 +110,7 @@ struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
         hash ^= splitmix64(static_cast<std::uint64_t>(key.polygon.value_or(VK_POLYGON_MODE_MAX_ENUM)));
         hash ^= splitmix64(static_cast<std::uint64_t>(key.samples.value_or(VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM)));
 
+        LOG_INFO("Created pipeline hash: 0x{:X}", hash);
         return hash;
     }
 };
