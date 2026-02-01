@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "../../../vk/resource/DynamicBuffer.hpp"
+#include <vulkan/vulkan.h>
 //
 //
 namespace odin::graphics::registry::resource::buffer
@@ -21,4 +21,18 @@ struct BindView
     VkDeviceSize offset;
     VkDeviceSize range;
 };
+//
+//
+constexpr VkDescriptorType to_descriptor_type(BindType type)
+{
+    switch (type)
+    {
+    case BindType::storage:
+        return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    case BindType::dynamicStorage:
+        return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+    case BindType::dynamicUniform:
+        return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    }
+}
 }    // namespace odin::graphics::registry::resource::buffer
