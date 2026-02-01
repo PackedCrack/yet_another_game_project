@@ -35,6 +35,12 @@ function(include_glm PROJECT DESTINATION)
     target_compile_definitions(${PROJECT} PRIVATE GLM_ENABLE_EXPERIMENTAL GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_XYZW_ONLY GLM_FORCE_QUAT_DATA_XYZW GLM_FORCE_QUAT_CTOR_XYZW)
 endfunction()
 
+function(include_spdlog PROJECT DESTINATION)
+    file(REMOVE_RECURSE "${DESTINATION}/spdlog")
+    file(MAKE_DIRECTORY "${DESTINATION}/spdlog")
+    file(COPY "${PROJECT_SOURCE_DIR}/external/spdlog/include/spdlog" DESTINATION "${DESTINATION}")
+endfunction()
+
 function(enable_enum_switch_error PROJECT)
     if (MSVC)
         # Missing enum cases, etc.

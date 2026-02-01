@@ -26,6 +26,7 @@ enforce_cxx_standard(${DEBUG_TARGET})
 #enable_cppcheck(${DEBUG_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_clang_format(${DEBUG_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/src")
 enable_enum_switch_error(${DEBUG_TARGET})
+include_spdlog(${DEBUG_TARGET} "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
 target_include_directories(${DEBUG_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 target_include_directories(${DEBUG_TARGET} PRIVATE "external")
