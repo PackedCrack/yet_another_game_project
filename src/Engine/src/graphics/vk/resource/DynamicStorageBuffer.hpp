@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "../../registry/resource/buffer/BindView.hpp"
 #include "Buffer.hpp"
 #include "DynamicBuffer.hpp"
 //
@@ -11,13 +12,12 @@ namespace odin::graphics::vk::resource
 {
 class DynamicStorageBuffer : public DynamicBuffer<DynamicStorageBuffer>
 {
-    //using BindType = odin::graphics::registry::resource::buffer::BindType;
-public:
-    //static constexpr BindType type = BindType::dynamicStorage;
 public:
     DynamicStorageBuffer(AllocatedBuffer buffer,
                          std::function<void(AllocatedBuffer)> deleter,
                          VkDeviceSize partitionSize,
                          std::uint64_t numPartitions);
+public:
+    registry::resource::buffer::BindType bind_type() const { return registry::resource::buffer::BindType::dynamicStorageBuffer; }
 };
 }    // namespace odin::graphics::vk::resource

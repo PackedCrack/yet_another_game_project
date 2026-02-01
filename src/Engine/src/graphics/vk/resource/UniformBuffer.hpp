@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "../../registry/resource/buffer/BindView.hpp"
 #include "Buffer.hpp"
 //
 //
@@ -18,5 +19,6 @@ public:
     {
         write_to_buffer<data_t>(content);
     }
+    registry::resource::buffer::BindType bind_type() const { return registry::resource::buffer::BindType::uniformBuffer; }
 };
 }    // namespace odin::graphics::vk::resource
