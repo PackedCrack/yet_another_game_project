@@ -23,20 +23,14 @@ public:
     const buffer_t& operator*() const { return *m_pBuffer; }
     const buffer_t* operator->() const { return m_pBuffer.get(); }
     [[nodiscard]] BindView to_view() const
+    requires std::same_as<buffer_t, vk::resource::StorageBuffer>
     {
         BindView view{};
-        if constexpr (std::same_as<buffer_t, vk::resource::StorageBuffer>)
-        {
-            view.type = BindType::storage;
-        }
-        else
-        {
-            static_assert(false);
-        }
-
+        view.type = BindType::storage;
         view.handle = m_pBuffer->handle().handle;
         view.offset = 0;
         view.range = m_pBuffer->byte_capacity();
+
         return view;
     }
 private:

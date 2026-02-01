@@ -24,6 +24,7 @@ public:
     const buffer_t& operator*() const { return *m_pBuffer; }
     const buffer_t* operator->() const { return m_pBuffer.get(); }
     [[nodiscard]] BindView to_view(std::uint64_t frameID) const
+    requires(std::same_as<buffer_t, vk::resource::DynamicStorageBuffer> || std::same_as<buffer_t, vk::resource::DynamicUniformBuffer>)
     {
         BindView view{};
         if constexpr (std::same_as<buffer_t, vk::resource::DynamicStorageBuffer>)
@@ -33,10 +34,6 @@ public:
         else if constexpr (std::same_as<buffer_t, vk::resource::DynamicUniformBuffer>)
         {
             view.type = BindType::dynamicUniform;
-        }
-        else
-        {
-            static_assert(false);
         }
 
         view.handle = m_pBuffer->handle().handle;
