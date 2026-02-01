@@ -32,7 +32,7 @@ struct BindView
 //
 //
 constexpr VkDescriptorType to_descriptor_type(BindType type)
-{   
+{
     switch (type)
     {
     case BindType::uniformBuffer:
@@ -58,5 +58,7 @@ constexpr VkDescriptorType to_descriptor_type(BindType type)
     case BindType::inputAttachment:
         return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
     }
+
+    std::unreachable();
 }
 }    // namespace odin::graphics::registry::resource::buffer

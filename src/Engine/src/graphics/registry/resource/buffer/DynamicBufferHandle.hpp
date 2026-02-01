@@ -29,11 +29,11 @@ public:
         BindView view{};
         if constexpr (std::same_as<buffer_t, vk::resource::DynamicStorageBuffer>)
         {
-            view.type = BindType::dynamicStorage;
+            view.type = BindType::dynamicStorageBuffer;
         }
         else if constexpr (std::same_as<buffer_t, vk::resource::DynamicUniformBuffer>)
         {
-            view.type = BindType::dynamicUniform;
+            view.type = BindType::dynamicUniformBuffer;
         }
 
         view.handle = m_pBuffer->handle().handle;

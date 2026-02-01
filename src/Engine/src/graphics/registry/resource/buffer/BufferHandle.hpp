@@ -26,7 +26,7 @@ public:
     requires std::same_as<buffer_t, vk::resource::StorageBuffer>
     {
         BindView view{};
-        view.type = BindType::storage;
+        view.type = BindType::storageBuffer;
         view.handle = m_pBuffer->handle().handle;
         view.offset = 0;
         view.range = m_pBuffer->byte_capacity();
