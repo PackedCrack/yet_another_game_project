@@ -41,7 +41,7 @@ void upload_to_gpu(TransferManager& transferManager,
 }
 [[nodiscard]] std::unique_ptr<MeshTableArena> make_mesh_table_arena(const resource::ResourceRegistry& registry)
 {
-    auto mtHandle = registry.storage_buffer(resource::ResourceRegistry::SSBO_MESH_TABLE);
+    auto mtHandle = registry.buffer_registry().mesh_table();
 
     std::size_t elementCapacity = mtHandle->byte_capacity() / sizeof(MeshInfo);
     VkDeviceSize minAlignment = mtHandle->min_alignment();
@@ -50,7 +50,7 @@ void upload_to_gpu(TransferManager& transferManager,
 }
 [[nodiscard]] std::unique_ptr<VertexArena> make_vertex_arena(const resource::ResourceRegistry& registry)
 {
-    const vk::resource::VertexBuffer& vb = registry.vertex_buffer();
+    const vk::resource::VertexBuffer& vb = registry.buffer_registry().vertex_buffer();
     std::size_t elementCapacity = vb.capacity();
     VkDeviceSize minAlignment = vb.min_alignment();
 
@@ -58,7 +58,7 @@ void upload_to_gpu(TransferManager& transferManager,
 }
 [[nodiscard]] std::unique_ptr<IndexArena> make_index_arena(const resource::ResourceRegistry& registry)
 {
-    const vk::resource::IndexBuffer& ib = registry.index_buffer();
+    const vk::resource::IndexBuffer& ib = registry.buffer_registry().index_buffer();
     std::size_t elementCapacity = ib.capacity();
     VkDeviceSize minAlignment = ib.min_alignment();
 
@@ -153,9 +153,9 @@ const std::vector<MeshEntry>& MeshRegistry::register_model(TransferManager& tran
                                                            const std::shared_ptr<vk::Allocator>& pAllocator,
                                                            const asl::ModelHandle& handle)
 {
-    const vk::resource::VertexBuffer& vb = registry.vertex_buffer();
-    const vk::resource::IndexBuffer& ib = registry.index_buffer();
-    auto meshTable = registry.storage_buffer(resource::ResourceRegistry::SSBO_MESH_TABLE);
+    const vk::resource::VertexBuffer& vb = registry.buffer_registry().vertex_buffer();
+    const vk::resource::IndexBuffer& ib = registry.buffer_registry().index_buffer();
+    auto meshTable = registry.buffer_registry().mesh_table();
     std::shared_ptr<const asl::SceneGraph> pGraph = handle.acquire();
 
     auto [kvPair, emplaced] = m_Meshes.try_emplace(pGraph->filename().string());

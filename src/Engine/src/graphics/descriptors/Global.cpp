@@ -22,8 +22,8 @@ namespace odin::graphics::descriptors
 {
 Global::Global(vk::DeviceRef device, registry::resource::ResourceRegistry& resources, registry::pipeline::PipelineRegistry& pipelines)
     : DescriptorSet<Global>{ make_request(), pipelines }
-    , m_MeshTable{ resources.storage_buffer(registry::resource::ResourceRegistry::SSBO_MESH_TABLE) }
-    , m_MaterialTable{ resources.storage_buffer(registry::resource::ResourceRegistry::SSBO_MATERIAL_TABLE) }
+    , m_MeshTable{ resources.buffer_registry().mesh_table() }
+    , m_MaterialTable{ resources.buffer_registry().material_table() }
 {
     vk::pipeline::DescriptorWriter writer{ device, m_Set };
     writer.add_buffer(GLOBAL_SET_BIND_ID_MESH_INFO, m_MeshTable.to_view());
@@ -32,7 +32,7 @@ Global::Global(vk::DeviceRef device, registry::resource::ResourceRegistry& resou
 }
 void Global::bind(vk::CommandBufferRef cmdBuffer, const vk::pipeline::PipelineLayoutRef layout, VkShaderStageFlags stages) const
 {
-    // This is 100% a retarded driver bug..
+    // Cannot give nullptr - This is 100% a retarded driver bug..
     std::uint32_t offset{};
     DescriptorSet<Global>::bind(cmdBuffer, layout, stages, GLOBAL_SET_ID, std::addressof(offset), 0);
 }

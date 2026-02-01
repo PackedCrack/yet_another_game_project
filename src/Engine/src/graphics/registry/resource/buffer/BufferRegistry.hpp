@@ -4,7 +4,6 @@
 #pragma once
 
 #include "BufferHandle.hpp"
-#include "DynamicBufferHandle.hpp"
 #include "../../../FrameHandler.hpp"
 #include "../../../vk/Allocator.hpp"
 #include "../../../vk/Device.hpp"
@@ -28,18 +27,30 @@ public:
 public:
     [[nodiscard]] std::reference_wrapper<const vk::resource::IndexBuffer> index_buffer() const;
     [[nodiscard]] std::reference_wrapper<const vk::resource::VertexBuffer> vertex_buffer() const;
-    [[nodiscard]] BufferHandle<vk::resource::StorageBuffer> get_storage_buffer(std::string_view key) const;
-    [[nodiscard]] DynamicBufferHandle<vk::resource::DynamicStorageBuffer> get_dynamic_storage_buffer(std::string_view key) const;
-    [[nodiscard]] DynamicBufferHandle<vk::resource::DynamicUniformBuffer> get_dynamic_uniform_buffer(std::string_view key) const;
-private:
-    void make_buffers(vk::DeviceRef device,
-                      const std::shared_ptr<vk::Allocator>& pAllocator,
-                      std::int32_t numFramesInFlight,
-                      std::int32_t maxDraws,
-                      std::int32_t maxInstances);
+
+    [[nodiscard]] BufferHandle<vk::resource::StorageBuffer> mesh_table() const;
+    [[nodiscard]] BufferHandle<vk::resource::StorageBuffer> material_table() const;
+    [[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> draw_variables() const;
+    [[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> draw_commands() const;
+    [[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> instance_base() const;
+    [[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> instance_counter() const;
+    [[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> instance_index() const;
+    [[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> instance_info() const;
+    [[nodiscard]] BufferHandle<vk::resource::DynamicUniformBuffer> camera_data() const;
 private:
     std::unique_ptr<vk::resource::IndexBuffer> m_pIndexBuffer;
     std::unique_ptr<vk::resource::VertexBuffer> m_pVertexBuffer;
+
+    std::shared_ptr<vk::resource::StorageBuffer> m_pMeshTable;
+    std::shared_ptr<vk::resource::StorageBuffer> m_pMaterialTable;
+    std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pDrawVariables;
+    std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pDrawCommands;
+    std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pInstanceBase;
+    std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pInstanceCounter;
+    std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pInstanceIndex;
+    std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pInstanceInfo;
+    std::shared_ptr<vk::resource::DynamicUniformBuffer> m_pCameraData;
+
     std::unordered_map<std::string, std::shared_ptr<vk::resource::DynamicStorageBuffer>> m_DynSSBO;
     std::unordered_map<std::string, std::shared_ptr<vk::resource::DynamicUniformBuffer>> m_DynUBO;
     std::unordered_map<std::string, std::shared_ptr<vk::resource::StorageBuffer>> m_SSBO;

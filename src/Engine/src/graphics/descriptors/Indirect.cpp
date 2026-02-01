@@ -28,13 +28,13 @@ namespace odin::graphics::descriptors
 {
 Indirect::Indirect(vk::DeviceRef device, registry::resource::ResourceRegistry& resources, registry::pipeline::PipelineRegistry& pipelines)
     : DescriptorSet<Indirect>{ make_request(), pipelines }
-    , m_DrawVariables{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_VARIABLES) }
-    , m_DrawCommands{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_DRAW_COMMANDS) }
-    , m_InstanceBase{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_BASE) }
-    , m_InstanceCounter{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_COUNTER) }
-    , m_InstanceIndex{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_INDEX) }
-    , m_InstanceInfo{ resources.dynamic_storage_buffer(registry::resource::ResourceRegistry::DYN_SSBO_INSTANCE_INFO) }
-    , m_CameraData{ resources.dynamic_uniform_buffer(registry::resource::ResourceRegistry::DYN_UBO_CAMERA_DATA) }
+    , m_DrawVariables{ resources.buffer_registry().draw_variables() }
+    , m_DrawCommands{ resources.buffer_registry().draw_commands() }
+    , m_InstanceBase{ resources.buffer_registry().instance_base() }
+    , m_InstanceCounter{ resources.buffer_registry().instance_counter() }
+    , m_InstanceIndex{ resources.buffer_registry().instance_index() }
+    , m_InstanceInfo{ resources.buffer_registry().instance_info() }
+    , m_CameraData{ resources.buffer_registry().camera_data() }
 {
     vk::pipeline::DescriptorWriter writer{ device, m_Set };
 

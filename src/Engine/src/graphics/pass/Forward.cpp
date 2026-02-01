@@ -167,7 +167,7 @@ void Forward::execute(const FrameContext& frameContext,
     cameraInfo[0].proj[1][1] *= -1.0f;
     cameraInfo[0].viewproj = cameraInfo[0].proj * cameraInfo[0].view;
 
-    auto camBuf = resourceRegistry.dynamic_uniform_buffer(registry::resource::ResourceRegistry::DYN_UBO_CAMERA_DATA);
+    auto camBuf = resourceRegistry.buffer_registry().camera_data();
     camBuf->write<CameraInfo>(cameraInfo, frameContext.frame);
 
 
