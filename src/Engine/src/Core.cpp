@@ -1,7 +1,7 @@
 #include "Core.hpp"
 
 #include "ECS.hpp"
-#include "components/DirtyFlag.hpp"
+#include "component/DirtyFlag.hpp"
 //
 //
 namespace odin

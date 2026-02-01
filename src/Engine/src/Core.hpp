@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Entity.hpp"
-#include "components/LocalTRS.hpp"
+#include "component/LocalTRS.hpp"
 //
 //
 namespace odin

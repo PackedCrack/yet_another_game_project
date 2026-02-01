@@ -1,6 +1,7 @@
-add_subdirectory("components")
+add_subdirectory("component")
 add_subdirectory("graphics")
 add_subdirectory("state")
+add_subdirectory("system")
 add_subdirectory("window")
 
 

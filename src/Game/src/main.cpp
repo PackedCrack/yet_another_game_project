@@ -6,9 +6,9 @@
 #include <assetloader/UUIDDefines.hpp>
 // Enginge
 #include <engine/Odin.hpp>
-#include <engine/components/Model.hpp>
-#include <engine/components/Geometry.hpp>
-#include <engine/components/Parent.hpp>
+#include <engine/component/Model.hpp>
+#include <engine/component/Geometry.hpp>
+#include <engine/component/Parent.hpp>
 #include <engine/state/Input.hpp>
 #include <engine/window/DisplayResolution.hpp>
 // Debug
@@ -38,20 +38,16 @@ int main(int argc, char** argv)
             if (a)
             {
                 odin::rotate(model.root, 275.0f, { 0.0f, 1.0f, 0.0f });
+                odin::translate(model.root, { 10.0f, 10.0f, 0.0f });
                 a = false;
             }
 
             auto time = (float) std::chrono::steady_clock::now().time_since_epoch().count();
-            //odin::rotate(model.root, 0.01f, { 0.0f, 1.0f, 0.0f });
-            for (auto&& node : model.nodes)
-            {
-                glm::vec3 delta{};
-                delta.y = std::sin(time) / 10;
-                //delta.x = std::sin(time) / 10;
+            glm::vec3 delta{};
+            delta.x = std::sin(time) * 0.01f;
+            //odin::translate(model.root, delta);
 
-                const odin::Entity& n = node.second;
-                //odin::translate(n, delta);
-            }
+            odin::rotate(model.root, 0.01f, { 1.0f, 0.0f, 0.0f });
         };
 
         while (engine.running())
