@@ -172,6 +172,7 @@ public:
     }
     bool running() const { return !m_Quit; }
 private:
+    // TODO: This should be in its own file under the system namespace
     void register_new_scenegraphs()
     {
         details::ECS& ecs = details::get_ecs();
