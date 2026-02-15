@@ -22,9 +22,11 @@ public:
         static_assert(std::same_as<typename std::remove_cvref_t<buffer_t>::value_type, Entity>);
 
         auto view = m_Registry.template view<component_t...>();
+        auto&& func = std::forward<invocable_t>(action);
         for (auto&& entity : entities)
         {
-            std::invoke(std::forward<invocable_t>(action), entity, view.template get<component_t>(entity.to_underlying())...);
+            Entity e = entity;
+            std::invoke(func, e, view.template get<component_t>(e.to_underlying())...);
         }
     }
     template<typename... component_t, typename invocable_t>
@@ -32,10 +34,11 @@ public:
     void for_each(invocable_t&& action)
     {
         auto view = m_Registry.template view<component_t...>();
+        auto&& func = std::forward<invocable_t>(action);
         for (auto e : view)
         {
             Entity entity{ e };
-            std::invoke(std::forward<invocable_t>(action), entity, view.template get<component_t>(e)...);
+            std::invoke(func, entity, view.template get<component_t>(entity.to_underlying())...);
         }
     }
     template<typename state_t>
@@ -79,6 +82,20 @@ template<typename... component_t>
 {
     details::ECS& ecs = details::get_ecs();
     return ecs.get<component_t...>(e);
+}
+template<typename... component_t, typename buffer_t, typename invocable_t>
+requires std::ranges::contiguous_range<buffer_t> && std::invocable<invocable_t, Entity, component_t&...>
+void for_each_component(buffer_t&& entities, invocable_t&& action)
+{
+    details::ECS& ecs = details::get_ecs();
+    ecs.for_each<component_t...>(std::forward<buffer_t>(entities), std::forward<invocable_t>(action));
+}
+template<typename... component_t, typename invocable_t>
+requires std::invocable<invocable_t, Entity, component_t&...>
+void for_each_component(invocable_t&& action)
+{
+    details::ECS& ecs = details::get_ecs();
+    ecs.for_each<component_t...>(std::forward<invocable_t>(action));
 }
 [[nodiscard]] Entity make_entity();
 }    // namespace odin
