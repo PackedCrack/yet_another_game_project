@@ -41,4 +41,14 @@ Image& Image::operator=(Image&& other) noexcept
 
     return *this;
 }
+VkFormat Image::format() const
+{
+    return m_Format;
+}
+ImageRef Image::handle() const
+{
+    ImageRef ref{};
+    ref.handle = m_Image.handle;
+    return ref;
+}
 }    // namespace odin::graphics::vk::resource
