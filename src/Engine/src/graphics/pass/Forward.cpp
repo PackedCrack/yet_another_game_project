@@ -34,7 +34,7 @@ using namespace odin::graphics::pass;
     registry::pipeline::RequestBuilder builder{};
     builder = descriptors::global_preset(builder);
     builder = descriptors::indirect_preset(builder);
-    builder.add_color_format(presenter.color_format()).add_polygon_mode(VK_POLYGON_MODE_FILL);
+    builder.add_color_format(presenter.color_format()).add_depth_format(VK_FORMAT_D32_SFLOAT).add_polygon_mode(VK_POLYGON_MODE_FILL);
 
     // Cppcheck thinks we're using using vert/frag after move if these calls are chained..
     builder.add_vertex_shader(std::move(vert));
