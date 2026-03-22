@@ -1,9 +1,8 @@
 SET(SOURCES
 	ImageRegistry.hpp
 	ImageRegistry.cpp
-	ImageHandle.hpp
-	ImageHandle.cpp
-	ImageSlot.hpp
+	AttachmentRegistry.hpp
+	AttachmentRegistry.cpp
 )
 
 

@@ -6,6 +6,7 @@
 #include <glm_headers.hpp>
 
 #include "../gpu_types.hpp"
+#include "../DepthAttachment.hpp"
 #include "../registry/pipeline/Request.hpp"
 #include "../registry/pipeline/RequestBuilder.hpp"
 #include "../registry/resource/shader/ShaderHandle.hpp"
@@ -41,42 +42,55 @@ using namespace odin::graphics::pass;
 
     return builder.build();
 }
-[[nodiscard]] VkRenderingAttachmentInfo make_attachment_info(const ColorAttachment& colorAttachment)
+[[nodiscard]] VkRenderingAttachmentInfo
+make_attachment_info(vk::resource::ImageViewRef view, VkImageLayout layout, const VkClearValue& clear)
 {
-    vk::resource::ImageViewRef colorView = colorAttachment.view();
-
     VkRenderingAttachmentInfo info{};
     info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     info.pNext = nullptr;
-    info.imageView = colorView.handle;
-    info.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    info.imageView = view.handle;
+    info.imageLayout = layout;
     info.resolveMode = VK_RESOLVE_MODE_NONE;
     info.resolveImageView = VK_NULL_HANDLE;
     info.resolveImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     info.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;    // or LOAD if you preserved previous
     info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    info.clearValue = { .color = { { 1.0f, 0.0f, 1.0f, 1.0f } } };
+    info.clearValue = clear;
 
     return info;
 }
-[[nodiscard]] VkRenderingInfo make_rendering_info(const ColorAttachment& colorAttachment, const VkRenderingAttachmentInfo& attachInfo)
+[[nodiscard]] VkRenderingInfo
+make_rendering_info(const VkRect2D& renderArea, const VkRenderingAttachmentInfo& colorInfo, const VkRenderingAttachmentInfo& depthInfo)
 {
     VkRenderingInfo info{};
     info.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
     info.pNext = nullptr;
     info.flags = 0;
-    info.renderArea = {
-        { 0, 0 },
-        colorAttachment.extent()
-    };
+    info.renderArea = renderArea;
     info.layerCount = 1;
     info.viewMask = 0;
     info.colorAttachmentCount = 1;
-    info.pColorAttachments = std::addressof(attachInfo);
-    info.pDepthAttachment = nullptr;
+    info.pColorAttachments = std::addressof(colorInfo);
+    info.pDepthAttachment = std::addressof(depthInfo);
     info.pStencilAttachment = nullptr;
 
     return info;
+}
+void begin_rendering(vk::CommandBufferRef cmd, const ColorAttachment& color, const DepthAttachment& depth)
+{
+    VkClearValue clearColor = { .color = { { 1.0f, 0.0f, 1.0f, 1.0f } } };
+    VkRenderingAttachmentInfo colorInfo = make_attachment_info(color.view(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, clearColor);
+    VkClearValue clearDepth = {
+        .depthStencil = { 1.0f, 0 }
+    };
+    VkRenderingAttachmentInfo depthInfo = make_attachment_info(depth.view(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, clearDepth);
+
+    VkRect2D renderArea{};
+    renderArea.offset = { 0, 0 };
+    renderArea.extent = color.extent();
+
+    VkRenderingInfo info = make_rendering_info(renderArea, colorInfo, depthInfo);
+    vkCmdBeginRendering(cmd.handle, std::addressof(info));
 }
 void set_dynamic_state(vk::CommandBufferRef cmd, const ColorAttachment& colorAttachment)
 {
@@ -84,10 +98,9 @@ void set_dynamic_state(vk::CommandBufferRef cmd, const ColorAttachment& colorAtt
 
     vkCmdSetFrontFace(cmd.handle, VK_FRONT_FACE_CLOCKWISE);
 
-    // No depth pre pass yet
-    vkCmdSetDepthTestEnable(cmd.handle, VK_FALSE);
-    //vkCmdSetDepthWriteEnable(cmd.handle, VK_FALSE);
-    //vkCmdSetDepthCompareOp(cmd.handle, VK_COMPARE_OP_LESS);
+    vkCmdSetDepthTestEnable(cmd.handle, VK_TRUE);
+    vkCmdSetDepthWriteEnable(cmd.handle, VK_TRUE);
+    vkCmdSetDepthCompareOp(cmd.handle, VK_COMPARE_OP_LESS);
     vkCmdSetStencilTestEnable(cmd.handle, VK_FALSE);
 
     VkBool32 enable = VK_FALSE;
@@ -126,7 +139,7 @@ void Forward::execute(const FrameContext& frameContext,
                       const ColorAttachment& colorAttachment,
                       const descriptors::Global& global,
                       const descriptors::Indirect& indirect,
-                      const registry::resource::ResourceRegistry& resourceRegistry) const
+                      registry::resource::ResourceRegistry& resourceRegistry) const
 {
     vk::CommandBufferRef cmdBuffer = frameContext.graphicsBuffer.get().handle();
 
@@ -142,9 +155,8 @@ void Forward::execute(const FrameContext& frameContext,
                                 .pImageMemoryBarriers = std::addressof(renderBarrier) };
     vkCmdPipelineBarrier2(cmdBuffer.handle, std::addressof(dep));
 
-    VkRenderingAttachmentInfo attachInfo = make_attachment_info(colorAttachment);
-    VkRenderingInfo info = make_rendering_info(colorAttachment, attachInfo);
-    vkCmdBeginRendering(cmdBuffer.handle, std::addressof(info));
+    DepthAttachment depthAttachment = resourceRegistry.depth_attachment(frameContext, colorAttachment);
+    begin_rendering(cmdBuffer, colorAttachment, depthAttachment);
 
     m_Pipeline.acquire()->pipeline.bind(cmdBuffer);
 
