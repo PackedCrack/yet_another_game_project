@@ -12,35 +12,39 @@ ResourceRegistry::ResourceRegistry(vk::DeviceRef device,
                                    std::int32_t maxDraws,
                                    std::int32_t maxInstances)
     : m_pShaders{ shader::ShaderRegistry::make(device) }
-    , m_Buffers{ device, std::move(pAllocator), frameHandler, maxDraws, maxInstances }
+    , m_Buffers{ device, pAllocator, frameHandler, maxDraws, maxInstances }
+    , m_pImages{ image::ImageRegistry::make(device, std::move(pAllocator)) }
+    , m_Attachments{ device, *m_pImages }
     , m_pMutex{ std::make_unique<mutex_t>() }
 {}
 shader::ShaderHandle ResourceRegistry::shader(std::string_view filename)
 {
     return m_pShaders->shader(filename);
 }
-std::reference_wrapper<const vk::resource::IndexBuffer> ResourceRegistry::index_buffer() const
+DepthAttachment ResourceRegistry::depth_attachment(const FrameContext& frame, const ColorAttachment& color)
 {
-    return m_Buffers.index_buffer();
+    return m_Attachments.depth_image(frame, color);
 }
-std::reference_wrapper<const vk::resource::VertexBuffer> ResourceRegistry::vertex_buffer() const
+buffer::BufferRegistry& ResourceRegistry::buffer_registry()
 {
-    return m_Buffers.vertex_buffer();
+    return m_Buffers;
 }
-buffer::BufferHandle<vk::resource::StorageBuffer> ResourceRegistry::storage_buffer(std::string_view key) const
+const buffer::BufferRegistry& ResourceRegistry::buffer_registry() const
 {
-    return m_Buffers.get_storage_buffer(key);
+    return m_Buffers;
 }
-buffer::DynamicBufferHandle<vk::resource::DynamicStorageBuffer> ResourceRegistry::dynamic_storage_buffer(std::string_view key) const
+image::ImageRegistry& ResourceRegistry::image_registry()
 {
-    return m_Buffers.get_dynamic_storage_buffer(key);
+    return *m_pImages;
 }
-buffer::DynamicBufferHandle<vk::resource::DynamicUniformBuffer> ResourceRegistry::dynamic_uniform_buffer(std::string_view key) const
+const image::ImageRegistry& ResourceRegistry::image_registry() const
 {
-    return m_Buffers.get_dynamic_uniform_buffer(key);
+    return *m_pImages;
 }
 const RenderResources ResourceRegistry::render_resources() const
 {
-    return RenderResources{ .indexBuffer = index_buffer(), .vertexBuffer = vertex_buffer(), .meshTable = storage_buffer(SSBO_MESH_TABLE) };
+    return RenderResources{ .indexBuffer = m_Buffers.index_buffer(),
+                            .vertexBuffer = m_Buffers.vertex_buffer(),
+                            .meshTable = m_Buffers.mesh_table() };
 }
 }    // namespace odin::graphics::registry::resource

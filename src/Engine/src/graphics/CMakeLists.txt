@@ -19,6 +19,8 @@ SET(SOURCES
         Renderer.cpp
         TransferManager.hpp
         TransferManager.cpp
+	DepthAttachment.hpp
+	DepthAttachment.cpp
 )
 
 #set(EXPORT_HEADERS

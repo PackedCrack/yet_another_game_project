@@ -36,19 +36,7 @@ using BindType = odin::graphics::registry::resource::buffer::BindType;
     writeSet.pImageInfo = nullptr;
     writeSet.pBufferInfo = nullptr;
     writeSet.pTexelBufferView = nullptr;
-
-    switch (type)
-    {
-    case BindType::storage:
-        writeSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        break;
-    case BindType::dynamicStorage:
-        writeSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-        break;
-    case BindType::dynamicUniform:
-        writeSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-        break;
-    }
+    writeSet.descriptorType = to_descriptor_type(type);
 
     return writeSet;
 }

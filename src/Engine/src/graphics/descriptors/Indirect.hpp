@@ -7,7 +7,7 @@
 #include "../vk/Device.hpp"
 #include "../registry/pipeline/PipelineRegistry.hpp"
 #include "../registry/pipeline/RequestBuilder.hpp"
-#include "../registry/resource/buffer/DynamicBufferHandle.hpp"
+#include "../registry/resource/buffer/BufferHandle.hpp"
 #include "../registry/resource/ResourceRegistry.hpp"
 //
 //
@@ -17,8 +17,8 @@ class Indirect : public DescriptorSet<Indirect>
 {
     using DynamicStorageBuffer = vk::resource::DynamicStorageBuffer;
     using DynamicUniformBuffer = vk::resource::DynamicUniformBuffer;
-    using DynamicSSBOHandle = registry::resource::buffer::DynamicBufferHandle<DynamicStorageBuffer>;
-    using DynamicUBOHandle = registry::resource::buffer::DynamicBufferHandle<DynamicUniformBuffer>;
+    using DynamicSSBO = registry::resource::buffer::BufferHandle<DynamicStorageBuffer>;
+    using DynamicUBO = registry::resource::buffer::BufferHandle<DynamicUniformBuffer>;
 public:
     Indirect(vk::DeviceRef device, registry::resource::ResourceRegistry& resources, registry::pipeline::PipelineRegistry& pipelines);
 public:
@@ -36,13 +36,13 @@ public:
 private:
     std::array<std::uint32_t, 7> dynamic_offsets(std::uint64_t frameID) const;
 private:
-    DynamicSSBOHandle m_DrawVariables;
-    DynamicSSBOHandle m_DrawCommands;
-    DynamicSSBOHandle m_InstanceBase;
-    DynamicSSBOHandle m_InstanceCounter;
-    DynamicSSBOHandle m_InstanceIndex;
-    DynamicSSBOHandle m_InstanceInfo;
-    DynamicUBOHandle m_CameraData;
+    DynamicSSBO m_DrawVariables;
+    DynamicSSBO m_DrawCommands;
+    DynamicSSBO m_InstanceBase;
+    DynamicSSBO m_InstanceCounter;
+    DynamicSSBO m_InstanceIndex;
+    DynamicSSBO m_InstanceInfo;
+    DynamicUBO m_CameraData;
 };
 [[nodiscard]] registry::pipeline::RequestBuilder& indirect_preset(registry::pipeline::RequestBuilder& builder);
 }    // namespace odin::graphics::descriptors

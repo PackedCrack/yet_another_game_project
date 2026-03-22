@@ -17,7 +17,7 @@ namespace odin::graphics::descriptors
 class Global : public DescriptorSet<Global>
 {
     using StorageBuffer = vk::resource::StorageBuffer;
-    using SSBOHandle = registry::resource::buffer::BufferHandle<StorageBuffer>;
+    using SSBO = registry::resource::buffer::BufferHandle<StorageBuffer>;
 public:
     Global(vk::DeviceRef device, registry::resource::ResourceRegistry& resources, registry::pipeline::PipelineRegistry& pipelines);
 public:
@@ -25,8 +25,8 @@ public:
     [[nodiscard]] registry::resource::buffer::BindView view_mesh_table() const;
     [[nodiscard]] registry::resource::buffer::BindView view_material_table() const;
 private:
-    SSBOHandle m_MeshTable;
-    SSBOHandle m_MaterialTable;
+    SSBO m_MeshTable;
+    SSBO m_MaterialTable;
 };
 [[nodiscard]] registry::pipeline::RequestBuilder& global_preset(registry::pipeline::RequestBuilder& builder);
 }    // namespace odin::graphics::descriptors

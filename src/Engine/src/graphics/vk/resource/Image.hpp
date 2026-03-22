@@ -32,6 +32,9 @@ public:
     Image(Image&& other) noexcept;
     Image& operator=(const Image& other) = delete;
     Image& operator=(Image&& other) noexcept;
+public:
+    [[nodiscard]] VkFormat format() const;
+    [[nodiscard]] ImageRef handle() const;
 private:
     AllocatedImage m_Image;
     std::function<void(AllocatedImage)> m_Deleter;

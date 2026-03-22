@@ -169,7 +169,7 @@ void Renderer::bind_vertex_buffer(vk::CommandBufferRef cb, const registry::resou
 {
     using namespace vk::resource;
 
-    const VertexBuffer& vb = resourceRegistry.vertex_buffer();
+    const VertexBuffer& vb = resourceRegistry.buffer_registry().vertex_buffer();
     BufferRef vbRef = vb.handle();
     VkDeviceSize offset = 0;
     VkDeviceSize size = vb.byte_capacity();
@@ -186,7 +186,7 @@ void Renderer::bind_index_buffer(vk::CommandBufferRef cb, const registry::resour
 {
     using namespace vk::resource;
 
-    const IndexBuffer& ib = resourceRegistry.index_buffer();
+    const IndexBuffer& ib = resourceRegistry.buffer_registry().index_buffer();
     BufferRef ibRef = ib.handle();
     vkCmdBindIndexBuffer2(cb.handle, ibRef.handle, 0, VK_WHOLE_SIZE, VK_INDEX_TYPE_UINT16);
 }

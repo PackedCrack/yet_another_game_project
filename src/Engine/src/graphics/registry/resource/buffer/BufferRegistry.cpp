@@ -18,6 +18,11 @@ using namespace odin::graphics::vk::resource;
 using namespace odin::graphics::registry::resource::buffer;
 //
 //
+template<typename buffer_t>
+BufferHandle<buffer_t> make_buffer_handle(const std::shared_ptr<buffer_t>& pBuffer)
+{
+    return BufferHandle<buffer_t>(pBuffer);
+}
 void assign_debug_name(vk::DeviceRef device, BufferRef buffer, std::string_view name)
 {
     VkDebugUtilsObjectNameInfoEXT info{};
@@ -224,12 +229,16 @@ BufferRegistry::BufferRegistry(vk::DeviceRef device,
                                std::int32_t maxInstances)
     : m_pIndexBuffer{ make_index_buffer(device, pAllocator) }
     , m_pVertexBuffer{ make_vertex_buffer(device, pAllocator) }
-    , m_DynSSBO{}
-    , m_DynUBO{}
-    , m_SSBO{}
-{
-    make_buffers(device, pAllocator, frameHandler.in_flight_count(), maxDraws, maxInstances);
-}
+    , m_pMeshTable{ make_mesh_table(device, pAllocator) }
+    , m_pMaterialTable{ make_material_table(device, pAllocator) }
+    , m_pDrawVariables{ make_draw_variables_table(device, pAllocator, frameHandler.in_flight_count()) }
+    , m_pDrawCommands{ make_draw_commands_table(device, pAllocator, frameHandler.in_flight_count(), maxDraws) }
+    , m_pInstanceBase{ make_instance_base_table(device, pAllocator, frameHandler.in_flight_count(), maxDraws) }
+    , m_pInstanceCounter{ make_instance_counter_table(device, pAllocator, frameHandler.in_flight_count(), maxDraws) }
+    , m_pInstanceIndex{ make_instance_index_table(device, pAllocator, frameHandler.in_flight_count(), maxInstances) }
+    , m_pInstanceInfo{ make_instance_info_table(device, pAllocator, frameHandler.in_flight_count(), maxInstances) }
+    , m_pCameraData{ make_camera_data(device, pAllocator, frameHandler.in_flight_count()) }
+{}
 std::reference_wrapper<const vk::resource::IndexBuffer> BufferRegistry::index_buffer() const
 {
     ODIN_ASSERT(m_pIndexBuffer != nullptr);
@@ -240,43 +249,40 @@ std::reference_wrapper<const vk::resource::VertexBuffer> BufferRegistry::vertex_
     ODIN_ASSERT(m_pVertexBuffer != nullptr);
     return *m_pVertexBuffer.get();
 }
-BufferHandle<vk::resource::StorageBuffer> BufferRegistry::get_storage_buffer(std::string_view key) const
+[[nodiscard]] BufferHandle<vk::resource::StorageBuffer> BufferRegistry::mesh_table() const
 {
-    std::string k{ key };
-    ODIN_ASSERT(m_SSBO.contains(k));
-    return { m_SSBO.at(k) };
+    return make_buffer_handle<StorageBuffer>(m_pMeshTable);
 }
-DynamicBufferHandle<vk::resource::DynamicStorageBuffer> BufferRegistry::get_dynamic_storage_buffer(std::string_view key) const
+[[nodiscard]] BufferHandle<vk::resource::StorageBuffer> BufferRegistry::material_table() const
 {
-    std::string k{ key };
-    ODIN_ASSERT(m_DynSSBO.contains(k));
-    return { m_DynSSBO.at(k) };
+    return make_buffer_handle<StorageBuffer>(m_pMaterialTable);
 }
-DynamicBufferHandle<vk::resource::DynamicUniformBuffer> BufferRegistry::get_dynamic_uniform_buffer(std::string_view key) const
+[[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> BufferRegistry::draw_variables() const
 {
-    std::string k{ key };
-    ODIN_ASSERT(m_DynUBO.contains(k));
-    return { m_DynUBO.at(k) };
+    return make_buffer_handle<DynamicStorageBuffer>(m_pDrawVariables);
 }
-void BufferRegistry::make_buffers(vk::DeviceRef device,
-                                  const std::shared_ptr<vk::Allocator>& pAllocator,
-                                  std::int32_t numFramesInFlight,
-                                  std::int32_t maxDraws,
-                                  std::int32_t maxInstances)
+[[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> BufferRegistry::draw_commands() const
 {
-    m_SSBO.emplace(ResourceRegistry::SSBO_MESH_TABLE, make_mesh_table(device, pAllocator));
-    m_SSBO.emplace(ResourceRegistry::SSBO_MATERIAL_TABLE, make_material_table(device, pAllocator));
-
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_VARIABLES, make_draw_variables_table(device, pAllocator, numFramesInFlight));
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_DRAW_COMMANDS, make_draw_commands_table(device, pAllocator, numFramesInFlight, maxDraws));
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_BASE, make_instance_base_table(device, pAllocator, numFramesInFlight, maxDraws));
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_COUNTER,
-                      make_instance_counter_table(device, pAllocator, numFramesInFlight, maxDraws));
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_INDEX,
-                      make_instance_index_table(device, pAllocator, numFramesInFlight, maxInstances));
-    m_DynSSBO.emplace(ResourceRegistry::DYN_SSBO_INSTANCE_INFO,
-                      make_instance_info_table(device, pAllocator, numFramesInFlight, maxInstances));
-
-    m_DynUBO.emplace(ResourceRegistry::DYN_UBO_CAMERA_DATA, make_camera_data(device, pAllocator, numFramesInFlight));
+    return make_buffer_handle<DynamicStorageBuffer>(m_pDrawCommands);
+}
+[[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> BufferRegistry::instance_base() const
+{
+    return make_buffer_handle<DynamicStorageBuffer>(m_pInstanceBase);
+}
+[[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> BufferRegistry::instance_counter() const
+{
+    return make_buffer_handle<DynamicStorageBuffer>(m_pInstanceCounter);
+}
+[[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> BufferRegistry::instance_index() const
+{
+    return make_buffer_handle<DynamicStorageBuffer>(m_pInstanceIndex);
+}
+[[nodiscard]] BufferHandle<vk::resource::DynamicStorageBuffer> BufferRegistry::instance_info() const
+{
+    return make_buffer_handle<DynamicStorageBuffer>(m_pInstanceInfo);
+}
+[[nodiscard]] BufferHandle<vk::resource::DynamicUniformBuffer> BufferRegistry::camera_data() const
+{
+    return make_buffer_handle<DynamicUniformBuffer>(m_pCameraData);
 }
 }    // namespace odin::graphics::registry::resource::buffer

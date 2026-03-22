@@ -14,7 +14,6 @@ namespace odin::graphics::vk
 Surface::Surface(window::Window& wnd, InstanceRef instance)
     : m_Surface{ VK_NULL_HANDLE }
     , m_Instance{ instance }
-    , m_Capabilities{ std::nullopt }
 {
     auto create_surface = wnd.make_create_surface();
     m_Surface = static_cast<VkSurfaceKHR>(create_surface(m_Instance.handle));
@@ -29,7 +28,6 @@ Surface::~Surface()
 Surface::Surface(Surface&& other) noexcept
     : m_Surface{ VK_NULL_HANDLE }
     , m_Instance{ other.m_Instance }
-    , m_Capabilities{ std::move(other.m_Capabilities) }
 {
     std::swap(m_Surface, other.m_Surface);
 }
@@ -39,7 +37,6 @@ Surface& Surface::operator=(Surface&& other) noexcept
     {
         m_Surface = std::exchange(other.m_Surface, m_Surface);
         m_Instance = std::exchange(other.m_Instance, m_Instance);
-        m_Capabilities = std::exchange(other.m_Capabilities, std::move(m_Capabilities));
     }
 
     return *this;
@@ -100,18 +97,14 @@ VkExtent2D Surface::current_extent(PhysicalDeviceRef physicalDevice)
     const VkSurfaceCapabilitiesKHR& capabilities = get_surface_capabilities(physicalDevice);
     return capabilities.currentExtent;
 }
-const VkSurfaceCapabilitiesKHR& Surface::get_surface_capabilities(PhysicalDeviceRef physicalDevice)
+VkSurfaceCapabilitiesKHR Surface::get_surface_capabilities(PhysicalDeviceRef physicalDevice)
 {
     ODIN_ASSERT(m_Surface != VK_NULL_HANDLE);
-    if (m_Capabilities)
-    {
-        return m_Capabilities.value();
-    }
 
-    m_Capabilities = std::make_optional<VkSurfaceCapabilitiesKHR>();
-    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.handle, m_Surface, std::addressof(m_Capabilities.value())),
+    VkSurfaceCapabilitiesKHR capabilities{};
+    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.handle, m_Surface, std::addressof(capabilities)),
              "Failed to get Vulkan Surface Capabilities");
 
-    return m_Capabilities.value();
+    return capabilities;
 }
 }    // namespace odin::graphics::vk

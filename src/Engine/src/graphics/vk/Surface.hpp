@@ -36,10 +36,9 @@ public:
     [[nodiscard]] VkSurfaceTransformFlagBitsKHR current_transform(PhysicalDeviceRef physicalDevice);
     [[nodiscard]] VkExtent2D current_extent(PhysicalDeviceRef physicalDevice);
 private:
-    [[nodiscard]] const VkSurfaceCapabilitiesKHR& get_surface_capabilities(PhysicalDeviceRef physicalDevice);
+    [[nodiscard]] VkSurfaceCapabilitiesKHR get_surface_capabilities(PhysicalDeviceRef physicalDevice);
 private:
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
     InstanceRef m_Instance;
-    std::optional<VkSurfaceCapabilitiesKHR> m_Capabilities;
 };
 }    // namespace odin::graphics::vk

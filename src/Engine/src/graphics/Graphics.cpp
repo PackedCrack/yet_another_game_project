@@ -186,7 +186,7 @@ public:
         transfer.ownerQ = graphicsQ;
         transfer.pSrcBuffer = std::make_unique<StagingBuffer>(m_Context.allocator()->to_staging_buffer(instanceInfos));
 
-        auto instanceInfo = m_ResourceRegistry.dynamic_storage_buffer(ResourceRegistry::DYN_SSBO_INSTANCE_INFO);
+        auto instanceInfo = m_ResourceRegistry.buffer_registry().instance_info();
         transfer.dstBuffer = instanceInfo->handle();
         transfer.dstOffset = instanceInfo->offset(frame.frame);
         transfer.size = instanceInfos.size() * sizeof(decltype(instanceInfos)::value_type);

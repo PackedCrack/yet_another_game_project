@@ -1,5 +1,6 @@
 add_subdirectory("shader")
 add_subdirectory("buffer")
+add_subdirectory("image")
 
 SET(SOURCES
 	ResourceRegistry.hpp

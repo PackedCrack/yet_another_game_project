@@ -167,7 +167,6 @@ struct PipelineKeyHasher : public common::SplitMix64<PipelineKeyHasher>
         hash ^= splitmix64(static_cast<std::uint64_t>(key.polygon.value_or(VK_POLYGON_MODE_MAX_ENUM)));
         hash ^= splitmix64(static_cast<std::uint64_t>(key.samples.value_or(VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM)));
 
-        LOG_INFO("Created pipeline hash: 0x{:X}", hash);
         return hash;
     }
 };
