@@ -43,6 +43,9 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/external/shaderc/third_party/spirv-tools/CM
                     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/external/shaderc/utils")
 endif()
 
+
+
+
 set(SHADERC_ENABLE_SHARED_CRT       ON CACHE BOOL "" FORCE)
 set(SHADERC_SKIP_COPYRIGHT_CHECK    ON CACHE BOOL "" FORCE)
 set(SHADERC_SKIP_TESTS              ON CACHE BOOL "" FORCE)
@@ -51,12 +54,15 @@ set(SHADERC_SKIP_EXECUTABLES        ON CACHE BOOL "" FORCE)
 set(SHADERC_SKIP_INSTALL            ON CACHE BOOL "" FORCE)
 set(BUILD_EXTERNAL                  OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK                     OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS               OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING                   OFF CACHE BOOL "" FORCE)
 set(ENABLE_GLSLANG_BINARIES         OFF CACHE BOOL "" FORCE)
 set(ENABLE_GLSLANG_INSTALL          OFF CACHE BOOL "" FORCE)
 set(ENABLE_OPT                      ON CACHE BOOL "" FORCE)
 set(INSTALL_GTEST                   OFF CACHE BOOL "" FORCE)
 set(GLSLANG_TESTS                   OFF CACHE BOOL "" FORCE)
+set(SPIRV_TOOLS_LIBRARY_TYPE STATIC CACHE STRING "" FORCE)
+set(SPIRV_TOOLS_BUILD_STATIC        ON CACHE BOOL "" FORCE)
 set(SPIRV_SKIP_TESTS                ON CACHE BOOL "" FORCE)
 set(SPIRV_SKIP_EXECUTABLES          ON CACHE BOOL "" FORCE)
 set(SPIRV_HEADERS_ENABLE_INSTALL    OFF CACHE BOOL "" FORCE)
@@ -68,5 +74,17 @@ set_target_properties(add-copyright build-version core_tables extinst_tables PRO
 set_target_properties(spirv-tools-check-python-types spirv-tools-check-python-tests spirv-tools-vimsyntax SPIRV-Tools-diff SPIRV-Tools-link SPIRV-Tools-lint SPIRV-Tools-opt SPIRV-Tools-reduce SPIRV-Tools-shared SPIRV-Tools-static PROPERTIES FOLDER "_external_SPIR-V")
 set_target_properties(spirv-tools-pkg-config spirv-tools-tables spirv-tools-build-version spirv-tools-header-DebugInfo spirv-tools-header-NonSemanticShaderDebugInfo100 spirv-tools-header-OpenCLDebugInfo100 PROPERTIES FOLDER "_external_SPIR-V")
 set_target_properties(GenericCodeGen glslang glslang-default-resource-limits MachineIndependent OSDependent SPIRV SPVRemapper glslc PROPERTIES FOLDER "_external_glslang")
+
+
+add_subdirectory(external/freetype)
+
+if(TARGET freetype AND NOT TARGET Freetype::Freetype)
+    add_library(Freetype::Freetype ALIAS freetype)
+endif()
+
+
+set(BUILD_SHARED_LIBS      OFF CACHE BOOL "" FORCE)
+add_subdirectory("external/rmlui")
+
 
 add_subdirectory("src")

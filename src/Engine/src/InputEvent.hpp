@@ -134,15 +134,15 @@ enum class KeyModifier
     rightShift = 0x2,
     leftCtrl = 0x40,
     rightCtrl = 0x80,
-    leftAlt = 0x1'00,
-    rightAlt = 0x2'00,
-    leftGui = 0x4'00,
-    rightGui = 0x8'00,
+    leftAlt = 0x01'00,
+    rightAlt = 0x02'00,
+    leftGui = 0x04'00,
+    rightGui = 0x08'00,
     altGr = 0x40'00,
     ctrl = 0x40 | 0x80,
     shift = 0x1 | 0x2,
-    alt = 0x1'00 | 0x2'00,
-    gui = 0x4'00 | 0x8'00
+    alt = 0x01'00 | 0x02'00,
+    gui = 0x04'00 | 0x08'00
 };
 enum class MouseButton
 {
