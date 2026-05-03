@@ -19,3 +19,9 @@
 [submodule "external/shaderc"]
 	path = external/shaderc
 	url = https://github.com/google/shaderc
+[submodule "external/rmlui"]
+	path = external/rmlui
+	url = https://github.com/mikke89/RmlUi
+[submodule "external/freetype"]
+	path = external/freetype
+	url = https://github.com/freetype/freetype
