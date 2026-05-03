@@ -57,6 +57,9 @@ target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/exter
 find_package(Vulkan REQUIRED)
 target_include_directories(${ENGINE_TARGET} PRIVATE "$ENV{VULKAN_SDK}/include/")
 
+add_dependencies(${ENGINE_TARGET} RmlUi::RmlUi)
+target_link_libraries(${ENGINE_TARGET} PRIVATE RmlUi::RmlUi)
+target_include_directories(${ENGINE_TARGET} PRIVATE "${PROJECT_SOURCE_DIR}/external/rmlui/include")
 
 set_target_properties(${ENGINE_TARGET} PROPERTIES FOLDER "Engine")
 set_target_properties("${ENGINE_TARGET}_cppcheck_dependency" PROPERTIES FOLDER "Build Dependencies")

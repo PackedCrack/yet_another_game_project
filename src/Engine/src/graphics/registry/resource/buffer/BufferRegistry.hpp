@@ -50,9 +50,5 @@ private:
     std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pInstanceIndex;
     std::shared_ptr<vk::resource::DynamicStorageBuffer> m_pInstanceInfo;
     std::shared_ptr<vk::resource::DynamicUniformBuffer> m_pCameraData;
-
-    std::unordered_map<std::string, std::shared_ptr<vk::resource::DynamicStorageBuffer>> m_DynSSBO;
-    std::unordered_map<std::string, std::shared_ptr<vk::resource::DynamicUniformBuffer>> m_DynUBO;
-    std::unordered_map<std::string, std::shared_ptr<vk::resource::StorageBuffer>> m_SSBO;
 };
 }    // namespace odin::graphics::registry::resource::buffer
