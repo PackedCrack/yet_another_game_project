@@ -32,7 +32,7 @@ std::optional<ColorAttachment> Presenter::acquire_color_attachment(vk::synchroni
         return rebuild_and_acquire(imageAvailable);
     }
 }
-bool Presenter::present(const vk::QueueView& present, vk::synchronization::SemaphoreRef graphicsFinished)
+bool Presenter::present(const vk::QueueView& presentQ, vk::synchronization::SemaphoreRef graphicsFinished)
 {
     ODIN_ASSERT(m_ColorAttachment);
 
@@ -46,7 +46,7 @@ bool Presenter::present(const vk::QueueView& present, vk::synchronization::Semap
                               .pImageIndices = std::addressof(m_ColorAttachment->index),
                               .pResults = nullptr };
 
-    if (VkResult result = vkQueuePresentKHR(present.handle, std::addressof(info)); result != VK_SUCCESS)
+    if (VkResult result = vkQueuePresentKHR(presentQ.handle, std::addressof(info)); result != VK_SUCCESS)
     {
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
         {

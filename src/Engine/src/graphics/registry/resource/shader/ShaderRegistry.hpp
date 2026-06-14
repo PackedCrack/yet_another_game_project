@@ -26,7 +26,6 @@ private:
     [[nodiscard]] std::shared_ptr<ShaderSlot> create_slot(const std::filesystem::path& shaderSource);
     [[nodiscard]] std::shared_ptr<ShaderSlot> slot(const std::filesystem::path& shaderSource);
     [[nodiscard]] std::shared_ptr<const vk::resource::ShaderModule> load_shader(const std::filesystem::path& shaderSource);
-    [[nodiscard]] bool is_outdated(const std::shared_ptr<ShaderSlot>& pSlot);
     [[nodiscard]] std::function<void()> make_hot_reload_cb(std::shared_ptr<ShaderSlot> pSlot, std::filesystem::path shaderSource);
     void refresh_slot(std::shared_ptr<ShaderSlot>& pSlot, const std::filesystem::path& shaderSource);
     void load_and_store_shader(std::shared_ptr<ShaderSlot>& pSlot, const std::filesystem::path& shaderSource);

@@ -40,6 +40,13 @@ void store_shader(std::shared_ptr<ShaderSlot>& pSlot,
     pSlot->hash = pShader->hash();
     std::atomic_store(std::addressof(pSlot->pResource), std::move(pShader));
 }
+[[nodiscard]] bool is_outdated(const std::shared_ptr<ShaderSlot>& pSlot)
+{
+    using ShaderModule = vk::resource::ShaderModule;
+
+    std::filesystem::file_time_type currentTime = std::filesystem::last_write_time(pSlot->sourceFile);
+    return pSlot->lastWrite != currentTime;
+}
 }    // namespace
 namespace odin::graphics::registry::resource::shader
 {
@@ -116,13 +123,6 @@ std::shared_ptr<const vk::resource::ShaderModule> ShaderRegistry::load_shader(co
     }
 
     LOG_FATAL("Unable to find shader file: {}", spirv.string().c_str());
-}
-bool ShaderRegistry::is_outdated(const std::shared_ptr<ShaderSlot>& pSlot)
-{
-    using ShaderModule = vk::resource::ShaderModule;
-
-    std::filesystem::file_time_type currentTime = std::filesystem::last_write_time(pSlot->sourceFile);
-    return pSlot->lastWrite != currentTime;
 }
 std::function<void()> ShaderRegistry::make_hot_reload_cb(std::shared_ptr<ShaderSlot> pSlot, std::filesystem::path shaderSource)
 {

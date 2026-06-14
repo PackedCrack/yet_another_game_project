@@ -71,7 +71,7 @@ void compose(const odin::component::WorldTRS& pw, const odin::component::LocalTR
         const odin::component::WorldTRS& parentWorld = odin::get_components<odin::component::WorldTRS>(*parent);
         if (shouldUpdate)
         {
-            odin::component::LocalTRS& local = odin::get_components<odin::component::LocalTRS>(entity);
+            const odin::component::LocalTRS& local = odin::get_components<odin::component::LocalTRS>(entity);
             compose(parentWorld, local, world);
         }
     }

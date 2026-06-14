@@ -114,6 +114,12 @@ using namespace odin::graphics::vk;
 
     return allocator;
 }
+[[nodiscard]] VkDeviceSize make_aligned(VkDeviceSize size, VkDeviceSize alignment)
+{
+    // Black magic
+    // https://stackoverflow.com/questions/45213511/formula-for-memory-alignment
+    return ((size + (alignment - 1)) & ~(alignment - 1));
+}
 }    // namespace
 namespace odin::graphics::vk
 {
@@ -276,12 +282,6 @@ private:
         void* pData = nullptr;
         VK_CHECK(vmaMapMemory(m_Allocator, allocation, std::addressof(pData)), "Failed to obtain pointer to mapped memory.");
         return pData;
-    }
-    VkDeviceSize make_aligned(VkDeviceSize size, VkDeviceSize alignment) const
-    {
-        // Black magic
-        // https://stackoverflow.com/questions/45213511/formula-for-memory-alignment
-        return ((size + (alignment - 1)) & ~(alignment - 1));
     }
     VkDeviceSize make_uniform_aligned(VkDeviceSize size) const
     {

@@ -119,6 +119,8 @@ constexpr const char* err_to_str(VkResult error)
         return "VK_ERROR_NOT_ENOUGH_SPACE_KHR";
     case VK_RESULT_MAX_ENUM:
         return "VK_RESULT_MAX_ENUM";
+    case VK_ERROR_PRESENT_TIMING_QUEUE_FULL_EXT:
+        return "VK_ERROR_PRESENT_TIMING_QUEUE_FULL_EXT";
     default:
         auto code = static_cast<std::uint32_t>(error);
         static std::string unknownError = std::format("Unknown error: {}", code);

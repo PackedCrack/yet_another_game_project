@@ -6,3 +6,6 @@ unusedFunction
 unreadVariable
 preprocessorErrorDirective
 noExplicitConstructor
+uninitMemberVarNoCtor
+selfAssignment
+functionStatic
